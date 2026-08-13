@@ -707,6 +707,160 @@ const ENEMY_DEFS = [
   { id:'necro',    hp:100, speed:0.6, reward:35,  color:'#22aa44', size:12, xp:3 },  // 8 - revives dead enemies nearby
 ];
 
+// ===== WORLD THEMES =====
+const WORLD_THEMES = [
+  // 1. Greenwood (default, current look)
+  {
+    name: 'Greenwood',
+    bgBase: '#2a3d22',
+    groundTones: ['#31452a','#2d4126','#354a2c','#293a20','#3a5031','#2f4527'],
+    sunlightColor: 'rgba(196,205,120,0.07)',
+    dirtBase: '#6b5138',
+    dirtTones: ['#6b5138','#75593c','#5f4830','#7d6244','#685036'],
+    turfTones: ['#4a6238','#3d5530'],
+    decorGrass: ['#2c4423','#3d5a2f'],
+    flowerColors: ['#d8d055','#d8828f','#e8e0e5'],
+    rockColor: '#7d7f82', rockHighlight: '#9a9c9e',
+    vignetteColor: 'rgba(8,12,6,0.4)',
+    castleStone: '#8b9096', castleStoneDark: '#7d8288', castleStoneLight: '#6e7378',
+    castleRoof: ['#8f4a42','#a35a50','#5e2f2a'],
+    castleDoor: ['#5e4426','#43301a'],
+    flagColor: ['#c23a30','#8f2820'],
+  },
+  // 2. Scorched Desert
+  {
+    name: 'Scorched Desert',
+    bgBase: '#c2a24d',
+    groundTones: ['#cba94f','#b8963e','#d4b85c','#a88b35','#dcc56a','#bfa043'],
+    sunlightColor: 'rgba(255,220,140,0.09)',
+    dirtBase: '#8b6e3a',
+    dirtTones: ['#8b6e3a','#9a7d44','#7a5f2e','#a4894e','#806830'],
+    turfTones: ['#9e8a5a','#8d7a4c'],
+    decorGrass: ['#7a6b30','#968245'],
+    flowerColors: ['#e8a030','#d45030','#f0c050'],
+    rockColor: '#9a7a55', rockHighlight: '#b89a70',
+    vignetteColor: 'rgba(60,30,5,0.35)',
+    castleStone: '#c4a870', castleStoneDark: '#b09560', castleStoneLight: '#a08550',
+    castleRoof: ['#c47028','#d88838','#8a4818'],
+    castleDoor: ['#6e4820','#4a3010'],
+    flagColor: ['#d4a020','#a07818'],
+  },
+  // 3. Frozen Tundra
+  {
+    name: 'Frozen Tundra',
+    bgBase: '#b8ccd8',
+    groundTones: ['#c0d4de','#a8bcc8','#d0e0e8','#9ab0be','#c8d8e2','#b0c4d0'],
+    sunlightColor: 'rgba(200,220,255,0.08)',
+    dirtBase: '#8aa0b0',
+    dirtTones: ['#8aa0b0','#94aab8','#7e96a6','#9eb4c2','#849cac'],
+    turfTones: ['#98b8c8','#88a8b8'],
+    decorGrass: ['#6890a0','#80a8b8'],
+    flowerColors: ['#d0e8ff','#a0c8e8','#e8f0ff'],
+    rockColor: '#90a8b8', rockHighlight: '#b0c8d8',
+    vignetteColor: 'rgba(20,30,50,0.3)',
+    castleStone: '#a8bcc8', castleStoneDark: '#94aab8', castleStoneLight: '#8098a8',
+    castleRoof: ['#4a6a80','#5a7a90','#3a5068'],
+    castleDoor: ['#4a6070','#344858'],
+    flagColor: ['#4a90c0','#3470a0'],
+  },
+  // 4. Volcanic Hellscape
+  {
+    name: 'Volcanic Hellscape',
+    bgBase: '#1a0a08',
+    groundTones: ['#221008','#2a1410','#1e0c06','#301818','#18080a','#261210'],
+    sunlightColor: 'rgba(255,80,20,0.06)',
+    dirtBase: '#3a1a10',
+    dirtTones: ['#3a1a10','#442018','#30140c','#4a2820','#361812'],
+    turfTones: ['#4a2018','#3a1810'],
+    decorGrass: ['#2a1208','#3a1a10'],
+    flowerColors: ['#ff4420','#ff8030','#ffb020'],
+    rockColor: '#2a2028', rockHighlight: '#3a3038',
+    vignetteColor: 'rgba(10,0,0,0.5)',
+    castleStone: '#3a2828', castleStoneDark: '#2e2020', castleStoneLight: '#221818',
+    castleRoof: ['#601010','#802018','#400808'],
+    castleDoor: ['#301010','#200808'],
+    flagColor: ['#ff3010','#cc2008'],
+  },
+  // 5. Enchanted Grove
+  {
+    name: 'Enchanted Grove',
+    bgBase: '#1a2838',
+    groundTones: ['#1e2e40','#1a2a3a','#222e44','#162638','#243248','#1c2c3e'],
+    sunlightColor: 'rgba(160,120,255,0.08)',
+    dirtBase: '#3a2850',
+    dirtTones: ['#3a2850','#443060','#302048','#4a3868','#362652'],
+    turfTones: ['#305868','#28485a'],
+    decorGrass: ['#204050','#306068'],
+    flowerColors: ['#c080ff','#60e0d0','#ff80d0'],
+    rockColor: '#4a3868', rockHighlight: '#6a58a0',
+    vignetteColor: 'rgba(10,5,30,0.4)',
+    castleStone: '#5a4878', castleStoneDark: '#4a3868', castleStoneLight: '#3a2858',
+    castleRoof: ['#6030a0','#7840b0','#481888'],
+    castleDoor: ['#3a2060','#281048'],
+    flagColor: ['#a040e0','#7830b0'],
+  },
+  // 6. Deep Space
+  {
+    name: 'Deep Space',
+    bgBase: '#08081a',
+    groundTones: ['#0c0c20','#0a0a1c','#0e0e24','#080818','#101028','#0c0c1e'],
+    sunlightColor: 'rgba(100,140,255,0.05)',
+    dirtBase: '#303040',
+    dirtTones: ['#303040','#383848','#282838','#404050','#343444'],
+    turfTones: ['#282848','#202040'],
+    decorGrass: ['#181838','#202848'],
+    flowerColors: ['#40a0ff','#80ff80','#ff6080'],
+    rockColor: '#404058', rockHighlight: '#585870',
+    vignetteColor: 'rgba(0,0,10,0.5)',
+    castleStone: '#484858', castleStoneDark: '#383848', castleStoneLight: '#303040',
+    castleRoof: ['#2a3050','#344060','#1e2440'],
+    castleDoor: ['#282838','#1a1a28'],
+    flagColor: ['#4060c0','#3050a0'],
+  },
+  // 7. Ocean Depths
+  {
+    name: 'Ocean Depths',
+    bgBase: '#0a2830',
+    groundTones: ['#0e3038','#0c2c34','#12343c','#0a282e','#143840','#0e2e36'],
+    sunlightColor: 'rgba(80,200,220,0.06)',
+    dirtBase: '#2a5050',
+    dirtTones: ['#2a5050','#305858','#244848','#366060','#2c5454'],
+    turfTones: ['#1a4848','#143c3c'],
+    decorGrass: ['#104040','#185050'],
+    flowerColors: ['#ff6060','#ff9040','#40e0c0'],
+    rockColor: '#305058', rockHighlight: '#406870',
+    vignetteColor: 'rgba(0,10,20,0.5)',
+    castleStone: '#3a5860', castleStoneDark: '#2e4c54', castleStoneLight: '#244048',
+    castleRoof: ['#1a5050','#206060','#143838'],
+    castleDoor: ['#1a3838','#102828'],
+    flagColor: ['#20a0a0','#188080'],
+  },
+  // 8. Shadow Realm
+  {
+    name: 'Shadow Realm',
+    bgBase: '#0a0a0c',
+    groundTones: ['#0e0e10','#0c0c0e','#101014','#0a0a0c','#121216','#0e0e12'],
+    sunlightColor: 'rgba(40,255,80,0.04)',
+    dirtBase: '#1a1a20',
+    dirtTones: ['#1a1a20','#1e1e26','#16161c','#22222a','#1c1c22'],
+    turfTones: ['#182818','#102010'],
+    decorGrass: ['#0a1a0a','#102810'],
+    flowerColors: ['#30ff50','#40ff90','#80ffa0'],
+    rockColor: '#282830', rockHighlight: '#383840',
+    vignetteColor: 'rgba(0,0,0,0.6)',
+    castleStone: '#282830', castleStoneDark: '#1e1e26', castleStoneLight: '#16161c',
+    castleRoof: ['#1a2a1a','#203020','#101810'],
+    castleDoor: ['#141a14','#0a100a'],
+    flagColor: ['#20c040','#189030'],
+  },
+];
+
+function getWorldTheme() {
+  const w = (game ? game.world : 1);
+  const idx = ((w - 1) % WORLD_THEMES.length);
+  return WORLD_THEMES[idx];
+}
+
 // Pristine defaults, captured before any admin-panel overrides are applied (used by "Reset to Defaults")
 const DEFAULT_DIFFICULTY = JSON.parse(JSON.stringify(DIFFICULTY));
 const DEFAULT_TOWERS = TOWER_TYPES.map(t => ({ id: t.id, cost: t.cost, range: t.range, rate: t.rate, dmg: t.dmg, ammo: t.ammo, reload: t.reload }));
@@ -923,22 +1077,22 @@ function getWave(n) {
   else if (n === 2) { fill(7, 0, 0.6, 0); }
   else if (n === 3) { fill(4, 0, 0.6, 0); fill(3, 1, 0.4, 3); }
   else if (n === 4) { fill(3, 0, 0.6, 0); fill(8, 4, 0.3, 2); fill(2, 1, 0.5, 5); }
-  else if (n === 5) { fill(6, 0, 0.5, 0); fill(3, 1, 0.4, 3.5); spawn(3, 5); }
-  else if (n === 6) { fill(6, 6, 0.35, 0); fill(4, 0, 0.5, 2.5); }
-  else if (n === 7) { fill(4, 7, 0.8, 0); fill(5, 0, 0.5, 3.5); }
-  else if (n === 8) { fill(3, 7, 0.7, 0); fill(4, 6, 0.4, 2); fill(4, 1, 0.35, 4); fill(3, 0, 0.5, 5.5); }
-  else if (n === 9) { fill(2, 5, 1.5, 0); fill(6, 2, 0.6, 1); fill(3, 0, 0.5, 5); }
-  else if (n === 10) { fill(5, 0, 0.4, 0); fill(3, 7, 0.6, 2); spawn(3, 4); fill(4, 1, 0.3, 5); spawn(3, 7); }
+  else if (n === 5) { fill(6, 0, 0.5, 0); fill(3, 1, 0.4, 3.5); spawn(3, 5); spawn(3, 6.5); }
+  else if (n === 6) { fill(6, 6, 0.35, 0); fill(4, 0, 0.5, 2.5); spawn(3, 4); }
+  else if (n === 7) { fill(4, 7, 0.8, 0); fill(5, 0, 0.5, 3.5); spawn(3, 2); spawn(3, 5); }
+  else if (n === 8) { fill(3, 7, 0.7, 0); fill(4, 6, 0.4, 2); fill(4, 1, 0.35, 4); spawn(3, 5.5); spawn(3, 6.5); }
+  else if (n === 9) { fill(2, 5, 1.5, 0); fill(6, 2, 0.6, 1); spawn(3, 3); spawn(3, 5); spawn(3, 7); }
+  else if (n === 10) { fill(5, 0, 0.4, 0); fill(3, 7, 0.6, 2); spawn(3, 3); spawn(3, 4); spawn(3, 5); fill(4, 1, 0.3, 5.5); spawn(3, 7); spawn(3, 8); }
   else if (n === 11) { spawn(8, 0); fill(8, 0, 0.4, 1); fill(4, 4, 0.25, 4.5); }
   else if (n === 12) { fill(12, 1, 0.25, 0); fill(6, 6, 0.3, 3.5); }
   else if (n === 13) { fill(6, 2, 0.8, 0); fill(3, 7, 0.7, 5); fill(2, 5, 1, 7); }
   else if (n === 14) { fill(20, 4, 0.15, 0); fill(5, 1, 0.3, 3.5); }
-  else if (n === 15) { fill(4, 7, 0.5, 0); spawn(3, 2.5); fill(3, 5, 0.8, 3); spawn(3, 5.5); fill(6, 0, 0.3, 6); spawn(3, 8.5); }
+  else if (n === 15) { fill(4, 7, 0.5, 0); spawn(3, 1.5); spawn(3, 2.5); fill(3, 5, 0.8, 3); spawn(3, 4.5); spawn(3, 5.5); fill(6, 0, 0.3, 6); spawn(3, 7.5); spawn(3, 8.5); }
   else if (n === 16) { fill(4, 5, 0.6, 0); fill(6, 2, 0.5, 2.5); fill(3, 7, 0.6, 5.5); }
   else if (n === 17) { fill(15, 6, 0.2, 0); fill(4, 0, 0.5, 3.5); }
   else if (n === 18) { fill(2, 8, 1.5, 0); fill(6, 7, 0.5, 1); fill(5, 0, 0.4, 4.5); }
   else if (n === 19) { fill(3, 0, 0.4, 0); fill(3, 1, 0.35, 1.5); fill(3, 2, 0.6, 3); fill(3, 6, 0.3, 4.5); fill(2, 5, 0.8, 5.5); fill(2, 7, 0.7, 6.5); spawn(8, 8); }
-  else if (n === 20) { fill(6, 0, 0.3, 0); fill(4, 1, 0.3, 2); fill(3, 2, 0.5, 3.5); spawn(3, 5); spawn(3, 5.5); spawn(3, 6); spawn(3, 6.5); spawn(3, 7); fill(2, 8, 1, 8); fill(3, 5, 0.5, 9); }
+  else if (n === 20) { fill(6, 0, 0.3, 0); fill(4, 1, 0.3, 2); fill(3, 2, 0.5, 3.5); for (let i = 0; i < 8; i++) spawn(3, 4.5 + i * 0.5); fill(2, 8, 1, 9); fill(3, 5, 0.5, 10); }
   else if (n === 21) { fill(25, 1, 0.12, 0); fill(8, 4, 0.2, 3.5); }
   else if (n === 22) { fill(5, 5, 0.6, 0); fill(8, 7, 0.4, 3); }
   else if (n === 23) { fill(10, 2, 0.5, 0); fill(2, 5, 1, 5.5); }
@@ -963,12 +1117,12 @@ function getWave(n) {
     const count = base + Math.floor(n * 0.8);
     for (let i = 0; i < count; i++) {
       const r = Math.random();
-      const t = r < 0.1 ? 8 : (r < 0.18 ? 3 : (r < 0.28 ? 2 : (r < 0.38 ? 5 : (r < 0.48 ? 6 : (r < 0.58 ? 7 : (r < 0.75 ? 1 : 0))))));
+      const t = r < 0.12 ? 8 : (r < 0.28 ? 3 : (r < 0.38 ? 2 : (r < 0.48 ? 5 : (r < 0.56 ? 6 : (r < 0.64 ? 7 : (r < 0.8 ? 1 : 0))))));
       spawn(t, i * Math.max(0.1, 0.35 - n * 0.005));
     }
-    if (n % 3 === 0) {
-      const bossCount = Math.floor(n / 5);
-      for (let i = 0; i < bossCount; i++) spawn(3, count * 0.3 + i * 1);
+    if (n % 2 === 0) {
+      const bossCount = Math.floor(n / 3);
+      for (let i = 0; i < bossCount; i++) spawn(3, count * 0.2 + i * 0.8);
     }
   }
   const upgrades = (typeof game !== 'undefined' && game && game.upgradesSpent) || 0;
@@ -989,7 +1143,7 @@ function getWave(n) {
     const worldExtra = Math.round((world - 1) * DIFFICULTY.worldExtraEnemies);
     for (let i = 0; i < worldExtra; i++) {
       const r = Math.random();
-      const t = r < 0.35 ? 0 : (r < 0.55 ? 1 : (r < 0.7 ? 4 : (r < 0.85 ? 2 : (r < 0.95 ? 7 : 3))));
+      const t = r < 0.25 ? 0 : (r < 0.4 ? 1 : (r < 0.5 ? 4 : (r < 0.65 ? 2 : (r < 0.75 ? 7 : 3))));
       spawn(t, maxDelay2 + 0.3 + i * 0.2);
     }
   }
@@ -1044,6 +1198,8 @@ function startGame(resume) {
   game.betweenWaves = false;
   game.waveActive = false;
   document.getElementById('overlay').style.display = 'none';
+  document.body.style.background = getWorldTheme().bgBase;
+  groundCache = null;
   document.getElementById('send-wave-btn').style.display = 'block';
   document.getElementById('hint').style.display = 'block';
   const awBtn = document.getElementById('auto-wave-btn');
@@ -1312,15 +1468,16 @@ function mulberry32(a) {
 
 function buildGroundCache() {
   const activePaths = game ? game.activePaths : getActivePaths(1);
+  const theme = getWorldTheme();
   const oc = document.createElement('canvas');
   oc.width = COLS * TILE; oc.height = ROWS * TILE;
   const g = oc.getContext('2d');
   const rnd = mulberry32(1337);
 
   // 1. Base grass: layered organic color blobs, not tile-aligned
-  g.fillStyle = '#2a3d22';
+  g.fillStyle = theme.bgBase;
   g.fillRect(0, 0, oc.width, oc.height);
-  const grassTones = ['#31452a', '#2d4126', '#354a2c', '#293a20', '#3a5031', '#2f4527'];
+  const grassTones = theme.groundTones;
   for (let i = 0; i < 900; i++) {
     const x = rnd() * oc.width, y = rnd() * oc.height;
     const r = 14 + rnd() * 42;
@@ -1336,8 +1493,8 @@ function buildGroundCache() {
   for (let i = 0; i < 22; i++) {
     const x = rnd() * oc.width, y = rnd() * oc.height, r = 50 + rnd() * 110;
     const grad = g.createRadialGradient(x, y, 0, x, y, r);
-    grad.addColorStop(0, 'rgba(196,205,120,0.07)');
-    grad.addColorStop(1, 'rgba(196,205,120,0)');
+    grad.addColorStop(0, theme.sunlightColor);
+    grad.addColorStop(1, theme.sunlightColor.replace(/[\d.]+\)$/, '0)'));
     g.fillStyle = grad;
     g.fillRect(x - r, y - r, r * 2, r * 2);
   }
@@ -1345,11 +1502,11 @@ function buildGroundCache() {
   // 3. Dirt paths: base fill + irregular organic edges + wear
   const pathTiles = new Set();
   for (const p of activePaths) for (const [x, y] of p.tiles) pathTiles.add(x + ',' + y);
-  const dirtTones = ['#6b5138', '#75593c', '#5f4830', '#7d6244', '#685036'];
+  const dirtTones = theme.dirtTones;
   for (const p of activePaths) {
     // base dirt per tile
     for (const [x, y] of p.tiles) {
-      g.fillStyle = '#6b5138';
+      g.fillStyle = theme.dirtBase;
       g.fillRect(x * TILE, y * TILE, TILE, TILE);
     }
     // organic irregular blobs across the path to kill the grid look
@@ -1402,7 +1559,7 @@ function buildGroundCache() {
     const x = rnd() * oc.width, y = rnd() * oc.height;
     const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
     if (pathTiles.has(tx + ',' + ty) || isCastle(tx, ty)) continue;
-    g.strokeStyle = rnd() < 0.5 ? '#4a6238' : '#3d5530';
+    g.strokeStyle = rnd() < 0.5 ? theme.turfTones[0] : theme.turfTones[1];
     g.lineWidth = 1;
     g.globalAlpha = 0.6 + rnd() * 0.4;
     const h = 3 + rnd() * 5, lean = (rnd() - 0.5) * 3;
@@ -1423,16 +1580,16 @@ function buildGroundCache() {
       const r = 3 + rnd() * 5;
       g.fillStyle = 'rgba(0,0,0,0.3)';
       g.beginPath(); g.ellipse(x + 1, y + r * 0.5, r, r * 0.4, 0, 0, 7); g.fill();
-      g.fillStyle = '#7d7f82';
+      g.fillStyle = theme.rockColor;
       g.beginPath(); g.ellipse(x, y, r, r * 0.75, rnd() * 0.6, 0, 7); g.fill();
-      g.fillStyle = '#9a9c9e';
+      g.fillStyle = theme.rockHighlight;
       g.beginPath(); g.ellipse(x - r * 0.3, y - r * 0.3, r * 0.4, r * 0.25, 0, 0, 7); g.fill();
       g.strokeStyle = '#4a4d50'; g.lineWidth = 1;
       g.beginPath(); g.ellipse(x, y, r, r * 0.75, rnd() * 0.6, 0, 7); g.stroke();
     } else if (kind < 0.7) { // flowers cluster
       for (let f = 0; f < 3 + rnd() * 3; f++) {
         const fx = x + (rnd() - 0.5) * 14, fy = y + (rnd() - 0.5) * 10;
-        g.fillStyle = ['#d8d055', '#d8828f', '#e8e0e5'][Math.floor(rnd() * 3)];
+        g.fillStyle = theme.flowerColors[Math.floor(rnd() * 3)];
         for (let pt = 0; pt < 4; pt++) {
           const a = pt / 4 * Math.PI * 2;
           g.beginPath(); g.arc(fx + Math.cos(a) * 1.6, fy + Math.sin(a) * 1.6, 1.3, 0, 7); g.fill();
@@ -1444,11 +1601,11 @@ function buildGroundCache() {
       const r = 6 + rnd() * 6;
       g.fillStyle = 'rgba(0,0,0,0.3)';
       g.beginPath(); g.ellipse(x + 1, y + r * 0.6, r, r * 0.35, 0, 0, 7); g.fill();
-      g.fillStyle = '#2c4423';
+      g.fillStyle = theme.decorGrass[0];
       g.beginPath();
       g.arc(x, y, r * 0.7, 0, 7); g.arc(x - r * 0.5, y + r * 0.2, r * 0.5, 0, 7); g.arc(x + r * 0.5, y + r * 0.2, r * 0.55, 0, 7);
       g.fill();
-      g.fillStyle = '#3d5a2f';
+      g.fillStyle = theme.decorGrass[1];
       g.beginPath(); g.arc(x - r * 0.2, y - r * 0.25, r * 0.45, 0, 7); g.fill();
     }
   }
@@ -1456,16 +1613,72 @@ function buildGroundCache() {
   // 6. Soft vignette for depth
   const vg = g.createRadialGradient(oc.width/2, oc.height/2, oc.height * 0.45, oc.width/2, oc.height/2, oc.height * 0.95);
   vg.addColorStop(0, 'rgba(0,0,0,0)');
-  vg.addColorStop(1, 'rgba(8,12,6,0.4)');
+  vg.addColorStop(1, theme.vignetteColor);
   g.fillStyle = vg;
   g.fillRect(0, 0, oc.width, oc.height);
+
+  // World-specific special effects
+  const worldIdx = (game ? game.world : 1);
+  const themeIdx = ((worldIdx - 1) % WORLD_THEMES.length);
+
+  // Deep Space (theme 5, 0-indexed) — star speckles
+  if (themeIdx === 5) {
+    for (let i = 0; i < 300; i++) {
+      const sx = rnd() * oc.width, sy = rnd() * oc.height;
+      const tx = Math.floor(sx / TILE), ty = Math.floor(sy / TILE);
+      if (pathTiles.has(tx + ',' + ty)) continue;
+      const brightness = 0.3 + rnd() * 0.7;
+      const size = 0.5 + rnd() * 1.5;
+      g.fillStyle = `rgba(200,210,255,${brightness})`;
+      g.beginPath(); g.arc(sx, sy, size, 0, Math.PI * 2); g.fill();
+    }
+  }
+
+  // Volcanic Hellscape (theme 3, 0-indexed) — lava glow along path edges
+  if (themeIdx === 3) {
+    for (const p of activePaths) {
+      for (const [x, y] of p.tiles) {
+        const neighbors = [[0,-1],[0,1],[-1,0],[1,0]];
+        for (const [dx, dy] of neighbors) {
+          if (pathTiles.has((x+dx) + ',' + (y+dy))) continue;
+          const ex = (x + (dx > 0 ? 1 : 0)) * TILE;
+          const ey = (y + (dy > 0 ? 1 : 0)) * TILE;
+          const glow = g.createRadialGradient(ex, ey, 0, ex, ey, TILE * 0.7);
+          glow.addColorStop(0, 'rgba(255,60,10,0.15)');
+          glow.addColorStop(0.5, 'rgba(255,30,0,0.06)');
+          glow.addColorStop(1, 'rgba(255,0,0,0)');
+          g.fillStyle = glow;
+          g.fillRect(ex - TILE, ey - TILE, TILE * 2, TILE * 2);
+        }
+      }
+    }
+  }
+
+  // Enchanted Grove (theme 4, 0-indexed) — floating sparkle particles
+  if (themeIdx === 4) {
+    for (let i = 0; i < 120; i++) {
+      const sx = rnd() * oc.width, sy = rnd() * oc.height;
+      const tx = Math.floor(sx / TILE), ty = Math.floor(sy / TILE);
+      if (pathTiles.has(tx + ',' + ty)) continue;
+      const sparkSize = 1 + rnd() * 2;
+      const hue = rnd() < 0.5 ? '180,120,255' : '100,255,220';
+      g.fillStyle = `rgba(${hue},${0.2 + rnd() * 0.4})`;
+      g.beginPath(); g.arc(sx, sy, sparkSize, 0, Math.PI * 2); g.fill();
+      // glow around sparkle
+      const sg = g.createRadialGradient(sx, sy, 0, sx, sy, sparkSize * 3);
+      sg.addColorStop(0, `rgba(${hue},0.15)`);
+      sg.addColorStop(1, `rgba(${hue},0)`);
+      g.fillStyle = sg;
+      g.fillRect(sx - sparkSize * 3, sy - sparkSize * 3, sparkSize * 6, sparkSize * 6);
+    }
+  }
 
   groundCache = oc;
 }
 
 function drawGround() {
   const activePaths = game ? game.activePaths : getActivePaths(1);
-  const key = activePaths.length + ':' + COLS * TILE;
+  const key = activePaths.length + ':' + COLS * TILE + ':' + (game ? game.world : 1);
   if (!groundCache || groundCacheKey !== key) { buildGroundCache(); groundCacheKey = key; }
   ctx.drawImage(groundCache, 0, 0);
 
@@ -1497,6 +1710,7 @@ function drawCastle() {
   const t = Date.now() / 1000;
   const hpPct = game ? Math.max(game.hp / 25, 0) : 1;
   const cx0 = 28 * TILE, cy0 = 6 * TILE, cw = 2 * TILE, ch = 5 * TILE;
+  const theme = getWorldTheme();
   const D = 13, DY = 7; // side-face depth offsets (pseudo-isometric)
 
   // Ground shadow
@@ -1523,9 +1737,9 @@ function drawCastle() {
 
   // ---- FRONT WALL ----
   const wallGrad = ctx.createLinearGradient(cx0, cy0, cx0, cy0 + ch);
-  wallGrad.addColorStop(0, '#8b9096');
-  wallGrad.addColorStop(0.6, '#7d8288');
-  wallGrad.addColorStop(1, '#6e7378');
+  wallGrad.addColorStop(0, theme.castleStone);
+  wallGrad.addColorStop(0.6, theme.castleStoneDark);
+  wallGrad.addColorStop(1, theme.castleStoneLight);
   ctx.fillStyle = wallGrad;
   ctx.fillRect(cx0, cy0, cw, ch);
   // staggered bricks with per-brick tone variation
@@ -1639,9 +1853,9 @@ function drawCastle() {
     ctx.fillRect(tx - 1.5, tTop + 18, 3, 12);
     // cone roof
     const roofGrad = ctx.createLinearGradient(tx - tw/2 - 3, 0, tx + tw/2 + 3, 0);
-    roofGrad.addColorStop(0, '#8f4a42');
-    roofGrad.addColorStop(0.4, '#a35a50');
-    roofGrad.addColorStop(1, '#5e2f2a');
+    roofGrad.addColorStop(0, theme.castleRoof[0]);
+    roofGrad.addColorStop(0.4, theme.castleRoof[1]);
+    roofGrad.addColorStop(1, theme.castleRoof[2]);
     ctx.fillStyle = roofGrad;
     ctx.beginPath();
     ctx.moveTo(tx - tw/2 - 4, tTop);
@@ -1665,7 +1879,7 @@ function drawCastle() {
   const peakX = cx0 + cw/2, peakY = cy0 - merlonH - 3 - 44;
   const roofBaseY = cy0 - merlonH - 3;
   // side slope (dark)
-  ctx.fillStyle = '#5e2f2a';
+  ctx.fillStyle = theme.castleRoof[2];
   ctx.beginPath();
   ctx.moveTo(cx0 + cw + 5, roofBaseY);
   ctx.lineTo(cx0 + cw + 5 + D, roofBaseY - DY);
@@ -1675,8 +1889,8 @@ function drawCastle() {
   ctx.strokeStyle = '#2c1614'; ctx.lineWidth = 1.5; ctx.stroke();
   // front gable
   const gableGrad = ctx.createLinearGradient(cx0, peakY, cx0, roofBaseY);
-  gableGrad.addColorStop(0, '#a35a50');
-  gableGrad.addColorStop(1, '#7a3b34');
+  gableGrad.addColorStop(0, theme.castleRoof[1]);
+  gableGrad.addColorStop(1, theme.castleRoof[0]);
   ctx.fillStyle = gableGrad;
   ctx.beginPath();
   ctx.moveTo(cx0 - 6, roofBaseY);
@@ -1716,8 +1930,8 @@ function drawCastle() {
     ctx.beginPath(); ctx.arc(fx, fy - 27, 2, 0, 7); ctx.fill();
     const wave1 = Math.sin(t * 5) * 3, wave2 = Math.sin(t * 5 + 1.4) * 4;
     const flagGrad = ctx.createLinearGradient(fx, 0, fx + 26, 0);
-    flagGrad.addColorStop(0, '#c23a30');
-    flagGrad.addColorStop(1, '#8f2820');
+    flagGrad.addColorStop(0, theme.flagColor[0]);
+    flagGrad.addColorStop(1, theme.flagColor[1]);
     ctx.fillStyle = flagGrad;
     ctx.beginPath();
     ctx.moveTo(fx, fy - 25);
@@ -1788,8 +2002,8 @@ function drawCastle() {
     ctx.closePath(); ctx.fill();
     // wooden door
     const doorGrad = ctx.createLinearGradient(gx, gTop, gx, cy0 + ch);
-    doorGrad.addColorStop(0, '#5e4426');
-    doorGrad.addColorStop(1, '#43301a');
+    doorGrad.addColorStop(0, theme.castleDoor[0]);
+    doorGrad.addColorStop(1, theme.castleDoor[1]);
     ctx.fillStyle = doorGrad;
     ctx.beginPath();
     ctx.moveTo(gx, cy0 + ch);
@@ -3322,6 +3536,8 @@ function update(dt) {
       game.world++;
       game.wave = 1;
       worldedUp = true;
+      groundCache = null; // force terrain rebuild with new theme
+      document.body.style.background = getWorldTheme().bgBase;
       game.gold += 100 * (game.world - 1); // world-clear bonus
       unlockAchievement(`World ${game.world - 1} Cleared`, `Onward to World ${game.world} — it only gets harder from here`);
     }
@@ -3341,7 +3557,7 @@ function update(dt) {
     if (game.autoWave) game.autoWaveTimer = worldedUp ? 6 : 4;
     if (game.annihilatorUnlocked && !game.triBeamEquipped) showMerchant();
     if (worldedUp) {
-      setTimeout(() => showWorldBanner(game.world, 'Everything is stronger now'), 400);
+      setTimeout(() => showWorldBanner(game.world, 'Welcome to the ' + getWorldTheme().name), 400);
     }
     updateUI();
   }
