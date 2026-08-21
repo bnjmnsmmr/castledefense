@@ -2471,7 +2471,7 @@ function spawnWave() {
     const maxDelay = game.waveEnemies.length ? Math.max(...game.waveEnemies.map(w => w.delay)) : 0;
     const ref = game.waveEnemies[0] || { hpMult: 1, spdMult: 1 };
     game.waveEnemies.push({
-      type: bd.type, delay: Math.max(2, maxDelay * 0.4),
+      type: bd.type, delay: maxDelay + 2.5,
       hpMult: ref.hpMult, spdMult: ref.spdMult, bossId: bd.id,
     });
   }
@@ -4247,9 +4247,22 @@ function update(dt) {
     const h = game.hero;
     h.x += h.speed * dt;
     // Stomp enemies as he walks
+    h.bossHitT = Math.max(0, (h.bossHitT || 0) - dt);
     for (const e of game.enemies) {
       if (e.dead) continue;
       if (Math.hypot(e.x - h.x, e.y - (h.y + 40)) < 60) {
+        // A boss is a fight, not a speed bump — Stache hurts it on a cooldown but
+        // can't flatten it, and the kill routes through damageEnemy so the bounty,
+        // banner and trophy still fire.
+        if (e.boss) {
+          if (h.bossHitT === 0) {
+            h.bossHitT = 0.8;
+            damageEnemy(e, Math.max(300, e.maxHp * 0.06));
+            playFart();
+            spawnParticles(e.x, e.y, '#ff4444', 14);
+          }
+          continue;
+        }
         e.dead = true;
         game.gold += ENEMY_DEFS[e.type].reward;
         game.kills++;
@@ -4966,6 +4979,8 @@ function drawBossBar() {
 }
 
 function damageEnemy(e, dmg) {
+  // Burrowed / phased out: immune on every path (direct, splash, chain, cone, ZAP)
+  if (e.untargetable > 0) return;
   // Shield absorbs damage first
   if (e.shieldHp > 0) {
     const absorbed = Math.min(dmg, e.shieldHp);
