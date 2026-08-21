@@ -232,6 +232,8 @@ canvas#c { display: block; cursor: crosshair; }
   box-shadow: 0 4px 16px rgba(0,0,0,0.5), 0 0 0 4px rgba(179,54,46,0.2);
 }
 #admin-close-btn:hover { background: #d1443a; transform: scale(1.06); }
+#customize-close-btn { position: fixed; top: 16px; right: 16px; z-index: 210; width: 44px; height: 44px; border-radius: 50%; background: var(--blood); color: #fff; border: 2px solid #ff9088; font-size: 20px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.5), 0 0 0 4px rgba(179,54,46,0.2); }
+#customize-close-btn:hover { background: #d1443a; transform: scale(1.06); }
 .admin-wrap { max-width: 980px; margin: 0 auto; }
 .admin-wrap h1 { font-family: var(--font-display); color: var(--gold); font-size: 26px; letter-spacing: 1.5px; margin: 0 0 4px; }
 .admin-wrap .sub { color: var(--parchment-dim); font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
@@ -318,6 +320,62 @@ canvas#c { display: block; cursor: crosshair; }
   font-weight: 800;
 }
 .toast.achieve .ach-sub { display: block; font-weight: 600; font-size: 11px; color: var(--parchment-dim); margin-top: 1px; }
+
+/* ===== Home screen ===== */
+.home-title {
+  font-family: var(--font-display); font-weight: 900; font-size: 52px; letter-spacing: 5px;
+  text-align: center; margin-bottom: 6px;
+  background: linear-gradient(100deg, var(--gold) 20%, var(--gold-bright) 40%, #fff8e0 50%, var(--gold-bright) 60%, var(--gold) 80%);
+  background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: titleShimmer 5s linear infinite, titleGlow 3s ease-in-out infinite;
+}
+@keyframes titleShimmer { 0% { background-position: 200% 0; } 100% { background-position: -50% 0; } }
+@keyframes titleGlow { 0%,100% { filter: drop-shadow(0 0 10px rgba(232,182,76,0.35)); } 50% { filter: drop-shadow(0 0 22px rgba(255,216,122,0.65)); } }
+.home-sub { font-size: 15px; margin-bottom: 26px; color: var(--parchment-dim); text-align: center; letter-spacing: 0.5px; }
+#start-buttons { display: flex; flex-direction: column; gap: 12px; align-items: stretch; width: 320px; }
+#start-buttons button { width: 100%; }
+.how-to-btn {
+  background: transparent !important; color: var(--parchment-dim) !important; border: none !important;
+  font-size: 12.5px !important; font-weight: 700 !important; padding: 6px !important; margin-top: 18px;
+  cursor: pointer; text-decoration: underline; letter-spacing: 0.5px;
+}
+.how-to-btn:hover { color: var(--gold) !important; }
+#tut-steps.tut-steps { margin-top: 10px; }
+
+/* ===== Customize panel ===== */
+#customize-panel {
+  display: none; position: absolute; inset: 0; z-index: 200;
+  background: var(--bg-deep); color: var(--parchment); font-family: var(--font-ui);
+  overflow-y: auto; padding: 20px 20px 100px;
+}
+#customize-panel.show { display: block; }
+.cust-wrap { max-width: 980px; margin: 0 auto; }
+.cust-wrap h1 { font-family: var(--font-display); color: var(--gold); font-size: 26px; letter-spacing: 1.5px; margin: 0 0 4px; }
+.cust-wrap .sub { color: var(--parchment-dim); font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
+.cust-tower-card {
+  background: var(--bg-panel); border: 1px solid var(--border-brass); border-radius: var(--radius-lg);
+  padding: 14px 16px; margin-bottom: 14px;
+}
+.cust-tower-name { font-weight: 800; color: var(--gold-bright); font-size: 15px; margin-bottom: 10px; }
+.cust-skin-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.cust-skin-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer;
+  padding: 8px; border-radius: var(--radius); border: 2px solid transparent; background: var(--bg-panel-raised);
+  transition: border-color 0.15s, transform 0.15s;
+}
+.cust-skin-opt:hover { transform: translateY(-2px); }
+.cust-skin-opt.selected { border-color: var(--gold); box-shadow: 0 0 12px rgba(232,182,76,0.4); }
+.cust-skin-opt canvas { width: 48px; height: 48px; }
+.cust-skin-label { font-size: 10.5px; color: var(--parchment-dim); font-weight: 600; }
+.cust-skin-opt.selected .cust-skin-label { color: var(--gold-bright); }
+
+/* ===== Rapid Fire HUD ===== */
+#rapidfire-stat {
+  display: none; align-items: center; gap: 6px;
+  background: rgba(255,220,80,0.15); border: 1px solid #ffdc50; color: #ffe680;
+  border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 800;
+  animation: starpulse 1.4s infinite; white-space: nowrap;
+}
 </style>
 </head>
 <body>
@@ -347,6 +405,7 @@ canvas#c { display: block; cursor: crosshair; }
     <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
   </div>
   <div class="stat" id="upgrade-stat">★ <span id="upgrade-pts">0</span> ready</div>
+  <div class="stat" id="rapidfire-stat">⚡ <span id="rapidfire-time">0</span>s</div>
 </div>
 
 <div id="toast-stack"></div>
@@ -377,26 +436,7 @@ canvas#c { display: block; cursor: crosshair; }
   </div>
 </div>
 
-<div id="overlay">
-  <h1>BEN'S CASTLE DEFENSE</h1>
-  <div class="tut-steps">
-    <div class="tut-step">
-      <div class="tut-num">1</div>
-      <div class="tut-text"><strong>Pick a tower</strong> from the bar at the bottom (or press 1-8).<span class="dim">Hover a card to see what it does. Every tower unlocks a brand-new attack when upgraded.</span></div>
-    </div>
-    <div class="tut-step">
-      <div class="tut-num">2</div>
-      <div class="tut-text"><strong>Click any green tile</strong> to place it. Towers cost gold 🪙.<span class="dim">You can't build on the brown path or on the castle.</span></div>
-    </div>
-    <div class="tut-step">
-      <div class="tut-num">3</div>
-      <div class="tut-text"><strong>Enemies walk the path</strong> toward your castle. Towers shoot automatically.<span class="dim">If an enemy reaches the castle, you lose a ❤️. Hit 0 and it's game over.</span></div>
-    </div>
-  </div>
-  <div id="start-buttons">
-    <button onclick="startGame(false)">GOT IT — PLAY</button>
-  </div>
-</div>
+<div id="overlay"></div>
 
 <canvas id="c"></canvas>
 
@@ -466,6 +506,15 @@ canvas#c { display: block; cursor: crosshair; }
       Settings apply instantly to this session and save to <code>localStorage</code> — they'll still be here next time you open this file.<br>
       Use Export/Import to back up settings as a file or move them to another browser.
     </div>
+  </div>
+</div>
+
+<div id="customize-panel">
+  <button id="customize-close-btn" onclick="closeCustomizeScreen()" title="Close and return to menu">✕</button>
+  <div class="cust-wrap">
+    <h1>🎨 TOWER CUSTOMIZATION</h1>
+    <div class="sub">Pick a color skin for each tower. Your choice is saved and applies to every future game.</div>
+    <div id="customize-body"></div>
   </div>
 </div>
 
@@ -694,6 +743,66 @@ const TOWER_INFO = {
   annihilator: { rate:'Insane', range:'12 blocks', spec:'☢️ 4 zaps kill anything. You cheated for this.' },
 };
 
+// ===== TOWER CUSTOMIZATION (skins) =====
+const SKIN_PALETTE = [
+  { id:'crimson', name:'Crimson', color:'#d6474a', proj:'#ffb0b0' },
+  { id:'azure',   name:'Azure',   color:'#4aa8e0', proj:'#bfe6ff' },
+  { id:'gold',    name:'Gilded',  color:'#e8b64c', proj:'#ffe6a0' },
+  { id:'violet',  name:'Violet',  color:'#9b6dd6', proj:'#dcc4f5' },
+];
+function buildSkinOptionsFor(tower) {
+  const opts = [{ id:'default', name:'Default', color: tower.color, proj: tower.projColor }];
+  for (const p of SKIN_PALETTE) {
+    if (p.color.toLowerCase() === tower.color.toLowerCase()) continue;
+    opts.push(p);
+    if (opts.length >= 4) break;
+  }
+  return opts;
+}
+const TOWER_SKIN_OPTIONS = {};
+for (const t of TOWER_TYPES) { if (!t.secret) TOWER_SKIN_OPTIONS[t.id] = buildSkinOptionsFor(t); }
+
+const SKIN_STORAGE_KEY = 'castleDefenseSkins';
+function loadSkinSelections() {
+  try { return JSON.parse(localStorage.getItem(SKIN_STORAGE_KEY)) || {}; } catch (e) { return {}; }
+}
+function saveSkinSelectionsToStorage() {
+  try { localStorage.setItem(SKIN_STORAGE_KEY, JSON.stringify(skinSelections)); } catch (e) { /* ignore */ }
+}
+let skinSelections = loadSkinSelections();
+function getTowerSkin(towerId) {
+  const opts = TOWER_SKIN_OPTIONS[towerId];
+  if (!opts) return null;
+  const selId = skinSelections[towerId] || 'default';
+  return opts.find(o => o.id === selId) || opts[0];
+}
+function setTowerSkin(towerId, skinId) {
+  skinSelections[towerId] = skinId;
+  saveSkinSelectionsToStorage();
+  applySkinSelections();
+  if (typeof buildTowerBar === 'function' && game) buildTowerBar();
+}
+// Apply the saved skin colors onto the live TOWER_TYPES (color/projColor only — see spec)
+function applySkinSelections() {
+  for (const t of TOWER_TYPES) {
+    if (t.secret) continue;
+    const skin = getTowerSkin(t.id);
+    if (skin) { t.color = skin.color; t.projColor = skin.proj; }
+  }
+}
+applySkinSelections();
+// Tints a just-drawn 48x48 tower sprite toward its selected skin color (defaults draw untouched)
+function applySpriteTint(c, towerId) {
+  const skin = getTowerSkin(towerId);
+  if (!skin || skin.id === 'default') return;
+  c.save();
+  c.globalCompositeOperation = 'source-atop';
+  c.globalAlpha = 0.5;
+  c.fillStyle = skin.color;
+  c.fillRect(0, 0, 48, 48);
+  c.restore();
+}
+
 // Enemy types
 const ENEMY_DEFS = [
   { id:'grunt',    hp:40,  speed:1.2, reward:10,  color:'#cc4444', size:10, xp:1 },  // 0
@@ -856,6 +965,7 @@ const WORLD_THEMES = [
 ];
 
 function getWorldTheme() {
+  if (game && game.forcedThemeIdx !== undefined && game.forcedThemeIdx !== null) return WORLD_THEMES[game.forcedThemeIdx];
   const w = (game ? game.world : 1);
   const idx = ((w - 1) % WORLD_THEMES.length);
   return WORLD_THEMES[idx];
@@ -888,7 +998,7 @@ const ADMIN_STORAGE_KEY = 'castleDefenseConfig';
 const SAVE_KEY = 'castleDefenseSave';
 
 function saveGameState() {
-  if (!game || game.gameOver) return;
+  if (!game || game.gameOver || game.dailyChallenge) return;
   try {
     const data = {
       hp: game.hp, gold: game.gold, wave: game.wave, world: game.world,
@@ -917,16 +1027,180 @@ function refreshStartScreenButtons() {
   const saved = loadGameState();
   const wrap = document.getElementById('start-buttons');
   if (!wrap) return;
-  wrap.innerHTML = saved
-    ? `<button onclick="startGame(true)">CONTINUE — World ${saved.world}, Wave ${saved.wave}</button>
-       <button class="secondary-btn" onclick="startGame(false)">NEW GAME</button>`
-    : `<button onclick="startGame(false)">GOT IT — PLAY</button>`;
+  const dailyBest = getDailyBest().best || 0;
+  let html = '';
+  if (saved) {
+    html += `<button onclick="startGame(true)">CONTINUE — World ${saved.world}, Wave ${saved.wave}</button>`;
+  } else {
+    html += `<button onclick="startGame(false)">PLAY</button>`;
+  }
+  html += `<button class="secondary-btn" onclick="startDailyChallenge()">🗓️ DAILY CHALLENGE${dailyBest ? ` — best: ${dailyBest}` : ''}</button>`;
+  html += `<button class="secondary-btn" onclick="openCustomizeScreen()">🎨 CUSTOMIZE TOWERS</button>`;
+  if (saved) {
+    html += `<button class="secondary-btn" onclick="startGame(false)">NEW GAME</button>`;
+  }
+  wrap.innerHTML = html;
+}
+
+// ===== HOME SCREEN =====
+const TUT_STEPS_HTML = `
+  <div class="tut-step">
+    <div class="tut-num">1</div>
+    <div class="tut-text"><strong>Pick a tower</strong> from the bar at the bottom (or press 1-8).<span class="dim">Hover a card to see what it does. Every tower unlocks a brand-new attack when upgraded.</span></div>
+  </div>
+  <div class="tut-step">
+    <div class="tut-num">2</div>
+    <div class="tut-text"><strong>Click any green tile</strong> to place it. Towers cost gold 🪙.<span class="dim">You can't build on the brown path or on the castle.</span></div>
+  </div>
+  <div class="tut-step">
+    <div class="tut-num">3</div>
+    <div class="tut-text"><strong>Enemies walk the path</strong> toward your castle. Towers shoot automatically.<span class="dim">If an enemy reaches the castle, you lose a ❤️. Hit 0 and it's game over.</span></div>
+  </div>
+`;
+
+function renderHomeScreen() {
+  const ov = document.getElementById('overlay');
+  ov.innerHTML = `
+    <h1 class="home-title">BEN'S CASTLE DEFENSE</h1>
+    <div class="home-sub">Defend the castle. Survive the waves. Outsmart the horde.</div>
+    <div id="start-buttons"></div>
+    <button class="how-to-btn" onclick="toggleTutorial()">❔ HOW TO PLAY</button>
+    <div class="tut-steps" id="tut-steps" style="display:none">${TUT_STEPS_HTML}</div>
+  `;
+  refreshStartScreenButtons();
+}
+
+function toggleTutorial() {
+  const el = document.getElementById('tut-steps');
+  if (!el) return;
+  el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+}
+
+function returnToMenu() {
+  if (game) game.running = false;
+  document.getElementById('overlay').style.display = 'flex';
+  renderHomeScreen();
+}
+
+// ===== DAILY CHALLENGE =====
+const DAILY_BEST_KEY = 'castleDefenseDailyBest';
+let dailyDefaultConfigActive = false;
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+function getDailySeed() { return hashStr(todayStr()); }
+
+function getDailyBest() {
+  try { return JSON.parse(localStorage.getItem(DAILY_BEST_KEY)) || { best: 0 }; } catch (e) { return { best: 0 }; }
+}
+function saveDailyBest(score) {
+  const cur = getDailyBest();
+  if (score > (cur.best || 0)) {
+    try { localStorage.setItem(DAILY_BEST_KEY, JSON.stringify({ best: score, date: todayStr() })); } catch (e) {}
+    return true;
+  }
+  return false;
+}
+
+// Reset difficulty/tower/enemy numbers to the shipped defaults, bypassing any admin-panel overrides,
+// so every player faces the same Daily Challenge. Restored via restoreConfigAfterDaily().
+function applyDefaultConfigForDaily() {
+  Object.assign(DIFFICULTY, DEFAULT_DIFFICULTY);
+  for (const t of TOWER_TYPES) { const d = DEFAULT_TOWERS.find(x => x.id === t.id); if (d) { t.cost = d.cost; t.range = d.range; t.rate = d.rate; t.dmg = d.dmg; t.ammo = d.ammo; t.reload = d.reload; } }
+  for (const e of ENEMY_DEFS) { const d = DEFAULT_ENEMIES.find(x => x.id === e.id); if (d) Object.assign(e, d); }
+  dailyDefaultConfigActive = true;
+}
+function restoreConfigAfterDaily() {
+  if (!dailyDefaultConfigActive) return;
+  loadConfigOverrides(); // re-applies whatever admin config is saved, on top of the restored defaults
+  dailyDefaultConfigActive = false;
+}
+
+// Does NOT touch the normal "continue" save (unlike startGame) — the Daily Challenge is a separate mode.
+function startDailyChallenge() {
+  applyDefaultConfigForDaily();
+  game = initGame();
+  game.dailyChallenge = true;
+  const seed = getDailySeed();
+  game.dailySeed = seed;
+  game.hp = 3;
+  game.gold = 100;
+  game.forcedThemeIdx = seed % WORLD_THEMES.length;
+  game.prepPhase = true;
+  game.betweenWaves = false;
+  game.waveActive = false;
+  document.getElementById('overlay').style.display = 'none';
+  document.body.style.background = getWorldTheme().bgBase;
+  groundCache = null;
+  document.getElementById('send-wave-btn').style.display = 'block';
+  document.getElementById('hint').style.display = 'block';
+  const awBtn = document.getElementById('auto-wave-btn');
+  awBtn.style.display = 'block';
+  awBtn.textContent = 'AUTO-WAVE: OFF 🔁';
+  awBtn.classList.remove('on');
+  buildTowerBar();
+  startMusic();
+  updateUI();
+  resize();
+  render();
+  requestAnimationFrame(loop);
+  showFlash(`🗓️ Daily Challenge — seed ${todayStr()} — survive as many waves as you can!`);
+}
+
+// ===== TOWER CUSTOMIZATION SCREEN =====
+function openCustomizeScreen() {
+  buildCustomizeForm();
+  document.getElementById('customize-panel').classList.add('show');
+}
+function closeCustomizeScreen() {
+  document.getElementById('customize-panel').classList.remove('show');
+}
+function buildCustomizeForm() {
+  const wrap = document.getElementById('customize-body');
+  wrap.innerHTML = '';
+  for (const t of TOWER_TYPES) {
+    if (t.secret) continue;
+    const opts = TOWER_SKIN_OPTIONS[t.id];
+    if (!opts) continue;
+    const curSel = skinSelections[t.id] || 'default';
+    const card = document.createElement('div');
+    card.className = 'cust-tower-card';
+    card.innerHTML = `<div class="cust-tower-name">${t.name}</div><div class="cust-skin-row"></div>`;
+    wrap.appendChild(card);
+    const row = card.querySelector('.cust-skin-row');
+    const drawFn = TOWER_SPRITES[t.id];
+    opts.forEach(opt => {
+      const box = document.createElement('div');
+      box.className = 'cust-skin-opt' + (opt.id === curSel ? ' selected' : '');
+      box.innerHTML = `<canvas width="48" height="48"></canvas><div class="cust-skin-label">${opt.name}</div>`;
+      const cv = box.querySelector('canvas').getContext('2d');
+      if (drawFn) drawFn(cv, 0.8);
+      if (opt.id !== 'default') {
+        cv.save();
+        cv.globalCompositeOperation = 'source-atop';
+        cv.globalAlpha = 0.5;
+        cv.fillStyle = opt.color;
+        cv.fillRect(0, 0, 48, 48);
+        cv.restore();
+      }
+      box.addEventListener('click', () => { setTowerSkin(t.id, opt.id); buildCustomizeForm(); });
+      row.appendChild(box);
+    });
+  }
 }
 
 function toggleAdminPanel() {
   const panel = document.getElementById('admin-panel');
   const opening = !panel.classList.contains('show');
   if (opening) {
+    if (game && game.dailyChallenge) { showFlash('⚠️ Admin panel is disabled during Daily Challenge — everyone plays the same difficulty'); return; }
     buildAdminForm();
     if (game) game.paused = true;
   } else {
@@ -1176,6 +1450,13 @@ function initGame() {
     running: true,
     gameOver: false,
     paused: false,
+    rapidFireTimer: 0,
+    zapFlashT: 0,
+    usedGG: false,
+    usedASDF: false,
+    usedZAP: false,
+    dailyChallenge: false,
+    forcedThemeIdx: null,
   };
 }
 
@@ -2079,6 +2360,7 @@ function drawTowers() {
     ctx.translate(t.tx*TILE - 2, t.ty*TILE - 6);
     ctx.scale((TILE+4)/48, (TILE+4)/48);
     if (drawFn) drawFn(ctx, now + (t.tx * 0.7 + t.ty * 1.3)); // phase offset so anims don't sync
+    applySpriteTint(ctx, def.id);
     ctx.restore();
 
     // Muzzle flash when recently fired
@@ -3077,6 +3359,18 @@ function loop(ts) {
   const dt = Math.min((ts - lastTime) / 1000, 0.05);
   lastTime = ts;
 
+  if (!game.paused) {
+    if (game.rapidFireTimer > 0) {
+      game.rapidFireTimer = Math.max(0, game.rapidFireTimer - dt);
+      if (game.rapidFireTimer === 0) showFlash('Rapid Fire wore off');
+    }
+    if (game.zapFlashT > 0) game.zapFlashT = Math.max(0, game.zapFlashT - dt);
+  }
+  const rfEl = document.getElementById('rapidfire-stat');
+  if (rfEl) {
+    if (game.rapidFireTimer > 0) { rfEl.style.display = 'flex'; document.getElementById('rapidfire-time').textContent = Math.ceil(game.rapidFireTimer); }
+    else rfEl.style.display = 'none';
+  }
   if (!game.paused && !game.prepPhase) update(dt);
   if (!game.paused && game.prepPhase && game.autoWave && game.autoWaveTimer !== undefined) {
     game.autoWaveTimer -= dt;
@@ -3283,7 +3577,7 @@ function update(dt) {
     }
 
     if (best) {
-      t.cooldown = def.rate;
+      t.cooldown = def.rate * (game.rapidFireTimer > 0 ? 0.5 : 1);
       t.ammo--;
       t.angle = Math.atan2(best.y - cy, best.x - cx);
 
@@ -3703,6 +3997,13 @@ function render() {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, C.width, C.height);
   }
+  // White lightning flash from the ZAP secret
+  if (game && game.zapFlashT > 0) {
+    ctx.save();
+    ctx.fillStyle = `rgba(255,255,255,${(game.zapFlashT / 0.3) * 0.55})`;
+    ctx.fillRect(0, 0, C.width, C.height);
+    ctx.restore();
+  }
 }
 
 function drawHero() {
@@ -3946,22 +4247,45 @@ function playEvilLaugh() {
 function endGame() {
   game.running = false;
   game.gameOver = true;
-  clearGameState();
+  if (!game.dailyChallenge) clearGameState();
   playEvilLaugh();
   document.getElementById('send-wave-btn').style.display = 'none';
   document.getElementById('auto-wave-btn').style.display = 'none';
   document.getElementById('hint').style.display = 'none';
   const ov = document.getElementById('overlay');
   ov.style.display = 'flex';
-  ov.innerHTML = `
-    <h1>☠️ CASTLE CURSED ☠️</h1>
-    <div id="game-over-stats">
-      Reached <strong>World ${game.world}, Wave ${game.wave}</strong><br>
-      Enemies slain: <strong>${game.kills}</strong><br>
-      Towers built: <strong>${game.towers.length}</strong>
-    </div>
-    <button onclick="startGame(false)">PLAY AGAIN</button>
-  `;
+  if (game.dailyChallenge) {
+    restoreConfigAfterDaily();
+    const score = (game.world - 1) * DIFFICULTY.wavesPerWorld + game.wave;
+    const isNewBest = saveDailyBest(score);
+    const best = getDailyBest().best || score;
+    ov.innerHTML = `
+      <h1>🗓️ DAILY CHALLENGE OVER</h1>
+      <div id="game-over-stats">
+        Today's seed: <strong>${todayStr()}</strong><br>
+        Waves survived: <strong>${score}</strong> (World ${game.world}, Wave ${game.wave})<br>
+        Enemies slain: <strong>${game.kills}</strong><br>
+        ${isNewBest ? '🏆 <strong>NEW BEST SCORE!</strong>' : `Your best ever: <strong>${best}</strong>`}
+      </div>
+      <div id="start-buttons">
+        <button onclick="startDailyChallenge()">TRY AGAIN</button>
+        <button class="secondary-btn" onclick="returnToMenu()">MAIN MENU</button>
+      </div>
+    `;
+  } else {
+    ov.innerHTML = `
+      <h1>☠️ CASTLE CURSED ☠️</h1>
+      <div id="game-over-stats">
+        Reached <strong>World ${game.world}, Wave ${game.wave}</strong><br>
+        Enemies slain: <strong>${game.kills}</strong><br>
+        Towers built: <strong>${game.towers.length}</strong>
+      </div>
+      <div id="start-buttons">
+        <button onclick="startGame(false)">PLAY AGAIN</button>
+        <button class="secondary-btn" onclick="returnToMenu()">MAIN MENU</button>
+      </div>
+    `;
+  }
 }
 
 // --- INPUT ---
@@ -4039,10 +4363,58 @@ C.addEventListener('click', e => {
   updateUI();
 });
 
+// --- MORE SECRETS: GG (bonus gold), ASDF (rapid fire), ZAP (lightning strike) ---
+// Each is a rolling-buffer combo, works once per game, and unlocks an achievement the first time.
+let secretKeyBuffer = '';
+function activateRapidFireSecret() {
+  game.rapidFireTimer = 30;
+  showFlash('⚡ RAPID FIRE! All towers fire 2x faster for 30 seconds!');
+  spawnParticles(C.width/2, C.height/2, '#ffee44', 40);
+  unlockAchievement('Rapid Fire', 'Unlocked the ASDF cheat — 2x tower fire rate for 30s, once per game');
+}
+function activateZapSecret() {
+  showFlash('⚡⚡ ZAP! Lightning strikes every enemy on screen!');
+  triggerShake(8, 0.4);
+  game.zapFlashT = 0.3;
+  for (const e of game.enemies) {
+    if (e.dead) continue;
+    damageEnemy(e, 100);
+    spawnParticles(e.x, e.y, '#ffffff', 6);
+  }
+  unlockAchievement('Thunderstruck', 'Unlocked the ZAP cheat — 100 damage to every enemy on screen, once per game');
+}
+function activateGoldSecret() {
+  game.gold += 500;
+  showFlash('💰 SECRET: GG — +500 bonus gold!');
+  spawnParticles(C.width/2, C.height/2, '#ffd700', 50);
+  unlockAchievement('GG Easy Money', 'Found the GG cheat code — +500 gold, once per game');
+  updateUI();
+}
+
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('admin-panel').classList.contains('show')) {
     toggleAdminPanel();
     return;
+  }
+  // Track a rolling buffer of typed letters for the combo secrets below (ignored while typing in an input)
+  const typingInField = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+  if (!typingInField && e.key.length === 1) {
+    secretKeyBuffer = (secretKeyBuffer + e.key.toLowerCase()).slice(-12);
+    if (game && !game.gameOver) {
+      if (secretKeyBuffer.endsWith('gg') && !game.usedGG) {
+        game.usedGG = true;
+        activateGoldSecret();
+        secretKeyBuffer = '';
+      } else if (secretKeyBuffer.endsWith('asdf') && !game.usedASDF) {
+        game.usedASDF = true;
+        activateRapidFireSecret();
+        secretKeyBuffer = '';
+      } else if (secretKeyBuffer.endsWith('zap') && !game.usedZAP) {
+        game.usedZAP = true;
+        activateZapSecret();
+        secretKeyBuffer = '';
+      }
+    }
   }
   // Secret: press B, then N (the code is "BN" — B alone does nothing)
   if (e.key === 'b' || e.key === 'B') {
@@ -4150,6 +4522,7 @@ function buildTowerBar() {
     const mc = btn.querySelector('canvas').getContext('2d');
     const drawFn = TOWER_SPRITES[t.id];
     if (drawFn) drawFn(mc, 0.8); // static frame for the card
+    applySpriteTint(mc, t.id);
     btn.addEventListener('click', () => {
       if (game) { game.selectedTower = i; game.trashMode = false; }
       updateTowerBar();
@@ -4189,7 +4562,7 @@ function updateTowerBar() {
 }
 
 buildTowerBar();
-refreshStartScreenButtons();
+renderHomeScreen();
 window.addEventListener('beforeunload', saveGameState);
 </script>
 </body>
