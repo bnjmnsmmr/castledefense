@@ -4,7 +4,7 @@
 Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no server — one `index.html` file with all CSS/JS inline, plus PWA sidecar files (`manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`). Deployed to GitHub Pages at https://bnjmnsmmr.github.io/castledefense/
 
 ## PWA
-- Installable: manifest (fullscreen, landscape) + `sw.js` (stale-while-revalidate shell cache, cache name `castle-defense-v1` — bump on meaningful releases). Registered from index.html, skipped on `file:`.
+- Installable: manifest (fullscreen, landscape) + `sw.js` (stale-while-revalidate shell cache, cache name — currently `castle-defense-v2`; bump it on meaningful releases). Registered from index.html, skipped on `file:`.
 - Icons drawn programmatically (canvas → PNG); regenerate by re-rendering if the brand changes.
 
 ## Architecture
