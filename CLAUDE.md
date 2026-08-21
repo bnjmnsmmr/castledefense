@@ -4,7 +4,7 @@
 Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no server — one `index.html` file with all CSS/JS inline, plus PWA sidecar files (`manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`). Deployed to GitHub Pages at https://bnjmnsmmr.github.io/castledefense/
 
 ## PWA
-- Installable: manifest (fullscreen, landscape) + `sw.js` (stale-while-revalidate shell cache, cache name `castle-defense-v1` — bump on meaningful releases). Registered from index.html, skipped on `file:`.
+- Installable: manifest (fullscreen, landscape) + `sw.js` (stale-while-revalidate shell cache, cache name — currently `castle-defense-v2`; bump it on meaningful releases). Registered from index.html, skipped on `file:`.
 - Icons drawn programmatically (canvas → PNG); regenerate by re-rendering if the brand changes.
 
 ## Architecture
@@ -34,6 +34,21 @@ Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build s
 - Secret keyboard combos: ~4360
 - Tower bar UI (`buildTowerBar`): ~4500
 
+## Bosses
+- `BOSS_DEFS` — one named boss per world (cycles past 8), spawned on the **final wave of each world** (`spawnWave`); excluded from the Daily Challenge, which is meant to be a short sharp gauntlet.
+- A boss is a normal enemy type wearing a costume: `sizeMult` / `hpMult` / `speedMult` plus an `abilities` list. `enemySize(e)` returns the per-enemy size (never read `ENEMY_DEFS[..].size` directly for a live enemy).
+- Abilities (`BOSS_ABILITIES`, `fireBossAbility`): `slam` + `freeze` knock towers offline (`t.stunned`), `summon` calls minions, `barrier` grants a damage shield, `regen` heals, `burrow` sets `e.untargetable` (towers and projectiles skip those), `rage` is a passive speed-up as HP drops.
+- Each cast is telegraphed (`b.castT` / `castLabel`) on the on-screen boss bar (`drawBossBar`). Shockwave rings via `game.shockwaves` / `updateDrawShockwaves`.
+- A boss reaching the castle costs **5 hearts**, not 1. Killing one pays a bounty + a permanent "Slayer of X" trophy.
+
+## First-run tutorial
+- `TUTORIAL_STEPS` + coach-mark overlay (`#coach`): a spotlight ring over a target element plus a message card. Steps advance on **real player actions** via `tutorialEvent(kind)` — `select` / `place` / `send` / `kill` / `upgrade` — never on timers.
+- Runs once for a brand-new player (`tutorialShouldRun()` checks `profile.stats.gamesPlayed` / `profile.tutorialDone` only — do NOT check `loadGameState()` here, `updateUI()` writes a save before the tutorial starts). Replayable from the home screen (`replayTutorial()`), skippable.
+
+## Hall of Fame & sharing
+- `castleDefenseHallOfFame`: top 10 local runs (`recordHallOfFame` returns the 1-based rank, shown as a badge on the results screen). Rendered by `buildHallOfFame()` at the top of the achievements screen.
+- `shareRun()` uses the Web Share API when available, else copies to clipboard. A **global** leaderboard would need a backend (and, for a kids' audience, a hard look at COPPA/usernames) — deliberately not built.
+
 ## Meta-progression (lifetime profile)
 - `castleDefenseProfile` in localStorage: lifetime stats (totalKills, wavesCleared, bestScore/World/Wave, gamesPlayed), global achievement record, notified-skin list. `profile` / `saveProfile()` / `loadProfile()`.
 - `ACHIEVEMENT_DEFS` is the canonical gallery list (secrets show as "???" until earned); `unlockAchievement()` records globally too. Gallery screen: `openAchievementsScreen()` (`#achievements-panel`).
@@ -56,7 +71,7 @@ Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build s
 
 ## Features
 - 8 towers (+1 secret Annihilator via B→N key combo) with level-2 upgrades
-- 9 enemy types across escalating worlds
+- 9 enemy types across escalating worlds, plus 8 named bosses (one per world, final wave)
 - 8 distinct world themes (Medieval, Frozen, Desert, Deep Space, Ocean, Volcanic, Enchanted Grove, Shadow Realm)
 - Home screen with animated title and menu
 - Daily challenge mode (date-seeded, fixed difficulty)

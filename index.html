@@ -238,6 +238,7 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
   margin-bottom: 16px; animation: badgePop 0.4s ease; box-shadow: 0 0 24px rgba(232,182,76,0.5);
 }
 @keyframes badgePop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+.go-badge.rank { background: linear-gradient(180deg, #c39bf0, var(--arcane)); color: #fff; box-shadow: 0 0 24px rgba(155,109,214,0.5); }
 .go-grid { display: flex; gap: 12px; margin: 4px 0 16px; flex-wrap: wrap; justify-content: center; }
 .go-stat {
   background: rgba(50,39,27,0.55); border: 1px solid var(--border-brass); border-radius: var(--radius-lg);
@@ -484,6 +485,22 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 .ach-desc { font-size: 12px; color: var(--parchment-dim); line-height: 1.4; }
 .ach-date { margin-left: auto; font-size: 10.5px; color: var(--parchment-dim); white-space: nowrap; align-self: flex-start; padding-top: 2px; }
 
+/* ===== Hall of Fame ===== */
+.hof-head { font-family: var(--font-display); font-size: 17px; color: var(--gold); letter-spacing: 1px; border-bottom: 1px solid var(--border-brass); padding-bottom: 6px; margin: 4px 0 12px; }
+.hof-row {
+  display: flex; align-items: center; gap: 14px; padding: 9px 14px; margin-bottom: 7px;
+  background: var(--bg-panel); border: 1px solid var(--border-brass); border-radius: var(--radius-lg);
+  font-size: 12.5px; color: var(--parchment-dim);
+}
+.hof-row.top { border-color: var(--gold); background: linear-gradient(90deg, rgba(232,182,76,0.14), var(--bg-panel) 60%); }
+.hof-rank { font-family: var(--font-display); font-weight: 900; font-size: 17px; color: var(--gold-bright); width: 32px; flex-shrink: 0; }
+.hof-score { font-weight: 800; color: var(--parchment); font-size: 14px; min-width: 96px; }
+.hof-score span { font-weight: 600; color: var(--parchment-dim); font-size: 11.5px; }
+.hof-meta { display: flex; gap: 14px; flex-wrap: wrap; }
+.hof-date { margin-left: auto; font-size: 10.5px; white-space: nowrap; }
+.hof-tag { font-size: 9.5px; letter-spacing: 0.8px; text-transform: uppercase; border: 1px solid var(--arcane); color: #c39bf0; border-radius: 20px; padding: 1px 8px; }
+.hof-empty { color: var(--parchment-dim); font-size: 13px; margin-bottom: 22px; }
+
 /* ===== Locked skins ===== */
 .cust-skin-opt.locked { opacity: 0.45; filter: grayscale(0.9); cursor: pointer; }
 .cust-skin-opt.locked:hover { transform: none; }
@@ -496,6 +513,44 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 }
 .home-profile b { color: var(--gold-bright); font-weight: 800; }
 .home-profile svg { vertical-align: -2px; margin-right: 3px; }
+
+/* ===== First-run tutorial coach marks ===== */
+#coach {
+  position: absolute; inset: 0; z-index: 70; display: none; pointer-events: none;
+}
+#coach.show { display: block; }
+#coach-spot {
+  position: absolute; border: 3px solid var(--gold); border-radius: var(--radius-lg);
+  box-shadow: 0 0 0 9999px rgba(12,9,7,0.62), 0 0 22px rgba(232,182,76,0.7);
+  transition: all 0.3s cubic-bezier(.4,0,.2,1); pointer-events: none;
+  animation: coachPulse 1.6s ease-in-out infinite;
+}
+@keyframes coachPulse { 0%,100% { box-shadow: 0 0 0 9999px rgba(12,9,7,0.62), 0 0 16px rgba(232,182,76,0.55); } 50% { box-shadow: 0 0 0 9999px rgba(12,9,7,0.62), 0 0 30px rgba(232,182,76,0.95); } }
+#coach-box {
+  position: absolute; width: 330px; max-width: 88vw; pointer-events: auto;
+  background: linear-gradient(180deg, var(--bg-panel-raised), var(--bg-panel));
+  border: 1px solid var(--border-brass); border-radius: var(--radius-lg);
+  padding: 15px 17px 13px; color: var(--parchment);
+  box-shadow: 0 10px 34px rgba(0,0,0,0.6);
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+}
+#coach-step { font-size: 9.5px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--parchment-dim); font-weight: 700; margin-bottom: 5px; }
+#coach-title { font-family: var(--font-display); font-weight: 900; font-size: 17px; color: var(--gold); letter-spacing: 1px; margin-bottom: 6px; }
+#coach-text { font-size: 13px; line-height: 1.5; color: var(--parchment); }
+#coach-text b { color: var(--gold-bright); }
+#coach-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+#coach-next {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: var(--bg-deep);
+  border: none; border-radius: var(--radius); padding: 8px 18px; font-family: var(--font-ui);
+  font-size: 12.5px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px;
+}
+#coach-next:hover { filter: brightness(1.08); }
+#coach-skip {
+  background: transparent; color: var(--parchment-dim); border: none; cursor: pointer;
+  font-family: var(--font-ui); font-size: 11.5px; font-weight: 600; text-decoration: underline; margin-left: auto;
+}
+#coach-skip:hover { color: var(--parchment); }
+#coach-wait { font-size: 11.5px; color: var(--gold); font-weight: 700; animation: xpshimmer 1.4s infinite; }
 
 /* ===== Responsive / mobile ===== */
 @media (max-width: 1000px), (max-height: 620px) {
@@ -527,6 +582,16 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
   .hint-banner { font-size: 11px; padding: 5px 12px; max-width: 92vw; white-space: normal; text-align: center; }
   #toast-stack { top: 52px; max-width: 240px; }
   .toast { font-size: 11px; padding: 7px 10px; }
+  #coach-box { width: 300px; padding: 11px 13px 10px; }
+  #coach-title { font-size: 15px; margin-bottom: 4px; }
+  #coach-text { font-size: 12px; line-height: 1.42; }
+  #coach-actions { margin-top: 9px; }
+  .hof-row { flex-wrap: wrap; gap: 8px; font-size: 11.5px; }
+  .hof-date { margin-left: 0; }
+}
+/* On short screens an untargeted coach card sits higher so it clears the tower bar */
+@media (max-height: 620px) {
+  #coach-box { top: 44% !important; }
 }
 @media (pointer: coarse) {
   .tb-tooltip { display: none !important; }
@@ -578,6 +643,20 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 <button id="auto-wave-btn" onclick="toggleAutoWave()">AUTO-WAVE: OFF</button>
 <button id="speed-btn" onclick="cycleGameSpeed()">SPEED 1&times;</button>
 <div class="hint-banner" id="hint">Click any green tile to place a tower — then press SEND WAVE (or Space)</div>
+
+<div id="coach">
+  <div id="coach-spot"></div>
+  <div id="coach-box">
+    <div id="coach-step"></div>
+    <div id="coach-title"></div>
+    <div id="coach-text"></div>
+    <div id="coach-actions">
+      <button id="coach-next" onclick="tutorialNext()">GOT IT</button>
+      <span id="coach-wait" style="display:none"></span>
+      <button id="coach-skip" onclick="tutorialStop(true)">Skip tutorial</button>
+    </div>
+  </div>
+</div>
 
 <div id="pause-overlay">
   <h1>PAUSED</h1>
@@ -693,8 +772,11 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 <div id="achievements-panel">
   <button id="achievements-close-btn" onclick="closeAchievementsScreen()" title="Close and return to menu">✕</button>
   <div class="cust-wrap">
-    <h1>ACHIEVEMENTS</h1>
+    <h1>HALL OF FAME</h1>
     <div class="sub" id="ach-progress"></div>
+    <div class="hof-head">YOUR BEST RUNS</div>
+    <div id="hof-body"></div>
+    <div class="hof-head" style="margin-top:26px">ACHIEVEMENTS</div>
     <div id="achievements-body"></div>
   </div>
 </div>
@@ -958,6 +1040,28 @@ function saveProfile() {
   try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) { /* ignore */ }
 }
 
+// ===== HALL OF FAME (local best runs) =====
+// Top 10 runs kept on this device. A global leaderboard would need a backend —
+// see the note in CLAUDE.md; this is the honest offline version.
+const HOF_KEY = 'castleDefenseHallOfFame';
+const HOF_MAX = 10;
+function loadHallOfFame() {
+  try { return JSON.parse(localStorage.getItem(HOF_KEY)) || []; } catch (e) { return []; }
+}
+function saveHallOfFame(list) {
+  try { localStorage.setItem(HOF_KEY, JSON.stringify(list)); } catch (e) { /* ignore */ }
+}
+// Returns the 1-based rank if the run made the board, else 0
+function recordHallOfFame(entry) {
+  const list = loadHallOfFame();
+  list.push(entry);
+  list.sort((a, b) => b.score - a.score || b.kills - a.kills);
+  const trimmed = list.slice(0, HOF_MAX);
+  saveHallOfFame(trimmed);
+  const idx = trimmed.indexOf(entry);
+  return idx === -1 ? 0 : idx + 1;
+}
+
 // Canonical achievement list for the gallery. Secrets show as "???" until earned.
 const ACHIEVEMENT_DEFS = [
   { name: 'Flawless Defense', desc: 'Clear a wave without losing a single heart' },
@@ -1055,6 +1159,37 @@ const ENEMY_DEFS = [
   { id:'shield',   hp:80,  speed:0.8, reward:18,  color:'#4488cc', size:11, shield:40, xp:2 }, // 7 - absorbs first 40 dmg with shield
   { id:'necro',    hp:100, speed:0.6, reward:35,  color:'#22aa44', size:12, xp:3 },  // 8 - revives dead enemies nearby
 ];
+
+// ===== BOSSES =====
+// A boss is a normal enemy type wearing a BOSS_DEFS costume: bigger, far tougher,
+// and driven by timed abilities. One guards the final wave of every world.
+function enemySize(e) {
+  return ENEMY_DEFS[e.type].size * (e.sizeMult || 1);
+}
+
+const BOSS_DEFS = [
+  { id:'ironmaw',  name:'IRONMAW',        title:'Warlord of the Greenwood',   type:2, sizeMult:2.0, hpMult:14, speedMult:0.55, abilities:['slam','summon'] },
+  { id:'sandwyrm', name:'THE SAND WYRM',  title:'Devourer of Caravans',       type:2, sizeMult:2.2, hpMult:16, speedMult:0.6,  abilities:['burrow','summon'] },
+  { id:'hoarfrost',name:'HOARFROST',      title:'The Unmelting Crown',        type:7, sizeMult:2.0, hpMult:15, speedMult:0.5,  abilities:['barrier','freeze'] },
+  { id:'cinderking',name:'THE CINDER KING',title:'He Who Burns the Sky',      type:3, sizeMult:2.2, hpMult:18, speedMult:0.6,  abilities:['rage','slam'] },
+  { id:'thornqueen',name:'THE THORN QUEEN',title:'Root of the Deep Grove',    type:5, sizeMult:2.0, hpMult:16, speedMult:0.55, abilities:['regen','summon'] },
+  { id:'voidmaw',  name:'VOIDMAW',        title:'That Which Eats Starlight',  type:8, sizeMult:2.1, hpMult:18, speedMult:0.5,  abilities:['barrier','summon'] },
+  { id:'leviathan',name:'THE LEVIATHAN',  title:'Tide of a Drowned World',    type:2, sizeMult:2.4, hpMult:20, speedMult:0.45, abilities:['slam','regen'] },
+  { id:'nulllord', name:'THE NULL LORD',  title:'Final Shadow',               type:3, sizeMult:2.5, hpMult:24, speedMult:0.55, abilities:['rage','barrier','summon'] },
+];
+function getBossForWorld(world) {
+  return BOSS_DEFS[(world - 1) % BOSS_DEFS.length];
+}
+// Ability tuning. Each fires on its own cooldown while the boss is alive.
+const BOSS_ABILITIES = {
+  slam:    { cd: 7.0, telegraph: 1.1 },  // shockwave: damages the castle unless it's killed in time? no — stuns towers nearby
+  summon:  { cd: 9.0, telegraph: 1.2 },  // calls minions to its position
+  barrier: { cd: 11.0, telegraph: 0.9 }, // absorbs a chunk of damage for a while
+  regen:   { cd: 8.0, telegraph: 0.8 },  // heals itself
+  rage:    { cd: 0,   telegraph: 0 },    // passive: speeds up as it loses health
+  freeze:  { cd: 10.0, telegraph: 1.0 }, // silences nearby towers briefly
+  burrow:  { cd: 12.0, telegraph: 1.0 }, // becomes untargetable and skips ahead
+};
 
 // ===== WORLD THEMES =====
 const WORLD_THEMES = [
@@ -1288,7 +1423,8 @@ function refreshStartScreenButtons() {
   html += menuBtn('daily', `DAILY CHALLENGE${dailyBest ? ` — best: ${dailyBest}` : ''}`, 'startDailyChallenge()', true);
   html += menuBtn('customize', 'CUSTOMIZE TOWERS', 'openCustomizeScreen()', true);
   const achCount = ACHIEVEMENT_DEFS.filter(d => profile.achievements[d.name]).length;
-  html += menuBtn('trophy', `ACHIEVEMENTS${achCount ? ` — ${achCount}/${ACHIEVEMENT_DEFS.length}` : ''}`, 'openAchievementsScreen()', true);
+  const hofTop = loadHallOfFame()[0];
+  html += menuBtn('trophy', `HALL OF FAME${hofTop ? ` — best: ${hofTop.score} waves` : (achCount ? ` — ${achCount}/${ACHIEVEMENT_DEFS.length}` : '')}`, 'openAchievementsScreen()', true);
   if (saved) {
     html += menuBtn('restart', 'NEW GAME', 'startGame(false)', true);
   }
@@ -1332,6 +1468,7 @@ function renderHomeScreen() {
     ${profileLine}
     <div id="start-buttons"></div>
     <button class="how-to-btn" onclick="toggleTutorial()">HOW TO PLAY</button>
+    <button class="how-to-btn" onclick="replayTutorial()" style="margin-top:2px">REPLAY INTERACTIVE TUTORIAL</button>
     <div class="tut-steps" id="tut-steps" style="display:none">${TUT_STEPS_HTML}</div>
     <div class="home-hints">
       <span><kbd>1&ndash;8</kbd> towers</span>
@@ -1342,6 +1479,106 @@ function renderHomeScreen() {
   `;
   refreshStartScreenButtons();
 }
+
+// ===== FIRST-RUN TUTORIAL (interactive coach marks) =====
+// Steps advance on what the player actually DOES, not on timers — so a kid who
+// already figured it out is never held up, and one who is stuck always sees the target.
+const TUTORIAL_STEPS = [
+  { id:'welcome', title:'DEFEND THE CASTLE', text:'Waves of monsters march down the <b>dirt road</b> toward your castle on the right. Build towers beside the road to stop them.', target:null, advance:'button' },
+  { id:'pick',    title:'PICK A TOWER',      text:'Tap the <b>Arrow</b> tower at the bottom. It is cheap, fast, and good against everything.', target:'#tower-bar', advance:'select', wait:'Pick a tower to continue' },
+  { id:'place',   title:'PLACE IT',          text:'Now click any <b>green tile</b> next to the road. Towers only shoot what walks past, so hug the path.', target:'#c', advance:'place', wait:'Place your tower to continue' },
+  { id:'send',    title:'SEND THE WAVE',     text:'Ready? Hit <b>SEND WAVE</b> (or press Space). Your towers fire on their own — just watch.', target:'#send-wave-btn', advance:'send', wait:'Send the wave to continue' },
+  { id:'kill',    title:'GOLD AND STARS',    text:'Every kill drops <b>gold</b> to build more towers, and <b>XP</b> toward upgrade stars. Keep the road covered.', target:null, advance:'kill' },
+  { id:'upgrade', title:'UPGRADE A TOWER',   text:'Kills earn <b>upgrade stars</b> (watch the XP bar). Once you have one, click a tower you already built — every tower unlocks a brand-new attack at Lv.2.', target:'#c', advance:'upgrade', wait:'Upgrade a tower to finish' },
+  { id:'done',    title:'YOU ARE READY',     text:'Hearts are lives — lose them all and the run ends. Survive <b>15 waves</b> to clear a world and face its <b>boss</b>. Good luck!', target:null, advance:'button' },
+];
+let tutorial = null;
+let pendingTutorialReplay = false;
+
+// Home-screen entry point: start a brand-new run with the coach marks forced on
+function replayTutorial() {
+  pendingTutorialReplay = true;
+  startGame(false);
+}
+
+// Whether a brand-new run should be coached. The caller decides "is this a fresh
+// run" (startGame only calls us when there was no save to resume) — checking for a
+// save here would misfire, since updateUI() writes one before we ever get called.
+function tutorialShouldRun() {
+  if (profile.stats.gamesPlayed) return false;      // they've played before
+  if (profile.tutorialDone) return false;
+  return true;
+}
+
+function tutorialStart(force) {
+  if (!force && !tutorialShouldRun()) return;
+  tutorial = { idx: 0 };
+  document.getElementById('coach').classList.add('show');
+  tutorialRender();
+}
+
+function tutorialStop(skipped) {
+  tutorial = null;
+  document.getElementById('coach').classList.remove('show');
+  profile.tutorialDone = true;
+  saveProfile();
+  if (skipped) showFlash('Tutorial skipped — replay it any time from HOW TO PLAY');
+}
+
+function tutorialNext() {
+  if (!tutorial) return;
+  tutorial.idx++;
+  if (tutorial.idx >= TUTORIAL_STEPS.length) { tutorialStop(false); return; }
+  tutorialRender();
+}
+
+// Called from gameplay when the player does something the tutorial is waiting on
+function tutorialEvent(kind) {
+  if (!tutorial) return;
+  const step = TUTORIAL_STEPS[tutorial.idx];
+  if (step && step.advance === kind) tutorialNext();
+}
+
+function tutorialRender() {
+  if (!tutorial) return;
+  const step = TUTORIAL_STEPS[tutorial.idx];
+  if (!step) { tutorialStop(false); return; }
+  document.getElementById('coach-step').textContent = `Step ${tutorial.idx + 1} of ${TUTORIAL_STEPS.length}`;
+  document.getElementById('coach-title').textContent = step.title;
+  document.getElementById('coach-text').innerHTML = step.text;
+
+  // Button steps advance on click; action steps wait for the player to act
+  const isButtonStep = step.advance === 'button';
+  document.getElementById('coach-next').style.display = isButtonStep ? '' : 'none';
+  const waitEl = document.getElementById('coach-wait');
+  waitEl.style.display = isButtonStep ? 'none' : '';
+  waitEl.textContent = step.wait || '';
+
+  const spot = document.getElementById('coach-spot');
+  const box = document.getElementById('coach-box');
+  const target = step.target ? document.querySelector(step.target) : null;
+  const visible = target && target.offsetParent !== null;
+
+  if (visible) {
+    const r = target.getBoundingClientRect();
+    const pad = step.target === '#c' ? -Math.min(r.width, r.height) * 0.22 : 8;
+    spot.style.display = '';
+    spot.style.left = (r.left - pad) + 'px';
+    spot.style.top = (r.top - pad) + 'px';
+    spot.style.width = (r.width + pad * 2) + 'px';
+    spot.style.height = (r.height + pad * 2) + 'px';
+    // Put the message where it won't cover the thing it points at
+    const boxH = box.offsetHeight || 150;
+    const above = r.top > boxH + 30;
+    box.style.left = Math.max(12, Math.min(window.innerWidth - 342, r.left + r.width / 2 - 165)) + 'px';
+    box.style.top = (above ? r.top - boxH - 18 : Math.min(window.innerHeight - boxH - 12, r.bottom + 18)) + 'px';
+  } else {
+    spot.style.display = 'none';
+    box.style.left = 'calc(50% - 165px)';
+    box.style.top = '58%';
+  }
+}
+window.addEventListener('resize', () => { if (tutorial) tutorialRender(); });
 
 function toggleTutorial() {
   const el = document.getElementById('tut-steps');
@@ -1355,6 +1592,8 @@ function returnToMenu() {
     document.getElementById(id).style.display = 'none';
   }
   document.getElementById('pause-overlay').classList.remove('show');
+  document.getElementById('coach').classList.remove('show');
+  tutorial = null;
   document.getElementById('merchant').classList.remove('show');
   document.getElementById('guardian').classList.remove('show');
   document.getElementById('overlay').style.display = 'flex';
@@ -1495,15 +1734,46 @@ const ACH_TROPHY_SVG = '<svg width="17" height="17" viewBox="0 0 24 24" fill="cu
 const ACH_LOCK_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9z"/></svg>';
 
 function openAchievementsScreen() {
+  buildHallOfFame();
   buildAchievementsList();
   document.getElementById('achievements-panel').classList.add('show');
 }
 function closeAchievementsScreen() {
   document.getElementById('achievements-panel').classList.remove('show');
 }
+function buildHallOfFame() {
+  const body = document.getElementById('hof-body');
+  const list = loadHallOfFame();
+  if (!list.length) {
+    body.innerHTML = '<div class="hof-empty">No runs recorded yet — play a game and your best attempts land here.</div>';
+    return;
+  }
+  body.innerHTML = '';
+  list.forEach((r, i) => {
+    const row = document.createElement('div');
+    row.className = 'hof-row' + (i === 0 ? ' top' : '');
+    row.innerHTML = `<div class="hof-rank">#${i + 1}</div>
+      <div class="hof-score">${r.score} <span>waves</span></div>
+      <div class="hof-meta">
+        <span>World ${r.world}, Wave ${r.wave}</span>
+        <span>${(r.kills || 0).toLocaleString()} kills</span>
+        <span>${r.towers || 0} towers</span>
+        ${r.bosses ? `<span>${r.bosses} boss${r.bosses > 1 ? 'es' : ''}</span>` : ''}
+        ${r.mode === 'daily' ? '<span class="hof-tag">Daily</span>' : ''}
+      </div>
+      <div class="hof-date">${r.date || ''}</div>`;
+    body.appendChild(row);
+  });
+}
+
 function buildAchievementsList() {
   const body = document.getElementById('achievements-body');
   const defs = [...ACHIEVEMENT_DEFS];
+  // One trophy per boss, so the road ahead is visible while still locked.
+  // Built here rather than in ACHIEVEMENT_DEFS because BOSS_DEFS is declared later in the file.
+  for (const b of BOSS_DEFS) {
+    defs.push({ name: 'Slayer of ' + titleCase(b.name), desc: `Defeat ${b.name}, ${b.title} — guardian of the final wave of its world` });
+  }
   // Achievements earned beyond the canonical list (e.g. deep endless worlds) still show up
   for (const name in profile.achievements) {
     if (!defs.some(d => d.name === name)) defs.push({ name, desc: profile.achievements[name].sub || '' });
@@ -1526,8 +1796,9 @@ function buildAchievementsList() {
     card.querySelector('.ach-desc').textContent = desc;
     body.appendChild(card);
   }
+  const bossLine = profile.stats.bossesSlain ? ` · ${profile.stats.bossesSlain} bosses slain` : '';
   document.getElementById('ach-progress').textContent =
-    `${unlockedCount} of ${defs.length} unlocked · ${(profile.stats.totalKills || 0).toLocaleString()} lifetime kills · ${(profile.stats.wavesCleared || 0).toLocaleString()} waves cleared`;
+    `${unlockedCount} of ${defs.length} achievements · ${(profile.stats.totalKills || 0).toLocaleString()} lifetime kills · ${(profile.stats.wavesCleared || 0).toLocaleString()} waves cleared${bossLine}`;
 }
 
 function toggleAdminPanel() {
@@ -1846,6 +2117,8 @@ function startGame(resume) {
   resize();
   render();
   requestAnimationFrame(loop);
+  if (!saved) tutorialStart(pendingTutorialReplay);
+  pendingTutorialReplay = false;
 }
 
 function showMerchant() {
@@ -2059,6 +2332,10 @@ const SFX = {
     death()     { sfxTone('triangle', 260, 70, 0.13, 0.3); sfxNoise(0.06, 0.2, 900); },
     hurt()      { sfxTone('sawtooth', 170, 60, 0.3, 0.4); sfxNoise(0.25, 0.35, 320); },
     boss()      { sfxTone('sawtooth', 98, 60, 0.7, 0.35); sfxTone('sawtooth', 49, 38, 0.9, 0.3, 0.05); sfxNoise(0.45, 0.3, 190); },
+    boss_cast() { sfxTone('sine', 220, 660, 0.55, 0.22); sfxTone('sine', 330, 990, 0.5, 0.14, 0.06); },
+    boss_slam() { sfxTone('sine', 60, 28, 0.5, 0.6); sfxNoise(0.4, 0.5, 260); },
+    boss_shield(){ sfxTone('triangle', 300, 780, 0.4, 0.26); sfxTone('sine', 600, 1200, 0.3, 0.16, 0.08); },
+    boss_die()  { [330, 262, 196, 147, 98].forEach((f, i) => sfxTone('sawtooth', f, f * 0.6, 0.4, 0.3, i * 0.11)); sfxNoise(0.7, 0.4, 200, 'lowpass', 0.4); },
     horn()      { sfxTone('sawtooth', 196, 0, 0.5, 0.16); sfxTone('sawtooth', 294, 0, 0.5, 0.14, 0.12); sfxTone('sawtooth', 392, 0, 0.65, 0.14, 0.24); },
     clear()     { [523, 659, 784, 1047].forEach((f, i) => sfxTone('triangle', f, 0, 0.22, 0.22, i * 0.08)); },
     flawless()  { [659, 784, 988, 1319].forEach((f, i) => sfxTone('sine', f, 0, 0.3, 0.22, i * 0.07)); },
@@ -2171,6 +2448,7 @@ function sendWave() {
   game.waveStartHp = game.hp; // for the Flawless bonus
   game.bossAnnounced = false;
   SFX.play('horn');
+  tutorialEvent('send');
   document.getElementById('send-wave-btn').style.display = 'none';
   document.getElementById('hint').style.display = 'none';
   document.getElementById('merchant').classList.remove('show');
@@ -2187,6 +2465,16 @@ function sendWave() {
 
 function spawnWave() {
   game.waveEnemies = getWave(game.wave);
+  // The final wave of every world is a boss fight
+  if (game.wave === DIFFICULTY.wavesPerWorld && !game.dailyChallenge) {
+    const bd = getBossForWorld(game.world);
+    const maxDelay = game.waveEnemies.length ? Math.max(...game.waveEnemies.map(w => w.delay)) : 0;
+    const ref = game.waveEnemies[0] || { hpMult: 1, spdMult: 1 };
+    game.waveEnemies.push({
+      type: bd.type, delay: maxDelay + 2.5,
+      hpMult: ref.hpMult, spdMult: ref.spdMult, bossId: bd.id,
+    });
+  }
   game.waveSpawnIdx = 0;
   game.waveTimer = 0;
   game.waveActive = true;
@@ -2836,6 +3124,22 @@ function drawTowers() {
     applySpriteTint(ctx, def.id);
     ctx.restore();
 
+    // Knocked offline by a boss: frozen-out overlay + crackle
+    if (t.stunned > 0) {
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = '#8fd4ff';
+      ctx.fillRect(t.tx * TILE + 2, t.ty * TILE + 2, TILE - 4, TILE - 4);
+      ctx.globalAlpha = 0.9;
+      ctx.strokeStyle = '#dff2ff';
+      ctx.lineWidth = 1.5;
+      const jx = t.tx * TILE + TILE / 2, jy = t.ty * TILE + TILE / 2;
+      ctx.beginPath();
+      ctx.moveTo(jx - 8, jy - 6); ctx.lineTo(jx - 2, jy); ctx.lineTo(jx - 6, jy + 2); ctx.lineTo(jx + 2, jy + 8);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // Muzzle flash when recently fired
     if (t.cooldown > def.rate - 0.09 && t.angle !== undefined) {
       ctx.fillStyle = 'rgba(255,240,180,0.9)';
@@ -2908,7 +3212,8 @@ function drawEnemies() {
   for (const e of game.enemies) {
     if (e.dead && !(e.squash > 0)) continue;
     const def = ENEMY_DEFS[e.type];
-    const s = def.size / 10; // scale factor
+    const es = enemySize(e);
+    const s = es / 10; // scale factor
     const bob = Math.sin(t * 6 + e.x * 0.1) * 1.5; // walk bob
     const frozen = e.slowed > 0;
 
@@ -2959,7 +3264,7 @@ function drawEnemies() {
     // Shadow
     ctx.fillStyle = 'rgba(0,0,0,0.25)';
     ctx.beginPath();
-    ctx.ellipse(0, def.size + 2, def.size * 0.9, 3, 0, 0, Math.PI*2);
+    ctx.ellipse(0, es + 2, es * 0.9, 3, 0, 0, Math.PI*2);
     ctx.fill();
 
     // 3. Composite: outline underneath, character on top
@@ -2974,7 +3279,7 @@ function drawEnemies() {
       ctx.globalAlpha = Math.min(e.hitFlash / 0.06, 1) * 0.7;
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.arc(0, 0, def.size * 1.15, 0, Math.PI*2);
+      ctx.arc(0, 0, es * 1.15, 0, Math.PI*2);
       ctx.fill();
       ctx.globalAlpha = 1;
     }
@@ -2982,10 +3287,10 @@ function drawEnemies() {
     ctx.restore();
 
     // HP bar (drawn in world space, not flipped) — bosses get a chunkier framed bar
-    const isBoss = def.size >= 16;
-    const barW = Math.max(def.size * 2.5, 20);
+    const isBoss = es >= 16;
+    const barW = Math.max(es * 2.5, 20);
     const barH = isBoss ? 5 : 3;
-    const barY = e.y - def.size - (isBoss ? 15 : 10) + bob;
+    const barY = e.y - es - (isBoss ? 15 : 10) + bob;
     const hpPct = e.hp / e.maxHp;
     if (isBoss) {
       ctx.fillStyle = 'rgba(10,8,6,0.85)';
@@ -3942,9 +4247,22 @@ function update(dt) {
     const h = game.hero;
     h.x += h.speed * dt;
     // Stomp enemies as he walks
+    h.bossHitT = Math.max(0, (h.bossHitT || 0) - dt);
     for (const e of game.enemies) {
       if (e.dead) continue;
       if (Math.hypot(e.x - h.x, e.y - (h.y + 40)) < 60) {
+        // A boss is a fight, not a speed bump — Stache hurts it on a cooldown but
+        // can't flatten it, and the kill routes through damageEnemy so the bounty,
+        // banner and trophy still fire.
+        if (e.boss) {
+          if (h.bossHitT === 0) {
+            h.bossHitT = 0.8;
+            damageEnemy(e, Math.max(300, e.maxHp * 0.06));
+            playFart();
+            spawnParticles(e.x, e.y, '#ff4444', 14);
+          }
+          continue;
+        }
         e.dead = true;
         game.gold += ENEMY_DEFS[e.type].reward;
         game.kills++;
@@ -3977,16 +4295,28 @@ function update(dt) {
       const pathDef = game.activePaths[Math.floor(Math.random() * game.activePaths.length)];
       const path = pathToPixels(pathDef.tiles);
       const start = path[0];
-      const hp = Math.round(def.hp * next.hpMult);
-      game.enemies.push({
+      const bd = next.bossId ? BOSS_DEFS.find(b => b.id === next.bossId) : null;
+      const hp = Math.round(def.hp * next.hpMult * (bd ? bd.hpMult : 1));
+      const ent = {
         type: next.type, x: start.x, y: start.y,
-        hp, maxHp: hp, speed: def.speed * (next.spdMult || 1),
+        hp, maxHp: hp, speed: def.speed * (next.spdMult || 1) * (bd ? bd.speedMult : 1),
         path, pathIdx: 0, dead: false, slowed: 0,
         shieldHp: def.shield || 0,
         healTimer: 0, necroTimer: 0, spawnT: 0.25,
-      });
-      // Boss entrance: announce the first Dark Knight of each wave
-      if (next.type === 3 && !game.bossAnnounced) {
+      };
+      if (bd) {
+        ent.boss = bd;
+        ent.sizeMult = bd.sizeMult;
+        ent.abilityTimers = {};
+        for (const a of bd.abilities) ent.abilityTimers[a] = (BOSS_ABILITIES[a].cd || 0) * 0.55;
+        game.activeBoss = ent;
+        showBannerText(bd.name, bd.title, 3000);
+        SFX.play('boss');
+        triggerShake(8, 0.6);
+      }
+      game.enemies.push(ent);
+      // Mini-boss entrance: announce the first Dark Knight of each wave
+      if (next.type === 3 && !bd && !game.bossAnnounced) {
         game.bossAnnounced = true;
         showBannerText('DARK KNIGHT', 'A CHAMPION OF THE HORDE RIDES FORTH', 2200);
         SFX.play('boss');
@@ -4000,18 +4330,25 @@ function update(dt) {
   for (const e of game.enemies) {
     if (e.dead) continue;
     const def = ENEMY_DEFS[e.type];
-    let spd = e.speed;
+    let spd = e.speed * (e.rageMult || 1);
+    if (e.untargetable > 0) { e.untargetable -= dt; spd *= 2.2; } // burrowed: fast and unhittable
     if (e.slowed > 0) { spd *= 0.5; e.slowed -= dt; }
 
     const target = e.path[e.pathIdx + 1];
     if (!target) {
-      // Reached castle
+      // Reached castle — a boss smashing through costs far more than a stray rat
       e.dead = true;
-      game.hp--;
+      const dmg = e.boss ? 5 : 1;
+      game.hp -= dmg;
+      if (e.boss) {
+        game.activeBoss = null;
+        showBannerText(e.boss.name + ' BREACHES THE GATE', `-${dmg} HEARTS`, 2400);
+        triggerShake(12, 0.6);
+      }
       SFX.play('hurt');
       triggerShake(4, 0.25);
       game.hurtT = 0.3;
-      spawnParticles(e.x, e.y, '#ff4444', 6);
+      spawnParticles(e.x, e.y, '#ff4444', e.boss ? 24 : 6);
       updateUI();
       if (game.hp <= 0) endGame();
       continue;
@@ -4080,6 +4417,8 @@ function update(dt) {
     }
   }
 
+  updateBossAbilities(dt);
+
   // Tower shooting (with ammo/reload)
   for (const t of game.towers) {
     const base = TOWER_TYPES[t.type];
@@ -4104,6 +4443,8 @@ function update(dt) {
     }
     if (t.ammo === undefined) { t.ammo = def.ammo; t.maxAmmo = def.ammo; }
     else if (t.maxAmmo !== def.ammo) { t.ammo += (def.ammo - t.maxAmmo); t.maxAmmo = def.ammo; }
+    // Knocked offline by a boss shockwave / frost nova
+    if (t.stunned > 0) { t.stunned -= dt; continue; }
     t.cooldown = (t.cooldown || 0) - dt;
     if (t.cooldown > 0) continue;
 
@@ -4123,7 +4464,7 @@ function update(dt) {
     // Find nearest enemy in range
     let best = null, bestDist = Infinity;
     for (const e of game.enemies) {
-      if (e.dead) continue;
+      if (e.dead || e.untargetable > 0) continue;
       const d = Math.hypot(e.x - cx, e.y - cy);
       if (d <= def.range && d < bestDist) { best = e; bestDist = d; }
     }
@@ -4310,10 +4651,10 @@ function update(dt) {
 
     // Hit detection
     for (const e of game.enemies) {
-      if (e.dead) continue;
+      if (e.dead || e.untargetable > 0) continue;
       if (p.hitList && p.hitList.includes(e)) continue;
       const d = Math.hypot(e.x - p.x, e.y - p.y);
-      const eSize = ENEMY_DEFS[e.type].size;
+      const eSize = enemySize(e);
       if (d < eSize + 4) {
         if (p.splash > 0) {
           for (const e2 of game.enemies) {
@@ -4374,6 +4715,9 @@ function update(dt) {
   // Wave complete?
   if (game.waveActive && game.waveSpawnIdx >= game.waveEnemies.length && game.enemies.length === 0) {
     game.waveActive = false;
+    game.activeBoss = null;
+    game.shockwaves = [];
+    for (const t of game.towers) t.stunned = 0;
     const clearedWave = game.wave;
     const flawless = game.waveStartHp !== undefined && game.hp === game.waveStartHp;
     game.wave++;
@@ -4455,7 +4799,188 @@ function playFart() {
   sfxTone('sawtooth', startFreq, startFreq * 0.25, dur, 0.35);
 }
 
+// ===== BOSS ABILITIES =====
+const BOSS_ABILITY_LABEL = {
+  slam: 'SHOCKWAVE', summon: 'SUMMONING', barrier: 'RAISING BARRIER',
+  regen: 'REGENERATING', freeze: 'FROST NOVA', burrow: 'BURROWING',
+};
+
+function updateBossAbilities(dt) {
+  const b = game.activeBoss;
+  if (!b) return;
+  if (b.dead) { game.activeBoss = null; return; }
+  const bd = b.boss;
+
+  // Passive: rage — the closer to death, the faster it moves
+  if (bd.abilities.includes('rage')) {
+    b.rageMult = 1 + (1 - b.hp / b.maxHp) * 0.9;
+    b.enraged = b.hp / b.maxHp < 0.5;
+  }
+
+  // Mid-cast: run out the telegraph, then fire
+  if (b.castT > 0) {
+    b.castT -= dt;
+    if (b.castT <= 0) {
+      const a = b.casting;
+      b.casting = null; b.castLabel = null;
+      fireBossAbility(b, a);
+    }
+    return;
+  }
+
+  for (const a of bd.abilities) {
+    const cfg = BOSS_ABILITIES[a];
+    if (!cfg || !cfg.cd) continue; // rage is passive
+    b.abilityTimers[a] -= dt;
+    if (b.abilityTimers[a] <= 0) {
+      b.abilityTimers[a] = cfg.cd;
+      b.casting = a;
+      b.castT = cfg.telegraph;
+      b.castLabel = BOSS_ABILITY_LABEL[a] || a.toUpperCase();
+      SFX.play('boss_cast');
+      break; // one ability at a time
+    }
+  }
+}
+
+function fireBossAbility(b, a) {
+  if (!b || b.dead) return;
+  switch (a) {
+    case 'slam': {
+      // Shockwave: knocks nearby towers offline for a few seconds
+      const R = 150;
+      triggerShake(10, 0.45);
+      SFX.play('boss_slam');
+      game.shockwaves = game.shockwaves || [];
+      game.shockwaves.push({ x: b.x, y: b.y, r: 0, maxR: R, life: 0.6 });
+      for (const t of game.towers) {
+        const tx = t.tx * TILE + TILE/2, ty = t.ty * TILE + TILE/2;
+        if (Math.hypot(tx - b.x, ty - b.y) < R) {
+          t.stunned = Math.max(t.stunned || 0, 3);
+          spawnParticles(tx, ty, '#ff8844', 6);
+        }
+      }
+      break;
+    }
+    case 'summon': {
+      SFX.play('boss_cast');
+      const kinds = [0, 1, 4];
+      for (let i = 0; i < 4; i++) {
+        const type = kinds[Math.floor(Math.random() * kinds.length)];
+        const d = ENEMY_DEFS[type];
+        const hp = Math.round(d.hp * (1 + (game.world - 1) * DIFFICULTY.worldHpGrowth));
+        game.enemies.push({
+          type, x: b.x + (Math.random() - 0.5) * 30, y: b.y + (Math.random() - 0.5) * 30,
+          hp, maxHp: hp, speed: d.speed,
+          path: b.path, pathIdx: b.pathIdx, dead: false, slowed: 0,
+          shieldHp: d.shield || 0, healTimer: 0, necroTimer: 0, spawnT: 0.25,
+        });
+      }
+      spawnParticles(b.x, b.y, '#22ff44', 18);
+      showFlash(`${b.boss.name} summons reinforcements!`);
+      break;
+    }
+    case 'barrier': {
+      b.shieldHp = (b.shieldHp || 0) + Math.round(b.maxHp * 0.18);
+      spawnParticles(b.x, b.y, '#4488ff', 20);
+      SFX.play('boss_shield');
+      showFlash(`${b.boss.name} raises a barrier!`);
+      break;
+    }
+    case 'regen': {
+      const healed = Math.round(b.maxHp * 0.1);
+      b.hp = Math.min(b.maxHp, b.hp + healed);
+      spawnDamageNum(b.x, b.y - 30, '+' + healed, 'heal');
+      spawnParticles(b.x, b.y, '#44ff88', 16);
+      SFX.play('boss_shield');
+      break;
+    }
+    case 'freeze': {
+      const R = 190;
+      SFX.play('boss_slam');
+      game.shockwaves = game.shockwaves || [];
+      game.shockwaves.push({ x: b.x, y: b.y, r: 0, maxR: R, life: 0.6, color: '#8fd4ff' });
+      for (const t of game.towers) {
+        const tx = t.tx * TILE + TILE/2, ty = t.ty * TILE + TILE/2;
+        if (Math.hypot(tx - b.x, ty - b.y) < R) {
+          t.stunned = Math.max(t.stunned || 0, 4);
+          spawnParticles(tx, ty, '#8fd4ff', 6);
+        }
+      }
+      showFlash(`${b.boss.name} freezes your towers solid!`);
+      break;
+    }
+    case 'burrow': {
+      b.untargetable = 2.2;
+      spawnParticles(b.x, b.y, '#8b6b3d', 18);
+      showFlash(`${b.boss.name} burrows underground!`);
+      break;
+    }
+  }
+}
+
+// Shockwave rings from boss slams
+function updateDrawShockwaves(dt) {
+  if (!game.shockwaves || !game.shockwaves.length) return;
+  for (let i = game.shockwaves.length - 1; i >= 0; i--) {
+    const w = game.shockwaves[i];
+    w.life -= dt;
+    if (w.life <= 0) { game.shockwaves.splice(i, 1); continue; }
+    const p = 1 - w.life / 0.6;
+    const rgb = w.color === '#8fd4ff' ? '143,212,255' : '255,136,68';
+    ctx.strokeStyle = `rgba(${rgb},${1 - p})`;
+    ctx.lineWidth = 5 * (1 - p) + 1;
+    ctx.beginPath();
+    ctx.arc(w.x, w.y, w.maxR * p, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+// Boss health bar pinned to the top of the board
+function drawBossBar() {
+  const b = game.activeBoss;
+  if (!b || b.dead) return;
+  const W = C.width * 0.5, X = (C.width - W) / 2, Y = 92;
+  ctx.save();
+  ctx.fillStyle = 'rgba(10,8,6,0.82)';
+  ctx.fillRect(X - 4, Y - 22, W + 8, 40);
+  ctx.strokeStyle = '#8a6d3b'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(X - 4, Y - 22, W + 8, 40);
+
+  ctx.textAlign = 'center';
+  ctx.font = '900 14px Cinzel, Georgia, serif';
+  ctx.fillStyle = '#e8b64c';
+  ctx.fillText(b.boss.name, C.width / 2, Y - 7);
+
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(X, Y, W, 11);
+  const pct = Math.max(b.hp / b.maxHp, 0);
+  const grad = ctx.createLinearGradient(X, 0, X + W, 0);
+  grad.addColorStop(0, b.enraged ? '#ff5533' : '#b3362e');
+  grad.addColorStop(1, b.enraged ? '#ffaa33' : '#e0766f');
+  ctx.fillStyle = grad;
+  ctx.fillRect(X, Y, W * pct, 11);
+  // Barrier overlay
+  if (b.shieldHp > 0) {
+    ctx.fillStyle = 'rgba(110,170,255,0.75)';
+    ctx.fillRect(X, Y, W * Math.min(b.shieldHp / b.maxHp, 1), 11);
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 1;
+  ctx.strokeRect(X, Y, W, 11);
+
+  // Telegraph: what it's about to do
+  if (b.castLabel) {
+    ctx.font = '800 11px Inter, sans-serif';
+    ctx.fillStyle = '#ffd87a';
+    ctx.fillText('\u26a0 ' + b.castLabel, C.width / 2, Y + 26);
+  }
+  ctx.restore();
+  ctx.textAlign = 'left';
+}
+
 function damageEnemy(e, dmg) {
+  // Burrowed / phased out: immune on every path (direct, splash, chain, cone, ZAP)
+  if (e.untargetable > 0) return;
   // Shield absorbs damage first
   if (e.shieldHp > 0) {
     const absorbed = Math.min(dmg, e.shieldHp);
@@ -4477,16 +5002,35 @@ function damageEnemy(e, dmg) {
     game.deadEnemies.push({ x: e.x, y: e.y, revived: false });
     if (game.deadEnemies.length > 20) game.deadEnemies.shift(); // cap memory
     const def = ENEMY_DEFS[e.type];
+    if (e.boss) {
+      // Boss kill: big payout, a banner, and a permanent trophy
+      const bounty = 250 + game.world * 120;
+      game.gold += bounty;
+      game.activeBoss = null;
+      triggerShake(12, 0.7);
+      SFX.play('boss_die');
+      spawnParticles(e.x, e.y, '#ffd87a', 45);
+      showBannerText(e.boss.name + ' FALLS', `+${bounty} GOLD BOUNTY`, 2600);
+      unlockAchievement('Slayer of ' + titleCase(e.boss.name), `Defeated ${e.boss.name}, ${e.boss.title}`);
+      profile.stats.bossesSlain = (profile.stats.bossesSlain || 0) + 1;
+      game.bossesSlain = (game.bossesSlain || 0) + 1;
+      saveProfile();
+    }
     game.gold += def.reward;
     game.kills++;
     profile.stats.totalKills = (profile.stats.totalKills || 0) + 1;
     gainXP(def.xp || 1);
     SFX.play('death');
     SFX.play('coin');
+    tutorialEvent('kill');
     spawnDamageNum(e.x, e.y - 26, '+' + def.reward, 'gold');
     spawnParticles(e.x, e.y, def.color, 8);
     updateUI();
   }
+}
+
+function titleCase(str) {
+  return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 }
 
 // --- DAMAGE NUMBERS ---
@@ -4505,7 +5049,7 @@ function updateDrawDamageNums(dt) {
     ctx.globalAlpha = Math.min(d.life / 0.3, 1);
     const size = d.kind === 'crit' ? 19 : (d.kind === 'dot' ? 11 : (d.kind === 'gold' ? 12 : 14));
     ctx.font = `800 ${size}px Inter, sans-serif`;
-    ctx.fillStyle = d.kind === 'crit' ? '#e8b64c' : (d.kind === 'dot' ? '#5fae4c' : (d.kind === 'shield' ? '#6fa8d6' : (d.kind === 'gold' ? '#ffd87a' : '#f5f2ea')));
+    ctx.fillStyle = d.kind === 'crit' ? '#e8b64c' : (d.kind === 'dot' ? '#5fae4c' : (d.kind === 'shield' ? '#6fa8d6' : (d.kind === 'gold' ? '#ffd87a' : (d.kind === 'heal' ? '#66ff99' : '#f5f2ea'))));
     ctx.strokeStyle = '#1a1512';
     ctx.lineWidth = 3;
     ctx.textAlign = 'center';
@@ -4550,8 +5094,10 @@ function render() {
   drawProjectiles();
   drawParticles();
   drawHero();
+  updateDrawShockwaves(1/60);
   updateDrawDamageNums(1/60);
   drawWaveNotice();
+  drawBossBar();
   ctx.restore();
   // Red vignette pulse when castle recently hit
   if (game && game.hurtT > 0) {
@@ -4795,6 +5341,36 @@ function playEvilLaugh() {
   });
 }
 
+// ===== SHARE A RUN =====
+const GAME_URL = 'https://bnjmnsmmr.github.io/castledefense/';
+function buildShareText() {
+  if (!game) return '';
+  const score = (game.world - 1) * DIFFICULTY.wavesPerWorld + game.wave;
+  const bits = [`I survived ${score} waves (World ${game.world}, Wave ${game.wave})`,
+                `slew ${game.kills} monsters`];
+  if (game.bossesSlain) bits.push(`and felled ${game.bossesSlain} boss${game.bossesSlain > 1 ? 'es' : ''}`);
+  return `Ben's Castle Defense — ${bits.join(', ')}. Can you beat that?\n${GAME_URL}`;
+}
+async function shareRun() {
+  const text = buildShareText();
+  const btn = document.getElementById('share-btn');
+  const flash = (msg) => { if (btn) { const o = btn.textContent; btn.textContent = msg; setTimeout(() => { btn.textContent = o; }, 1800); } };
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: "Ben's Castle Defense", text, url: GAME_URL });
+      return;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return; // user dismissed the sheet
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    flash('COPIED!');
+  } catch (e) {
+    flash('COPY FAILED');
+  }
+}
+
 function endGame() {
   game.running = false;
   game.gameOver = true;
@@ -4806,6 +5382,8 @@ function endGame() {
     document.getElementById(id).style.display = 'none';
   }
   document.getElementById('pause-overlay').classList.remove('show');
+  document.getElementById('coach').classList.remove('show');
+  tutorial = null;
   setGameChromeVisible(false);
   const ov = document.getElementById('overlay');
   ov.style.display = 'flex';
@@ -4816,6 +5394,11 @@ function endGame() {
   const killDelta = (profile.stats.totalKills || 0) - ps.kills;
   const waveDelta = (profile.stats.wavesCleared || 0) - ps.waves;
   const newBest = !game.dailyChallenge && (profile.stats.bestScore || 0) > (ps.bestScore || 0);
+  const hofRank = recordHallOfFame({
+    score: runScore, world: game.world, wave: game.wave, kills: game.kills,
+    towers: game.towers.length, bosses: game.bossesSlain || 0,
+    date: todayStr(), mode: game.dailyChallenge ? 'daily' : 'run',
+  });
   const achEarned = Object.keys(game.achievements || {});
   const achChips = achEarned.length
     ? `<div class="go-ach">${achEarned.map(() => '<span></span>').join('')}</div>`
@@ -4839,6 +5422,7 @@ function endGame() {
       ${achChips}
       <div id="start-buttons">
         <button onclick="startDailyChallenge()">TRY AGAIN</button>
+        <button class="secondary-btn" id="share-btn" onclick="shareRun()">SHARE YOUR SCORE</button>
         <button class="secondary-btn" onclick="returnToMenu()">MAIN MENU</button>
       </div>
     `;
@@ -4846,16 +5430,17 @@ function endGame() {
     ov.innerHTML = `
       <h1>THE CASTLE HAS FALLEN</h1>
       <div class="sub">You held the line until World ${game.world}, Wave ${game.wave}</div>
-      ${newBest ? '<div class="go-badge">NEW PERSONAL BEST</div>' : ''}
+      ${newBest ? '<div class="go-badge">NEW PERSONAL BEST</div>' : (hofRank ? `<div class="go-badge rank">#${hofRank} BEST RUN EVER</div>` : '')}
       <div class="go-grid">
         ${statCard(runScore, 'Waves survived', waveDelta > 0 ? `lifetime: ${(profile.stats.wavesCleared || 0).toLocaleString()} (+${waveDelta})` : '')}
         ${statCard(game.kills, 'Enemies slain', killDelta > 0 ? `lifetime: ${(profile.stats.totalKills || 0).toLocaleString()} (+${killDelta})` : '')}
         ${statCard(game.towers.length, 'Towers built', '')}
-        ${statCard(achEarned.length, 'Achievements', '')}
+        ${game.bossesSlain ? statCard(game.bossesSlain, game.bossesSlain > 1 ? 'Bosses slain' : 'Boss slain', '') : statCard(achEarned.length, 'Achievements', '')}
       </div>
       ${achChips}
       <div id="start-buttons">
         <button onclick="startGame(false)">PLAY AGAIN</button>
+        <button class="secondary-btn" id="share-btn" onclick="shareRun()">SHARE YOUR SCORE</button>
         <button class="secondary-btn" onclick="returnToMenu()">MAIN MENU</button>
       </div>
     `;
@@ -4932,6 +5517,7 @@ C.addEventListener('click', e => {
     existing.level = (existing.level || 0) + 1;
     game.upgradesSpent++;
     SFX.play('upgrade');
+    tutorialEvent('upgrade');
     spawnParticles(existing.tx * TILE + TILE/2, existing.ty * TILE + TILE/2, '#ffd700', 14);
     const newAttackNames = {
       arrow: 'Multishot volley', cannon: 'Napalm shells', ice: 'Freeze nova',
@@ -4957,6 +5543,7 @@ C.addEventListener('click', e => {
   game.gold -= def.cost;
   game.towers.push({ tx, ty, type: game.selectedTower, cooldown: 0, angle: 0 });
   SFX.play('place');
+  tutorialEvent('place');
   spawnParticles(tx * TILE + TILE/2, ty * TILE + TILE/2, '#a89878', 10);
   updateUI();
 });
@@ -5058,6 +5645,7 @@ document.addEventListener('keydown', e => {
     if (TOWER_TYPES[idx].secret && !(game && game.annihilatorUnlocked)) return;
     if (game) { game.selectedTower = idx; game.trashMode = false; }
     updateTowerBar();
+    tutorialEvent('select');
   }
 });
 
@@ -5128,6 +5716,7 @@ function buildTowerBar() {
     btn.addEventListener('click', () => {
       if (game) { game.selectedTower = i; game.trashMode = false; }
       updateTowerBar();
+      tutorialEvent('select');
     });
     bar.appendChild(btn);
   });

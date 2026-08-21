@@ -1,6 +1,6 @@
 // Castle Defense service worker — offline-first shell cache.
 // Bump the version string whenever index.html ships meaningful changes.
-const CACHE = 'castle-defense-v1';
+const CACHE = 'castle-defense-v2';
 const ASSETS = [
   '.',
   'index.html',
