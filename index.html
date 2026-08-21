@@ -17,6 +17,13 @@
 <meta name="twitter:description" content="An epic tower defense game right in your browser. Build towers, crush waves, defend the castle.">
 <meta name="twitter:image" content="https://bnjmnsmmr.github.io/castledefense/og-image.png">
 <meta name="theme-color" content="#14100e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Castle Defense">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -222,6 +229,32 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 .home-hints kbd {
   background: var(--bg-panel-raised); border: 1px solid var(--border-brass); border-bottom-width: 2px;
   border-radius: 4px; padding: 1px 6px; font-family: var(--font-ui); font-size: 10.5px; color: var(--gold-bright);
+}
+
+/* ===== Results screen (game over) ===== */
+.go-badge {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: var(--bg-deep);
+  font-weight: 900; letter-spacing: 1.5px; font-size: 12px; border-radius: 20px; padding: 6px 18px;
+  margin-bottom: 16px; animation: badgePop 0.4s ease; box-shadow: 0 0 24px rgba(232,182,76,0.5);
+}
+@keyframes badgePop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+.go-grid { display: flex; gap: 12px; margin: 4px 0 16px; flex-wrap: wrap; justify-content: center; }
+.go-stat {
+  background: rgba(50,39,27,0.55); border: 1px solid var(--border-brass); border-radius: var(--radius-lg);
+  padding: 12px 18px 10px; min-width: 116px; text-align: center;
+}
+.go-val { font-family: var(--font-display); font-weight: 900; font-size: 26px; color: var(--gold-bright); line-height: 1.1; }
+.go-lbl { font-size: 9.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--parchment-dim); font-weight: 700; margin-top: 3px; }
+.go-delta { font-size: 10.5px; color: #9fd68f; margin-top: 4px; font-weight: 600; }
+.go-ach { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 18px; max-width: 580px; }
+.go-ach span {
+  border: 1px solid var(--gold); color: var(--gold-bright); font-size: 11px; font-weight: 700;
+  border-radius: 20px; padding: 3px 11px; background: rgba(232,182,76,0.1);
+}
+@media (max-width: 1000px), (max-height: 620px) {
+  .go-stat { padding: 8px 12px 7px; min-width: 88px; }
+  .go-val { font-size: 19px; }
+  .go-grid { gap: 8px; margin-bottom: 12px; }
 }
 
 /* ===== Pause overlay ===== */
@@ -1759,6 +1792,12 @@ function initGame() {
     usedZAP: false,
     dailyChallenge: false,
     forcedThemeIdx: null,
+    // Lifetime totals at run start, so the results screen can show "+N this run" deltas
+    profileStart: {
+      kills: profile.stats.totalKills || 0,
+      waves: profile.stats.wavesCleared || 0,
+      bestScore: profile.stats.bestScore || 0,
+    },
   };
 }
 
@@ -1841,12 +1880,46 @@ function unlockAchievement(name, sub) {
   playAchievementSound();
   return true;
 }
-// --- BACKGROUND MUSIC: quiet procedural medieval-ish ambient loop ---
+// --- BACKGROUND MUSIC: quiet procedural ambient loop, themed per world ---
+// Each world gets its own mode, register, oscillator character, and pacing. The
+// schedulers re-read getWorldMusic() every cycle, so the score shifts automatically
+// when the player crosses into a new world.
 let musicCtx = null, musicGain = null, musicMuted = false, musicRunning = false;
 const MUSIC_VOLUME = 0.05; // deliberately quiet
-// D Dorian-ish drone notes for a medieval castle mood
-const MUSIC_CHORD_NOTES = [146.83, 174.61, 220.00, 261.63]; // D3 F3 A3 C4
-const MUSIC_MELODY_NOTES = [293.66, 349.23, 392.00, 440.00, 523.25]; // D4 F4 G4 A4 C5
+
+const WORLD_MUSIC = [
+  // 1. Greenwood — D dorian, warm and calm (the original castle mood)
+  { chord: [146.83, 174.61, 220.00, 261.63], melody: [293.66, 349.23, 392.00, 440.00, 523.25],
+    droneType: 'sine', melodyType: 'triangle', melodyGap: 1800, melodyChance: 0.6, droneDur: 8 },
+  // 2. Scorched Desert — D phrygian dominant, exotic heat-shimmer
+  { chord: [146.83, 155.56, 185.00, 220.00], melody: [293.66, 311.13, 369.99, 440.00, 466.16, 587.33],
+    droneType: 'sine', melodyType: 'sawtooth', melodyGap: 1400, melodyChance: 0.65, droneDur: 7, melodyVol: 0.18 },
+  // 3. Frozen Tundra — high sparse A minor, glassy and still
+  { chord: [110.00, 130.81, 164.81, 220.00], melody: [440.00, 523.25, 659.25, 880.00],
+    droneType: 'sine', melodyType: 'sine', melodyGap: 2600, melodyChance: 0.5, droneDur: 10 },
+  // 4. Volcanic Hellscape — low grinding minor seconds, menace
+  { chord: [73.42, 77.78, 110.00, 146.83], melody: [146.83, 155.56, 220.00, 233.08, 293.66],
+    droneType: 'sawtooth', melodyType: 'triangle', melodyGap: 1200, melodyChance: 0.7, droneDur: 6, droneVol: 0.3 },
+  // 5. Enchanted Grove — C lydian sparkle, fairy-tale bright
+  { chord: [130.81, 164.81, 196.00, 246.94], melody: [523.25, 587.33, 659.25, 739.99, 987.77],
+    droneType: 'sine', melodyType: 'triangle', melodyGap: 1500, melodyChance: 0.65, droneDur: 8 },
+  // 6. Deep Space — whole-tone drift, weightless
+  { chord: [110.00, 138.59, 174.61, 220.00], melody: [440.00, 493.88, 554.37, 622.25, 698.46],
+    droneType: 'sine', melodyType: 'sine', melodyGap: 3200, melodyChance: 0.45, droneDur: 12 },
+  // 7. Ocean Depths — G pentatonic, slow floating swells
+  { chord: [98.00, 123.47, 146.83, 196.00], melody: [392.00, 440.00, 523.25, 587.33, 698.46],
+    droneType: 'sine', melodyType: 'triangle', melodyGap: 2400, melodyChance: 0.55, droneDur: 10 },
+  // 8. Shadow Realm — dark diminished murmur, barely-there dread
+  { chord: [69.30, 82.41, 98.00, 116.54], melody: [138.59, 164.81, 196.00, 233.08, 277.18],
+    droneType: 'sawtooth', melodyType: 'sawtooth', melodyGap: 2800, melodyChance: 0.4, droneDur: 9, droneVol: 0.28, melodyVol: 0.15 },
+];
+
+function getWorldMusic() {
+  let idx = 0;
+  if (game && game.forcedThemeIdx !== undefined && game.forcedThemeIdx !== null) idx = game.forcedThemeIdx;
+  else if (game) idx = (game.world - 1) % WORLD_MUSIC.length;
+  return WORLD_MUSIC[idx];
+}
 
 function startMusic() {
   if (musicRunning) return;
@@ -1863,16 +1936,17 @@ function startMusic() {
 
 function scheduleMusicDrone() {
   if (!musicRunning) return;
+  const m = getWorldMusic();
   const t0 = musicCtx.currentTime;
-  const dur = 8;
-  for (const freq of MUSIC_CHORD_NOTES) {
+  const dur = m.droneDur;
+  for (const freq of m.chord) {
     const osc = musicCtx.createOscillator();
     const g = musicCtx.createGain();
-    osc.type = 'sine';
+    osc.type = m.droneType;
     osc.frequency.setValueAtTime(freq, t0);
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.linearRampToValueAtTime(0.5, t0 + 2);
-    g.gain.linearRampToValueAtTime(0.5, t0 + dur - 2);
+    g.gain.linearRampToValueAtTime(m.droneVol || 0.5, t0 + 2);
+    g.gain.linearRampToValueAtTime(m.droneVol || 0.5, t0 + dur - 2);
     g.gain.linearRampToValueAtTime(0.0001, t0 + dur);
     osc.connect(g); g.connect(musicGain);
     osc.start(t0); osc.stop(t0 + dur + 0.1);
@@ -1884,20 +1958,21 @@ function scheduleMusicMelody() {
   if (!musicRunning) return;
   const playNote = () => {
     if (!musicRunning) return;
-    if (Math.random() < 0.6) { // leave gaps for a sparse, unobtrusive melody
-      const freq = MUSIC_MELODY_NOTES[Math.floor(Math.random() * MUSIC_MELODY_NOTES.length)];
+    const m = getWorldMusic();
+    if (Math.random() < m.melodyChance) { // leave gaps for a sparse, unobtrusive melody
+      const freq = m.melody[Math.floor(Math.random() * m.melody.length)];
       const t0 = musicCtx.currentTime;
       const osc = musicCtx.createOscillator();
       const g = musicCtx.createGain();
-      osc.type = 'triangle';
+      osc.type = m.melodyType;
       osc.frequency.setValueAtTime(freq, t0);
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.linearRampToValueAtTime(0.35, t0 + 0.05);
+      g.gain.linearRampToValueAtTime(m.melodyVol || 0.35, t0 + 0.05);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.8);
       osc.connect(g); g.connect(musicGain);
       osc.start(t0); osc.stop(t0 + 1.9);
     }
-    setTimeout(playNote, 1800 + Math.random() * 1400);
+    setTimeout(playNote, m.melodyGap + Math.random() * 1400);
   };
   playNote();
 }
@@ -4734,19 +4809,34 @@ function endGame() {
   setGameChromeVisible(false);
   const ov = document.getElementById('overlay');
   ov.style.display = 'flex';
+
+  // Run summary + lifetime deltas for the results screen
+  const runScore = (game.world - 1) * DIFFICULTY.wavesPerWorld + game.wave;
+  const ps = game.profileStart || { kills: 0, waves: 0, bestScore: 0 };
+  const killDelta = (profile.stats.totalKills || 0) - ps.kills;
+  const waveDelta = (profile.stats.wavesCleared || 0) - ps.waves;
+  const newBest = !game.dailyChallenge && (profile.stats.bestScore || 0) > (ps.bestScore || 0);
+  const achEarned = Object.keys(game.achievements || {});
+  const achChips = achEarned.length
+    ? `<div class="go-ach">${achEarned.map(() => '<span></span>').join('')}</div>`
+    : '';
+  const statCard = (val, lbl, delta) =>
+    `<div class="go-stat"><div class="go-val">${val}</div><div class="go-lbl">${lbl}</div>${delta ? `<div class="go-delta">${delta}</div>` : ''}</div>`;
+
   if (game.dailyChallenge) {
     restoreConfigAfterDaily();
-    const score = (game.world - 1) * DIFFICULTY.wavesPerWorld + game.wave;
-    const isNewBest = saveDailyBest(score);
-    const best = getDailyBest().best || score;
+    const isNewBest = saveDailyBest(runScore);
+    const best = getDailyBest().best || runScore;
     ov.innerHTML = `
-      <h1>🗓️ DAILY CHALLENGE OVER</h1>
-      <div id="game-over-stats">
-        Today's seed: <strong>${todayStr()}</strong><br>
-        Waves survived: <strong>${score}</strong> (World ${game.world}, Wave ${game.wave})<br>
-        Enemies slain: <strong>${game.kills}</strong><br>
-        ${isNewBest ? '🏆 <strong>NEW BEST SCORE!</strong>' : `Your best ever: <strong>${best}</strong>`}
+      <h1>DAILY CHALLENGE OVER</h1>
+      <div class="sub">Seed ${todayStr()} — everyone plays this exact gauntlet today</div>
+      ${isNewBest ? '<div class="go-badge">NEW BEST SCORE</div>' : ''}
+      <div class="go-grid">
+        ${statCard(runScore, 'Waves survived', isNewBest ? '' : `best ever: ${best}`)}
+        ${statCard(game.kills, 'Enemies slain', killDelta > 0 ? `lifetime: ${(profile.stats.totalKills || 0).toLocaleString()}` : '')}
+        ${statCard(game.towers.length, 'Towers built', '')}
       </div>
+      ${achChips}
       <div id="start-buttons">
         <button onclick="startDailyChallenge()">TRY AGAIN</button>
         <button class="secondary-btn" onclick="returnToMenu()">MAIN MENU</button>
@@ -4754,18 +4844,25 @@ function endGame() {
     `;
   } else {
     ov.innerHTML = `
-      <h1>☠️ CASTLE CURSED ☠️</h1>
-      <div id="game-over-stats">
-        Reached <strong>World ${game.world}, Wave ${game.wave}</strong><br>
-        Enemies slain: <strong>${game.kills}</strong><br>
-        Towers built: <strong>${game.towers.length}</strong>
+      <h1>THE CASTLE HAS FALLEN</h1>
+      <div class="sub">You held the line until World ${game.world}, Wave ${game.wave}</div>
+      ${newBest ? '<div class="go-badge">NEW PERSONAL BEST</div>' : ''}
+      <div class="go-grid">
+        ${statCard(runScore, 'Waves survived', waveDelta > 0 ? `lifetime: ${(profile.stats.wavesCleared || 0).toLocaleString()} (+${waveDelta})` : '')}
+        ${statCard(game.kills, 'Enemies slain', killDelta > 0 ? `lifetime: ${(profile.stats.totalKills || 0).toLocaleString()} (+${killDelta})` : '')}
+        ${statCard(game.towers.length, 'Towers built', '')}
+        ${statCard(achEarned.length, 'Achievements', '')}
       </div>
+      ${achChips}
       <div id="start-buttons">
         <button onclick="startGame(false)">PLAY AGAIN</button>
         <button class="secondary-btn" onclick="returnToMenu()">MAIN MENU</button>
       </div>
     `;
   }
+  // Achievement names go in via textContent (they can contain arbitrary strings)
+  const chipEls = ov.querySelectorAll('.go-ach span');
+  achEarned.forEach((name, i) => { if (chipEls[i]) chipEls[i].textContent = name; });
 }
 
 // --- INPUT ---
@@ -5071,6 +5168,11 @@ if (IS_TOUCH) document.getElementById('hint').textContent = 'Tap a green tile to
 renderHomeScreen();
 drawGround(); // paint the map behind the (translucent) home screen so the menu sits on the world
 window.addEventListener('beforeunload', saveGameState);
+
+// PWA: offline shell + installability (skipped when opened straight from disk)
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').catch(() => { /* offline support is a bonus, never an error */ });
+}
 </script>
 </body>
 </html>

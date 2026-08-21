@@ -1,7 +1,11 @@
 # Castle Defense - Project Notes
 
 ## About
-Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no server — one `index.html` file with all CSS/JS inline. Deployed to GitHub Pages at https://bnjmnsmmr.github.io/castledefense/
+Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no server — one `index.html` file with all CSS/JS inline, plus PWA sidecar files (`manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`). Deployed to GitHub Pages at https://bnjmnsmmr.github.io/castledefense/
+
+## PWA
+- Installable: manifest (fullscreen, landscape) + `sw.js` (stale-while-revalidate shell cache, cache name `castle-defense-v1` — bump on meaningful releases). Registered from index.html, skipped on `file:`.
+- Icons drawn programmatically (canvas → PNG); regenerate by re-rendering if the brand changes.
 
 ## Architecture
 - **Single file**: `/index.html` (~4500 lines) — CSS variables in `:root`, all JS in one `<script>` block
@@ -45,6 +49,7 @@ Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build s
 - Enemies pop in via `spawnT`; bosses (size ≥ 16) get a framed HP bar; first Dark Knight of each wave triggers a banner + horn + shake (`game.bossAnnounced`).
 
 ## Sound
+- Music is themed per world: `WORLD_MUSIC` (mode/register/oscillator/pacing per theme), read by `getWorldMusic()` each drone/melody cycle so the score shifts automatically on world change.
 - Shared WebAudio engine (`sfxContext()`, `sfxTone()`, `sfxNoise()`, `SFX.play(name)`) — one AudioContext + master gain for all effects, per-sound throttling. All procedural, zero assets.
 - Per-tower firing sounds (`shot_<towerId>`), kill/coin/hurt/place/sell/upgrade/error/horn/clear/flawless/unlock effects, soft UI click on every button.
 - Music (ambient drone + melody) has its own context; the 🔊 button mutes both music and SFX.
@@ -60,6 +65,7 @@ Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build s
 - Auto-wave, achievements, admin panel for tuning difficulty
 - Game speed toggle (1×/2×/3×, persisted in save), pause menu (P key or ⏸ button), Space sends the wave
 - Flawless-wave bonus gold + "Flawless Defense" achievement; wave-cleared banner shows earnings; gold popups on kills
+- Results screen on game over: stat cards (waves/kills/towers/achievements) with lifetime deltas from `game.profileStart`, NEW PERSONAL BEST badge, chips for achievements earned that run
 - Home/pause/game-over overlays are translucent with backdrop blur over the live map; HUD + tower bar hide while menus are up (`setGameChromeVisible`)
 - OG/Twitter Card meta tags with branded og-image.png
 
