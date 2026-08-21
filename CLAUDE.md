@@ -30,6 +30,11 @@ Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build s
 - Secret keyboard combos: ~4360
 - Tower bar UI (`buildTowerBar`): ~4500
 
+## Sound
+- Shared WebAudio engine (`sfxContext()`, `sfxTone()`, `sfxNoise()`, `SFX.play(name)`) — one AudioContext + master gain for all effects, per-sound throttling. All procedural, zero assets.
+- Per-tower firing sounds (`shot_<towerId>`), kill/coin/hurt/place/sell/upgrade/error/horn/clear/flawless/unlock effects, soft UI click on every button.
+- Music (ambient drone + melody) has its own context; the 🔊 button mutes both music and SFX.
+
 ## Features
 - 8 towers (+1 secret Annihilator via B→N key combo) with level-2 upgrades
 - 9 enemy types across escalating worlds
@@ -39,6 +44,9 @@ Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build s
 - Tower customization (4 color skins per tower)
 - Secret cheats: BN (Annihilator), GG (+500 gold), ASDF (rapid fire 30s), ZAP (lightning strike all enemies)
 - Auto-wave, achievements, admin panel for tuning difficulty
+- Game speed toggle (1×/2×/3×, persisted in save), pause menu (P key or ⏸ button), Space sends the wave
+- Flawless-wave bonus gold + "Flawless Defense" achievement; wave-cleared banner shows earnings; gold popups on kills
+- Home/pause/game-over overlays are translucent with backdrop blur over the live map; HUD + tower bar hide while menus are up (`setGameChromeVisible`)
 - OG/Twitter Card meta tags with branded og-image.png
 
 ## Conventions

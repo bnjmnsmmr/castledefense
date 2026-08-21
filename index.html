@@ -119,7 +119,7 @@ canvas#c { display: block; cursor: crosshair; }
 
 /* ===== Buttons ===== */
 #send-wave-btn {
-  position: absolute; bottom: 78px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: 134px; left: 50%; transform: translateX(-50%);
   background: var(--gold); color: var(--bg-deep); border: none; padding: 12px 34px;
   font-family: var(--font-ui); font-size: 15px; font-weight: 800; border-radius: var(--radius); cursor: pointer;
   z-index: 15; letter-spacing: 1px; display: none;
@@ -128,13 +128,23 @@ canvas#c { display: block; cursor: crosshair; }
 #send-wave-btn:hover { background: var(--gold-bright); }
 @keyframes pulse-btn { 0%,100%{ box-shadow: 0 0 0 0 rgba(232,182,76,0.4); } 50%{ box-shadow: 0 0 0 10px rgba(232,182,76,0); } }
 #auto-wave-btn {
-  position: absolute; bottom: 78px; left: calc(50% + 140px);
+  position: absolute; bottom: 16px; right: 16px;
   background: var(--bg-panel-raised); color: var(--parchment-dim); border: 1px solid var(--border-brass); padding: 12px 16px;
   font-family: var(--font-ui); font-size: 12px; font-weight: 800; border-radius: var(--radius); cursor: pointer;
   z-index: 15; letter-spacing: 0.5px; display: none;
+  transition: filter 0.12s, background 0.15s;
 }
 #auto-wave-btn.on { background: var(--venom); color: var(--bg-deep); border-color: var(--venom); }
 #auto-wave-btn:hover { filter: brightness(1.15); }
+#speed-btn {
+  position: absolute; bottom: 16px; left: 16px;
+  background: var(--bg-panel-raised); color: var(--parchment-dim); border: 1px solid var(--border-brass); padding: 12px 18px;
+  font-family: var(--font-ui); font-size: 12px; font-weight: 800; border-radius: var(--radius); cursor: pointer;
+  z-index: 15; letter-spacing: 0.5px; display: none; min-width: 92px;
+  transition: filter 0.12s, background 0.15s;
+}
+#speed-btn.fast { background: var(--gold); color: var(--bg-deep); border-color: var(--gold); }
+#speed-btn:hover { filter: brightness(1.15); }
 
 /* ===== Toast system ===== */
 #toast-stack {
@@ -144,7 +154,9 @@ canvas#c { display: block; cursor: crosshair; }
 .toast {
   display: flex; align-items: center; gap: 9px; border-radius: var(--radius);
   padding: 9px 13px; font-size: 12.5px; font-weight: 600; border: 1px solid;
-  animation: toastIn 0.3s ease; background: var(--bg-panel);
+  animation: toastIn 0.3s ease; background: rgba(36,28,20,0.92);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
 }
 .toast.out { animation: toastOut 0.3s ease forwards; }
 @keyframes toastIn { from { transform: translateX(30px); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -177,20 +189,51 @@ canvas#c { display: block; cursor: crosshair; }
 /* ===== Overlay (start / game over) ===== */
 #overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(20,16,14,0.93); display: flex; flex-direction: column;
+  background: radial-gradient(ellipse at 50% 28%, rgba(50,39,27,0.6), rgba(20,16,14,0.96) 72%);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  display: flex; flex-direction: column;
   justify-content: center; align-items: center; z-index: 100; color: var(--parchment);
 }
-#overlay h1 { font-family: var(--font-display); font-weight: 900; font-size: 46px; color: var(--gold); margin-bottom: 8px; letter-spacing: 4px; text-align: center; }
+#overlay h1, #pause-overlay h1 { font-family: var(--font-display); font-weight: 900; font-size: 46px; color: var(--gold); margin-bottom: 8px; letter-spacing: 4px; text-align: center; }
 #overlay .sub { font-size: 16px; margin-bottom: 30px; color: var(--parchment-dim); }
-#overlay button {
-  background: var(--gold); color: var(--bg-deep); border: none; padding: 14px 44px;
-  font-family: var(--font-ui); font-size: 17px; font-weight: 800; border-radius: var(--radius); cursor: pointer;
+#overlay button, #pause-overlay button {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold) 55%, #c9993d);
+  color: var(--bg-deep); border: 1px solid #a37f35; padding: 14px 44px;
+  font-family: var(--font-ui); font-size: 16px; font-weight: 800; border-radius: var(--radius); cursor: pointer;
   letter-spacing: 1px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.35);
+  transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
 }
-#overlay button:hover { background: var(--gold-bright); }
+#overlay button:hover, #pause-overlay button:hover {
+  filter: brightness(1.08); transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(232,182,76,0.35), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+#overlay button:active, #pause-overlay button:active { transform: translateY(0); }
 #start-buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-#overlay button.secondary-btn { background: transparent; color: var(--parchment-dim); border: 1px solid var(--border-brass); }
-#overlay button.secondary-btn:hover { color: var(--parchment); background: var(--bg-panel-raised); }
+#overlay button.secondary-btn, #pause-overlay button.secondary-btn {
+  background: rgba(50,39,27,0.55); color: var(--parchment-dim); border: 1px solid var(--border-brass);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+}
+#overlay button.secondary-btn:hover, #pause-overlay button.secondary-btn:hover { color: var(--parchment); background: var(--bg-panel-raised); }
+#start-buttons button { display: flex; align-items: center; justify-content: center; gap: 10px; }
+#start-buttons .mi { display: inline-flex; width: 17px; height: 17px; flex-shrink: 0; }
+#start-buttons .mi svg { width: 100%; height: 100%; }
+.home-hints { margin-top: 26px; display: flex; gap: 18px; color: var(--parchment-dim); font-size: 11.5px; letter-spacing: 0.4px; align-items: center; }
+.home-hints kbd {
+  background: var(--bg-panel-raised); border: 1px solid var(--border-brass); border-bottom-width: 2px;
+  border-radius: 4px; padding: 1px 6px; font-family: var(--font-ui); font-size: 10.5px; color: var(--gold-bright);
+}
+
+/* ===== Pause overlay ===== */
+#pause-overlay {
+  position: absolute; inset: 0; z-index: 90; display: none; flex-direction: column;
+  align-items: center; justify-content: center; gap: 6px; color: var(--parchment);
+  background: rgba(20,16,14,0.78); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+}
+#pause-overlay.show { display: flex; }
+#pause-overlay .sub { font-size: 14px; color: var(--parchment-dim); margin-bottom: 24px; }
+.pause-btns { display: flex; flex-direction: column; gap: 12px; width: 280px; }
+.pause-btns button { width: 100%; }
 #game-over-stats { font-size: 15px; margin-bottom: 20px; text-align: center; line-height: 1.8; }
 #game-over-stats strong { color: var(--gold); }
 .tut-steps { max-width: 500px; text-align: left; margin-bottom: 24px; }
@@ -217,6 +260,13 @@ canvas#c { display: block; cursor: crosshair; }
 }
 #music-toggle-btn.muted { opacity: 0.4; }
 #music-toggle-btn:hover { background: var(--bg-panel); filter: brightness(1.3); }
+#pause-toggle-btn {
+  position: absolute; top: 10px; right: 94px; z-index: 60;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--bg-panel-raised); border: 1px solid var(--border-brass); color: var(--gold);
+  font-size: 13px; cursor: pointer; display: none; align-items: center; justify-content: center;
+}
+#pause-toggle-btn:hover { background: var(--bg-panel); filter: brightness(1.3); }
 #admin-panel {
   display: none; position: absolute; inset: 0; z-index: 200;
   background: var(--bg-deep); color: var(--parchment); font-family: var(--font-ui);
@@ -381,7 +431,12 @@ canvas#c { display: block; cursor: crosshair; }
 <body>
 
 <button id="admin-toggle-btn" onclick="toggleAdminPanel()" title="Admin settings">⚙️</button>
-<button id="music-toggle-btn" onclick="toggleMusic()" title="Toggle music">🎵</button>
+<button id="music-toggle-btn" onclick="toggleMusic()" title="Toggle sound">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1c2.9.9 5 3.5 5 6.7s-2.1 5.8-5 6.7v2.1c4-.9 7-4.5 7-8.8s-3-7.9-7-8.8z"/></svg>
+</button>
+<button id="pause-toggle-btn" onclick="togglePause()" title="Pause (P)">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+</button>
 
 <div id="ui">
   <div class="stat">
@@ -412,9 +467,19 @@ canvas#c { display: block; cursor: crosshair; }
 <div id="wave-banner"><div class="wv" id="wave-banner-title"></div><div class="wv-sub" id="wave-banner-sub"></div></div>
 
 <div id="tower-bar"></div>
-<button id="send-wave-btn" onclick="sendWave()">SEND WAVE ⚔️</button>
-<button id="auto-wave-btn" onclick="toggleAutoWave()">AUTO-WAVE: OFF 🔁</button>
-<div class="hint-banner" id="hint">👆 Click any green tile to place a tower — then hit SEND WAVE</div>
+<button id="send-wave-btn" onclick="sendWave()">SEND WAVE</button>
+<button id="auto-wave-btn" onclick="toggleAutoWave()">AUTO-WAVE: OFF</button>
+<button id="speed-btn" onclick="cycleGameSpeed()">SPEED 1&times;</button>
+<div class="hint-banner" id="hint">Click any green tile to place a tower — then press SEND WAVE (or Space)</div>
+
+<div id="pause-overlay">
+  <h1>PAUSED</h1>
+  <div class="sub">The horde waits for no one... except right now.</div>
+  <div class="pause-btns">
+    <button onclick="togglePause()">RESUME</button>
+    <button class="secondary-btn" onclick="quitToMenu()">MAIN MENU</button>
+  </div>
+</div>
 
 <div id="merchant">
   <div class="merch-guy">🧙‍♂️</div>
@@ -1005,7 +1070,7 @@ function saveGameState() {
       kills: game.kills, xp: game.xp, upgradesSpent: game.upgradesSpent,
       annihilatorUnlocked: !!game.annihilatorUnlocked, triBeamEquipped: !!game.triBeamEquipped,
       triBeamGranted: !!game.triBeamGranted, merchantGone: !!game.merchantGone,
-      achievements: game.achievements || {}, autoWave: !!game.autoWave,
+      achievements: game.achievements || {}, autoWave: !!game.autoWave, speed: game.speed || 1,
       towers: game.towers.map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0 })),
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -1023,6 +1088,16 @@ function clearGameState() {
   try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
 }
 
+const MENU_ICONS = {
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
+  resume: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 5h3v14H5zM10 5l10 7-10 7z"/></svg>',
+  daily: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm-2 8h14v10H5V10z"/></svg>',
+  customize: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.4A4.6 4.6 0 0 0 22 10.9C21.9 6 17.5 2 12 2zm-5.5 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>',
+  restart: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.76-4.24L13 11h7V4l-2.35 2.35z"/></svg>',
+};
+function menuBtn(icon, label, onclick, secondary) {
+  return `<button class="${secondary ? 'secondary-btn' : ''}" onclick="${onclick}"><span class="mi">${MENU_ICONS[icon]}</span>${label}</button>`;
+}
 function refreshStartScreenButtons() {
   const saved = loadGameState();
   const wrap = document.getElementById('start-buttons');
@@ -1030,14 +1105,14 @@ function refreshStartScreenButtons() {
   const dailyBest = getDailyBest().best || 0;
   let html = '';
   if (saved) {
-    html += `<button onclick="startGame(true)">CONTINUE — World ${saved.world}, Wave ${saved.wave}</button>`;
+    html += menuBtn('resume', `CONTINUE — World ${saved.world}, Wave ${saved.wave}`, 'startGame(true)', false);
   } else {
-    html += `<button onclick="startGame(false)">PLAY</button>`;
+    html += menuBtn('play', 'PLAY', 'startGame(false)', false);
   }
-  html += `<button class="secondary-btn" onclick="startDailyChallenge()">🗓️ DAILY CHALLENGE${dailyBest ? ` — best: ${dailyBest}` : ''}</button>`;
-  html += `<button class="secondary-btn" onclick="openCustomizeScreen()">🎨 CUSTOMIZE TOWERS</button>`;
+  html += menuBtn('daily', `DAILY CHALLENGE${dailyBest ? ` — best: ${dailyBest}` : ''}`, 'startDailyChallenge()', true);
+  html += menuBtn('customize', 'CUSTOMIZE TOWERS', 'openCustomizeScreen()', true);
   if (saved) {
-    html += `<button class="secondary-btn" onclick="startGame(false)">NEW GAME</button>`;
+    html += menuBtn('restart', 'NEW GAME', 'startGame(false)', true);
   }
   wrap.innerHTML = html;
 }
@@ -1058,14 +1133,26 @@ const TUT_STEPS_HTML = `
   </div>
 `;
 
+function setGameChromeVisible(show) {
+  document.getElementById('ui').style.display = show ? 'flex' : 'none';
+  document.getElementById('tower-bar').style.display = show ? 'flex' : 'none';
+}
+
 function renderHomeScreen() {
+  setGameChromeVisible(false);
   const ov = document.getElementById('overlay');
   ov.innerHTML = `
     <h1 class="home-title">BEN'S CASTLE DEFENSE</h1>
     <div class="home-sub">Defend the castle. Survive the waves. Outsmart the horde.</div>
     <div id="start-buttons"></div>
-    <button class="how-to-btn" onclick="toggleTutorial()">❔ HOW TO PLAY</button>
+    <button class="how-to-btn" onclick="toggleTutorial()">HOW TO PLAY</button>
     <div class="tut-steps" id="tut-steps" style="display:none">${TUT_STEPS_HTML}</div>
+    <div class="home-hints">
+      <span><kbd>1&ndash;8</kbd> towers</span>
+      <span><kbd>Space</kbd> send wave</span>
+      <span><kbd>P</kbd> pause</span>
+      <span><kbd>X</kbd> sell mode</span>
+    </div>
   `;
   refreshStartScreenButtons();
 }
@@ -1078,6 +1165,12 @@ function toggleTutorial() {
 
 function returnToMenu() {
   if (game) game.running = false;
+  for (const id of ['send-wave-btn', 'auto-wave-btn', 'speed-btn', 'hint', 'pause-toggle-btn']) {
+    document.getElementById(id).style.display = 'none';
+  }
+  document.getElementById('pause-overlay').classList.remove('show');
+  document.getElementById('merchant').classList.remove('show');
+  document.getElementById('guardian').classList.remove('show');
   document.getElementById('overlay').style.display = 'flex';
   renderHomeScreen();
 }
@@ -1137,14 +1230,18 @@ function startDailyChallenge() {
   game.betweenWaves = false;
   game.waveActive = false;
   document.getElementById('overlay').style.display = 'none';
+  setGameChromeVisible(true);
   document.body.style.background = getWorldTheme().bgBase;
   groundCache = null;
   document.getElementById('send-wave-btn').style.display = 'block';
   document.getElementById('hint').style.display = 'block';
   const awBtn = document.getElementById('auto-wave-btn');
   awBtn.style.display = 'block';
-  awBtn.textContent = 'AUTO-WAVE: OFF 🔁';
+  awBtn.textContent = 'AUTO-WAVE: OFF';
   awBtn.classList.remove('on');
+  document.getElementById('speed-btn').style.display = 'block';
+  document.getElementById('pause-toggle-btn').style.display = 'flex';
+  updateSpeedBtn();
   buildTowerBar();
   startMusic();
   updateUI();
@@ -1450,6 +1547,7 @@ function initGame() {
     running: true,
     gameOver: false,
     paused: false,
+    speed: 1,
     rapidFireTimer: 0,
     zapFlashT: 0,
     usedGG: false,
@@ -1469,6 +1567,7 @@ function startGame(resume) {
     game.annihilatorUnlocked = saved.annihilatorUnlocked; game.triBeamEquipped = saved.triBeamEquipped;
     game.triBeamGranted = saved.triBeamGranted; game.merchantGone = saved.merchantGone;
     game.achievements = saved.achievements || {}; game.autoWave = saved.autoWave || false;
+    game.speed = saved.speed || 1;
     game.activePaths = getActivePaths(game.wave);
     pathSet = buildPathSet(game.wave);
     game.towers = (saved.towers || []).map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, cooldown: 0, angle: 0 }));
@@ -1479,6 +1578,7 @@ function startGame(resume) {
   game.betweenWaves = false;
   game.waveActive = false;
   document.getElementById('overlay').style.display = 'none';
+  setGameChromeVisible(true);
   document.body.style.background = getWorldTheme().bgBase;
   groundCache = null;
   document.getElementById('send-wave-btn').style.display = 'block';
@@ -1486,13 +1586,16 @@ function startGame(resume) {
   const awBtn = document.getElementById('auto-wave-btn');
   awBtn.style.display = 'block';
   if (game.autoWave) {
-    awBtn.textContent = 'AUTO-WAVE: ON 🔁';
+    awBtn.textContent = 'AUTO-WAVE: ON';
     awBtn.classList.add('on');
     game.autoWaveTimer = 4;
   } else {
-    awBtn.textContent = 'AUTO-WAVE: OFF 🔁';
+    awBtn.textContent = 'AUTO-WAVE: OFF';
     awBtn.classList.remove('on');
   }
+  document.getElementById('speed-btn').style.display = 'block';
+  document.getElementById('pause-toggle-btn').style.display = 'flex';
+  updateSpeedBtn();
   if (game.annihilatorUnlocked) buildTowerBar();
   startMusic();
   updateUI();
@@ -1592,26 +1695,107 @@ function scheduleMusicMelody() {
 function toggleMusic() {
   musicMuted = !musicMuted;
   document.getElementById('music-toggle-btn').classList.toggle('muted', musicMuted);
+  if (sfxGain && sfxCtx) sfxGain.gain.linearRampToValueAtTime(musicMuted ? 0 : SFX_VOLUME, sfxCtx.currentTime + 0.2);
   if (!musicRunning) { startMusic(); return; }
   if (musicGain) {
     musicGain.gain.linearRampToValueAtTime(musicMuted ? 0 : MUSIC_VOLUME, musicCtx.currentTime + 0.3);
   }
 }
 
+// ===== SOUND EFFECTS ENGINE =====
+// One shared AudioContext + master gain for every effect in the game (procedural, zero assets).
+// SFX.play(name) is throttled per-sound so dense waves never turn into noise soup.
+let sfxCtx = null, sfxGain = null;
+const SFX_VOLUME = 0.5;
+const sfxLastPlayed = {};
+
+function sfxContext() {
+  if (!sfxCtx) {
+    try {
+      sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
+      sfxGain = sfxCtx.createGain();
+      sfxGain.gain.value = musicMuted ? 0 : SFX_VOLUME;
+      sfxGain.connect(sfxCtx.destination);
+    } catch (e) { return null; }
+  }
+  if (sfxCtx.state === 'suspended') sfxCtx.resume();
+  return sfxCtx;
+}
+
+function sfxTone(type, f0, f1, dur, vol, delay = 0) {
+  const ac = sfxContext(); if (!ac || !sfxGain) return;
+  const t0 = ac.currentTime + delay;
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(Math.max(f0, 1), t0);
+  if (f1) o.frequency.exponentialRampToValueAtTime(Math.max(f1, 1), t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(sfxGain);
+  o.start(t0); o.stop(t0 + dur + 0.05);
+}
+
+function sfxNoise(dur, vol, filterFreq, filterType = 'lowpass', delay = 0) {
+  const ac = sfxContext(); if (!ac || !sfxGain) return;
+  const t0 = ac.currentTime + delay;
+  const len = Math.max(1, Math.floor(ac.sampleRate * dur));
+  const buf = ac.createBuffer(1, len, ac.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+  const src = ac.createBufferSource(); src.buffer = buf;
+  const flt = ac.createBiquadFilter(); flt.type = filterType; flt.frequency.value = filterFreq;
+  const g = ac.createGain(); g.gain.value = vol;
+  src.connect(flt); flt.connect(g); g.connect(sfxGain);
+  src.start(t0);
+}
+
+const SFX = {
+  // min ms between repeats of the same sound
+  throttle: {
+    shot_arrow: 70, shot_flame: 130, shot_tesla: 90, shot_annihilator: 90,
+    shot_ice: 80, shot_poison: 80, death: 60, coin: 55, ui_click: 60,
+  },
+  play(name) {
+    const now = performance.now();
+    const min = this.throttle[name] || 40;
+    if (sfxLastPlayed[name] && now - sfxLastPlayed[name] < min) return;
+    sfxLastPlayed[name] = now;
+    const fn = this.lib[name];
+    if (fn) { try { fn(); } catch (e) { /* audio unsupported */ } }
+  },
+  lib: {
+    ui_click()  { sfxTone('triangle', 640, 860, 0.05, 0.16); },
+    place()     { sfxNoise(0.09, 0.28, 520); sfxTone('triangle', 190, 120, 0.13, 0.4); },
+    sell()      { sfxTone('square', 500, 240, 0.14, 0.16); sfxTone('sine', 1180, 0, 0.06, 0.2, 0.1); },
+    upgrade()   { sfxTone('triangle', 380, 900, 0.2, 0.3); sfxTone('sine', 1400, 1900, 0.14, 0.18, 0.12); },
+    error()     { sfxTone('square', 150, 0, 0.09, 0.16); sfxTone('square', 118, 0, 0.12, 0.16, 0.1); },
+    coin()      { sfxTone('sine', 988, 0, 0.06, 0.2); sfxTone('sine', 1319, 0, 0.09, 0.2, 0.06); },
+    death()     { sfxTone('triangle', 260, 70, 0.13, 0.3); sfxNoise(0.06, 0.2, 900); },
+    hurt()      { sfxTone('sawtooth', 170, 60, 0.3, 0.4); sfxNoise(0.25, 0.35, 320); },
+    horn()      { sfxTone('sawtooth', 196, 0, 0.5, 0.16); sfxTone('sawtooth', 294, 0, 0.5, 0.14, 0.12); sfxTone('sawtooth', 392, 0, 0.65, 0.14, 0.24); },
+    clear()     { [523, 659, 784, 1047].forEach((f, i) => sfxTone('triangle', f, 0, 0.22, 0.22, i * 0.08)); },
+    flawless()  { [659, 784, 988, 1319].forEach((f, i) => sfxTone('sine', f, 0, 0.3, 0.22, i * 0.07)); },
+    unlock()    { sfxTone('triangle', 440, 880, 0.35, 0.28); sfxTone('triangle', 880, 1760, 0.4, 0.2, 0.2); },
+    shot_arrow()       { sfxTone('triangle', 900, 320, 0.07, 0.14); sfxNoise(0.03, 0.1, 3200, 'highpass'); },
+    shot_cannon()      { sfxTone('sine', 95, 38, 0.24, 0.5); sfxNoise(0.2, 0.4, 340); },
+    shot_ice()         { sfxTone('sine', 1250, 1850, 0.1, 0.13); sfxTone('sine', 2100, 2600, 0.07, 0.08, 0.03); },
+    shot_sniper()      { sfxNoise(0.07, 0.35, 2400, 'highpass'); sfxTone('square', 210, 60, 0.12, 0.2); },
+    shot_tesla()       { sfxTone('sawtooth', 780, 110, 0.09, 0.14); sfxNoise(0.05, 0.14, 3400, 'highpass'); },
+    shot_flame()       { sfxNoise(0.16, 0.13, 850); },
+    shot_mortar()      { sfxTone('sine', 72, 42, 0.32, 0.55); sfxNoise(0.26, 0.4, 240); },
+    shot_poison()      { sfxTone('sine', 320, 130, 0.13, 0.2); sfxNoise(0.07, 0.1, 620); },
+    shot_annihilator() { sfxTone('sawtooth', 1600, 200, 0.12, 0.12); sfxTone('sine', 3000, 500, 0.1, 0.08); },
+  },
+};
+
+// Soft click for every UI button/card press
+document.addEventListener('click', e => {
+  if (e.target.closest('button, .tower-btn, .cust-skin-opt')) SFX.play('ui_click');
+});
+
 function playAchievementSound() {
-  try {
-    const actx = new (window.AudioContext || window.webkitAudioContext)();
-    [523.25, 659.25, 783.99].forEach((f, i) => { // C-E-G fanfare
-      const t0 = actx.currentTime + i * 0.09;
-      const o = actx.createOscillator(), g = actx.createGain();
-      o.type = 'triangle'; o.frequency.setValueAtTime(f, t0);
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(0.2, t0 + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.35);
-      o.connect(g); g.connect(actx.destination);
-      o.start(t0); o.stop(t0 + 0.4);
-    });
-  } catch (e) {}
+  [523.25, 659.25, 783.99].forEach((f, i) => sfxTone('triangle', f, 0, 0.35, 0.3, i * 0.09));
 }
 
 // --- GUARDIAN OF STARS ---
@@ -1682,22 +1866,24 @@ function toggleAutoWave() {
   if (!game) return;
   game.autoWave = !game.autoWave;
   const btn = document.getElementById('auto-wave-btn');
-  btn.textContent = game.autoWave ? 'AUTO-WAVE: ON 🔁' : 'AUTO-WAVE: OFF 🔁';
+  btn.textContent = game.autoWave ? 'AUTO-WAVE: ON' : 'AUTO-WAVE: OFF';
   btn.classList.toggle('on', game.autoWave);
   if (game.autoWave) {
     if (game.prepPhase) game.autoWaveTimer = 3; // give a few seconds to place towers
-    showFlash('🔁 Auto-wave ON — waves will send themselves, go grind');
+    showFlash('Auto-wave ON — waves will send themselves, go grind');
   } else {
     game.autoWaveTimer = undefined;
-    showFlash('🔁 Auto-wave OFF');
+    showFlash('Auto-wave OFF');
   }
 }
 
 const ENEMY_NAMES = ['SKELETONS','GOBLINS','OGRES','DARK KNIGHT','RATS','WIZARDS','BATS','SHIELD BEARERS','NECROMANCERS'];
 function sendWave() {
-  if (!game) return;
+  if (!game || !game.prepPhase || game.gameOver) return;
   game.prepPhase = false;
   game.newPathUnlocked = null;
+  game.waveStartHp = game.hp; // for the Flawless bonus
+  SFX.play('horn');
   document.getElementById('send-wave-btn').style.display = 'none';
   document.getElementById('hint').style.display = 'none';
   document.getElementById('merchant').classList.remove('show');
@@ -1989,7 +2175,7 @@ function drawGround() {
 // --- REALISTIC 3/4-VIEW CASTLE WITH DAMAGE STATES ---
 function drawCastle() {
   const t = Date.now() / 1000;
-  const hpPct = game ? Math.max(game.hp / 25, 0) : 1;
+  const hpPct = game ? Math.max(game.hp / (DIFFICULTY.startHp || 25), 0) : 1;
   const cx0 = 28 * TILE, cy0 = 6 * TILE, cw = 2 * TILE, ch = 5 * TILE;
   const theme = getWorldTheme();
   const D = 13, DY = 7; // side-face depth offsets (pseudo-isometric)
@@ -3358,10 +3544,11 @@ function loop(ts) {
   if (!game || !game.running) return;
   const dt = Math.min((ts - lastTime) / 1000, 0.05);
   lastTime = ts;
+  const gdt = dt * (game.speed || 1); // game-time delta (speed toggle)
 
   if (!game.paused) {
     if (game.rapidFireTimer > 0) {
-      game.rapidFireTimer = Math.max(0, game.rapidFireTimer - dt);
+      game.rapidFireTimer = Math.max(0, game.rapidFireTimer - gdt);
       if (game.rapidFireTimer === 0) showFlash('Rapid Fire wore off');
     }
     if (game.zapFlashT > 0) game.zapFlashT = Math.max(0, game.zapFlashT - dt);
@@ -3371,13 +3558,42 @@ function loop(ts) {
     if (game.rapidFireTimer > 0) { rfEl.style.display = 'flex'; document.getElementById('rapidfire-time').textContent = Math.ceil(game.rapidFireTimer); }
     else rfEl.style.display = 'none';
   }
-  if (!game.paused && !game.prepPhase) update(dt);
+  if (!game.paused && !game.prepPhase) update(gdt);
   if (!game.paused && game.prepPhase && game.autoWave && game.autoWaveTimer !== undefined) {
-    game.autoWaveTimer -= dt;
+    game.autoWaveTimer -= gdt;
     if (game.autoWaveTimer <= 0) { game.autoWaveTimer = undefined; sendWave(); }
   }
   render();
   requestAnimationFrame(loop);
+}
+
+// --- GAME SPEED / PAUSE ---
+function updateSpeedBtn() {
+  const btn = document.getElementById('speed-btn');
+  if (!btn || !game) return;
+  btn.innerHTML = 'SPEED ' + (game.speed || 1) + '&times;';
+  btn.classList.toggle('fast', (game.speed || 1) > 1);
+}
+function cycleGameSpeed() {
+  if (!game || game.gameOver) return;
+  game.speed = game.speed >= 3 ? 1 : (game.speed || 1) + 1;
+  updateSpeedBtn();
+  saveGameState();
+}
+function togglePause() {
+  if (!game || game.gameOver || !game.running) return;
+  if (document.getElementById('admin-panel').classList.contains('show')) return;
+  game.paused = !game.paused;
+  document.getElementById('pause-overlay').classList.toggle('show', game.paused);
+  if (!game.paused) saveGameState();
+}
+function quitToMenu() {
+  if (game && game.paused) {
+    game.paused = false;
+    document.getElementById('pause-overlay').classList.remove('show');
+  }
+  saveGameState();
+  returnToMenu();
 }
 
 function update(dt) {
@@ -3457,6 +3673,7 @@ function update(dt) {
       // Reached castle
       e.dead = true;
       game.hp--;
+      SFX.play('hurt');
       triggerShake(4, 0.25);
       game.hurtT = 0.3;
       spawnParticles(e.x, e.y, '#ff4444', 6);
@@ -3580,6 +3797,7 @@ function update(dt) {
       t.cooldown = def.rate * (game.rapidFireTimer > 0 ? 0.5 : 1);
       t.ammo--;
       t.angle = Math.atan2(best.y - cy, best.x - cx);
+      SFX.play('shot_' + base.id);
 
       // Tesla: chain lightning (instant, no projectile)
       if (def.chain) {
@@ -3821,8 +4039,20 @@ function update(dt) {
   // Wave complete?
   if (game.waveActive && game.waveSpawnIdx >= game.waveEnemies.length && game.enemies.length === 0) {
     game.waveActive = false;
+    const clearedWave = game.wave;
+    const flawless = game.waveStartHp !== undefined && game.hp === game.waveStartHp;
     game.wave++;
-    game.gold += 30 + game.wave * 5; // Wave bonus
+    let waveBonus = 30 + game.wave * 5;
+    if (flawless) {
+      const perfectBonus = 20 + clearedWave * 2;
+      waveBonus += perfectBonus;
+      SFX.play('flawless');
+      notify('epic', `Flawless! No hearts lost — +${perfectBonus} bonus gold`);
+      unlockAchievement('Flawless Defense', 'Cleared a wave without losing a single heart');
+    } else {
+      SFX.play('clear');
+    }
+    game.gold += waveBonus; // Wave bonus
 
     const WAVES_PER_WORLD = DIFFICULTY.wavesPerWorld;
     let worldedUp = false;
@@ -3852,6 +4082,8 @@ function update(dt) {
     if (game.annihilatorUnlocked && !game.triBeamEquipped) showMerchant();
     if (worldedUp) {
       setTimeout(() => showWorldBanner(game.world, 'Welcome to the ' + getWorldTheme().name), 400);
+    } else {
+      showBannerText('WAVE ' + clearedWave + ' CLEARED', `+${waveBonus} GOLD EARNED${flawless ? ' · FLAWLESS' : ''}`);
     }
     updateUI();
   }
@@ -3870,26 +4102,11 @@ function gainXP(amount) {
   }
 }
 
+// Big Stache's signature stomp noise — his joke, his sound. Regular kills use SFX 'death'.
 function playFart() {
-  try {
-    const actx = new (window.AudioContext || window.webkitAudioContext)();
-    const t0 = actx.currentTime;
-    const osc = actx.createOscillator();
-    const gain = actx.createGain();
-    osc.type = 'sawtooth';
-    const dur = 0.25 + Math.random() * 0.15;
-    const startFreq = 90 + Math.random() * 40;
-    osc.frequency.setValueAtTime(startFreq, t0);
-    osc.frequency.exponentialRampToValueAtTime(startFreq * 0.4, t0 + dur * 0.6);
-    osc.frequency.exponentialRampToValueAtTime(startFreq * 0.25, t0 + dur);
-    gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    osc.connect(gain);
-    gain.connect(actx.destination);
-    osc.start(t0);
-    osc.stop(t0 + dur + 0.05);
-  } catch (e) { /* audio unsupported, ignore */ }
+  const dur = 0.25 + Math.random() * 0.15;
+  const startFreq = 90 + Math.random() * 40;
+  sfxTone('sawtooth', startFreq, startFreq * 0.25, dur, 0.35);
 }
 
 function damageEnemy(e, dmg) {
@@ -3917,7 +4134,9 @@ function damageEnemy(e, dmg) {
     game.gold += def.reward;
     game.kills++;
     gainXP(def.xp || 1);
-    playFart();
+    SFX.play('death');
+    SFX.play('coin');
+    spawnDamageNum(e.x, e.y - 26, '+' + def.reward, 'gold');
     spawnParticles(e.x, e.y, def.color, 8);
     updateUI();
   }
@@ -3937,9 +4156,9 @@ function updateDrawDamageNums(dt) {
     d.life -= dt;
     if (d.life <= 0) { game.dmgNums.splice(i, 1); continue; }
     ctx.globalAlpha = Math.min(d.life / 0.3, 1);
-    const size = d.kind === 'crit' ? 19 : (d.kind === 'dot' ? 11 : 14);
+    const size = d.kind === 'crit' ? 19 : (d.kind === 'dot' ? 11 : (d.kind === 'gold' ? 12 : 14));
     ctx.font = `800 ${size}px Inter, sans-serif`;
-    ctx.fillStyle = d.kind === 'crit' ? '#e8b64c' : (d.kind === 'dot' ? '#5fae4c' : (d.kind === 'shield' ? '#6fa8d6' : '#f5f2ea'));
+    ctx.fillStyle = d.kind === 'crit' ? '#e8b64c' : (d.kind === 'dot' ? '#5fae4c' : (d.kind === 'shield' ? '#6fa8d6' : (d.kind === 'gold' ? '#ffd87a' : '#f5f2ea')));
     ctx.strokeStyle = '#1a1512';
     ctx.lineWidth = 3;
     ctx.textAlign = 'center';
@@ -4223,25 +4442,10 @@ function updateUI() {
 }
 
 function playEvilLaugh() {
-  try {
-    const actx = new (window.AudioContext || window.webkitAudioContext)();
-    const notes = [220, 196, 174.6, 146.8, 130.8]; // descending "ha-ha-ha-ha-haaa"
-    notes.forEach((freq, i) => {
-      const t0 = actx.currentTime + i * 0.16;
-      const osc = actx.createOscillator();
-      const gain = actx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(freq, t0);
-      osc.frequency.exponentialRampToValueAtTime(freq * 0.85, t0 + 0.12);
-      gain.gain.setValueAtTime(0.0001, t0);
-      gain.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + (i === notes.length - 1 ? 0.5 : 0.14));
-      osc.connect(gain);
-      gain.connect(actx.destination);
-      osc.start(t0);
-      osc.stop(t0 + (i === notes.length - 1 ? 0.55 : 0.16));
-    });
-  } catch (e) { /* audio unsupported, ignore */ }
+  const notes = [220, 196, 174.6, 146.8, 130.8]; // descending "ha-ha-ha-ha-haaa"
+  notes.forEach((freq, i) => {
+    sfxTone('sawtooth', freq, freq * 0.85, i === notes.length - 1 ? 0.5 : 0.14, 0.4, i * 0.16);
+  });
 }
 
 function endGame() {
@@ -4249,9 +4453,11 @@ function endGame() {
   game.gameOver = true;
   if (!game.dailyChallenge) clearGameState();
   playEvilLaugh();
-  document.getElementById('send-wave-btn').style.display = 'none';
-  document.getElementById('auto-wave-btn').style.display = 'none';
-  document.getElementById('hint').style.display = 'none';
+  for (const id of ['send-wave-btn', 'auto-wave-btn', 'speed-btn', 'hint', 'pause-toggle-btn']) {
+    document.getElementById(id).style.display = 'none';
+  }
+  document.getElementById('pause-overlay').classList.remove('show');
+  setGameChromeVisible(false);
   const ov = document.getElementById('overlay');
   ov.style.display = 'flex';
   if (game.dailyChallenge) {
@@ -4319,6 +4525,7 @@ C.addEventListener('click', e => {
     const refund = Math.floor(TOWER_TYPES[sold.type].cost * DIFFICULTY.sellRefundRate);
     game.towers.splice(idx, 1);
     game.gold += refund;
+    SFX.play('sell');
     spawnParticles(tx * TILE + TILE/2, ty * TILE + TILE/2, '#e8b64c', 12);
     showFlash(`Sold for ${refund} gold`);
     updateUI();
@@ -4336,6 +4543,7 @@ C.addEventListener('click', e => {
     }
     existing.level = (existing.level || 0) + 1;
     game.upgradesSpent++;
+    SFX.play('upgrade');
     spawnParticles(existing.tx * TILE + TILE/2, existing.ty * TILE + TILE/2, '#ffd700', 14);
     const newAttackNames = {
       arrow: 'Multishot volley', cannon: 'Napalm shells', ice: 'Freeze nova',
@@ -4353,12 +4561,14 @@ C.addEventListener('click', e => {
 
   const def = TOWER_TYPES[game.selectedTower];
   if (game.gold < def.cost) {
-    showFlash(`Not enough gold! Need 🪙${def.cost} (have ${game.gold})`);
+    SFX.play('error');
+    showFlash(`Not enough gold! Need ${def.cost} (have ${game.gold})`);
     return;
   }
 
   game.gold -= def.cost;
   game.towers.push({ tx, ty, type: game.selectedTower, cooldown: 0, angle: 0 });
+  SFX.play('place');
   spawnParticles(tx * TILE + TILE/2, ty * TILE + TILE/2, '#a89878', 10);
   updateUI();
 });
@@ -4394,6 +4604,16 @@ function activateGoldSecret() {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('admin-panel').classList.contains('show')) {
     toggleAdminPanel();
+    return;
+  }
+  const typingNow = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+  if (!typingNow && (e.key === 'p' || e.key === 'P') && game && game.running && !game.gameOver) {
+    togglePause();
+    return;
+  }
+  if (!typingNow && e.key === ' ' && game && game.running && !game.gameOver && !game.paused && game.prepPhase) {
+    e.preventDefault();
+    sendWave();
     return;
   }
   // Track a rolling buffer of typed letters for the combo secrets below (ignored while typing in an input)
@@ -4481,25 +4701,19 @@ function showFlash(msg) {
   notify(type, msg.replace(/[⚠️⬆️⭐☢️🗑️🔁👆🦸🧙‍♂️]/gu, '').trim());
 }
 
-// --- WAVE BANNER ---
-function showWaveBanner(waveNum, sub) {
+// --- CENTER BANNER (waves, worlds, milestones) ---
+function showBannerText(title, sub, dur = 2100) {
   const b = document.getElementById('wave-banner');
-  document.getElementById('wave-banner-title').textContent = 'WAVE ' + waveNum;
+  document.getElementById('wave-banner-title').textContent = title;
   document.getElementById('wave-banner-sub').textContent = sub || '';
   b.classList.remove('play');
   void b.offsetWidth;
   b.classList.add('play');
-  setTimeout(() => b.classList.remove('play'), 2100);
+  clearTimeout(showBannerText._t);
+  showBannerText._t = setTimeout(() => b.classList.remove('play'), dur);
 }
-function showWorldBanner(worldNum, sub) {
-  const b = document.getElementById('wave-banner');
-  document.getElementById('wave-banner-title').textContent = 'WORLD ' + worldNum;
-  document.getElementById('wave-banner-sub').textContent = sub || '';
-  b.classList.remove('play');
-  void b.offsetWidth;
-  b.classList.add('play');
-  setTimeout(() => b.classList.remove('play'), 2600);
-}
+function showWaveBanner(waveNum, sub) { showBannerText('WAVE ' + waveNum, sub, 2100); }
+function showWorldBanner(worldNum, sub) { showBannerText('WORLD ' + worldNum, sub, 2600); }
 
 // --- TOWER BAR ---
 function buildTowerBar() {
@@ -4563,6 +4777,7 @@ function updateTowerBar() {
 
 buildTowerBar();
 renderHomeScreen();
+drawGround(); // paint the map behind the (translucent) home screen so the menu sits on the world
 window.addEventListener('beforeunload', saveGameState);
 </script>
 </body>
