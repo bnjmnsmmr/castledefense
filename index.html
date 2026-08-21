@@ -239,6 +239,7 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 }
 @keyframes badgePop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
 .go-badge.rank { background: linear-gradient(180deg, #c39bf0, var(--arcane)); color: #fff; box-shadow: 0 0 24px rgba(155,109,214,0.5); }
+.go-global { font-size: 12.5px; font-weight: 700; color: var(--arcane); letter-spacing: 0.6px; margin-bottom: 10px; }
 .go-grid { display: flex; gap: 12px; margin: 4px 0 16px; flex-wrap: wrap; justify-content: center; }
 .go-stat {
   background: rgba(50,39,27,0.55); border: 1px solid var(--border-brass); border-radius: var(--radius-lg);
@@ -500,6 +501,39 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 .hof-date { margin-left: auto; font-size: 10.5px; white-space: nowrap; }
 .hof-tag { font-size: 9.5px; letter-spacing: 0.8px; text-transform: uppercase; border: 1px solid var(--arcane); color: #c39bf0; border-radius: 20px; padding: 1px 8px; }
 .hof-empty { color: var(--parchment-dim); font-size: 13px; margin-bottom: 22px; }
+
+/* ===== Leaderboard tabs & global board ===== */
+.lb-tabs { display: flex; gap: 8px; margin: 4px 0 14px; flex-wrap: wrap; }
+.lb-tab {
+  background: var(--bg-panel); border: 1px solid var(--border-brass); color: var(--parchment-dim);
+  border-radius: 20px; padding: 6px 16px; font-family: var(--font-ui); font-size: 12px;
+  font-weight: 800; letter-spacing: 0.6px; cursor: pointer; transition: all 0.15s;
+}
+.lb-tab:hover { color: var(--parchment); }
+.lb-tab.on { background: var(--gold); border-color: var(--gold); color: var(--bg-deep); }
+.lb-periods { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.lb-period {
+  background: transparent; border: 1px solid rgba(138,109,59,0.5); color: var(--parchment-dim);
+  border-radius: var(--radius); padding: 4px 12px; font-family: var(--font-ui);
+  font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.lb-period.on { border-color: var(--arcane); color: #c39bf0; background: rgba(155,109,214,0.12); }
+.lb-you {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: rgba(155,109,214,0.1); border: 1px solid var(--arcane); border-radius: var(--radius-lg);
+  padding: 10px 14px; margin-bottom: 14px; font-size: 12.5px; color: var(--parchment);
+}
+.lb-you b { color: #c39bf0; font-weight: 800; }
+.lb-reroll {
+  background: transparent; border: 1px solid var(--border-brass); color: var(--parchment-dim);
+  border-radius: var(--radius); padding: 4px 10px; font-family: var(--font-ui);
+  font-size: 11px; font-weight: 700; cursor: pointer; margin-left: auto;
+}
+.lb-reroll:hover { color: var(--gold-bright); border-color: var(--gold); }
+.hof-row.you { border-color: var(--arcane); background: linear-gradient(90deg, rgba(155,109,214,0.18), var(--bg-panel) 60%); }
+.hof-row.you .hof-rank { color: #c39bf0; }
+.lb-note { color: var(--parchment-dim); font-size: 12.5px; line-height: 1.6; margin-bottom: 20px; }
+.lb-note code { background: var(--bg-panel); padding: 1px 5px; border-radius: 3px; color: var(--gold-bright); }
 
 /* ===== Locked skins ===== */
 .cust-skin-opt.locked { opacity: 0.45; filter: grayscale(0.9); cursor: pointer; }
@@ -774,7 +808,7 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
   <div class="cust-wrap">
     <h1>HALL OF FAME</h1>
     <div class="sub" id="ach-progress"></div>
-    <div class="hof-head">YOUR BEST RUNS</div>
+    <div class="lb-tabs" id="lb-tabs"></div>
     <div id="hof-body"></div>
     <div class="hof-head" style="margin-top:26px">ACHIEVEMENTS</div>
     <div id="achievements-body"></div>
@@ -1038,6 +1072,101 @@ function loadProfile() {
 let profile = loadProfile();
 function saveProfile() {
   try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) { /* ignore */ }
+}
+
+// ===== GLOBAL LEADERBOARD =====
+// Paste your deployed Cloudflare Worker URL here to switch the global board on.
+// Left empty the game works exactly as before, with local scores only —
+// see server/README.md for the five-minute deploy.
+const LEADERBOARD_API = ''; // e.g. 'https://castle-defense-leaderboard.you.workers.dev'
+function leaderboardEnabled() { return !!LEADERBOARD_API; }
+
+// Display names are picked from fixed word lists, never typed. That is a
+// deliberate privacy choice for a game aimed at kids: no free text can reach
+// the server, so there is no PII and nothing to moderate. Players reroll
+// instead of choosing. These lists must stay in sync with server/worker.js.
+const ADJECTIVES = [
+  'Brave', 'Swift', 'Iron', 'Golden', 'Mighty', 'Clever', 'Silent', 'Royal',
+  'Fierce', 'Noble', 'Stormy', 'Blazing', 'Frosty', 'Shadow', 'Crimson', 'Azure',
+  'Jolly', 'Lucky', 'Bold', 'Sunny', 'Cosmic', 'Emerald', 'Thunder', 'Mystic',
+  'Gallant', 'Rugged', 'Nimble', 'Radiant', 'Valiant', 'Wandering', 'Ancient', 'Merry',
+];
+const NOUNS = [
+  'Falcon', 'Badger', 'Dragon', 'Knight', 'Otter', 'Wolf', 'Griffin', 'Turtle',
+  'Phoenix', 'Bear', 'Fox', 'Hawk', 'Lion', 'Raven', 'Stag', 'Tiger',
+  'Wizard', 'Archer', 'Ranger', 'Guardian', 'Paladin', 'Sentry', 'Warden', 'Champion',
+  'Comet', 'Boulder', 'Lantern', 'Anvil', 'Compass', 'Beacon', 'Bastion', 'Banner',
+];
+const IDENTITY_KEY = 'castleDefenseIdentity';
+
+function randomToken() {
+  const bytes = new Uint8Array(16);
+  (crypto && crypto.getRandomValues) ? crypto.getRandomValues(bytes)
+    : bytes.forEach((_, i) => { bytes[i] = Math.floor(Math.random() * 256); });
+  return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function newCodename() {
+  return {
+    adj: Math.floor(Math.random() * ADJECTIVES.length),
+    noun: Math.floor(Math.random() * NOUNS.length),
+    num: Math.floor(Math.random() * 10000),
+  };
+}
+function getPlayerIdentity() {
+  let id = null;
+  try { id = JSON.parse(localStorage.getItem(IDENTITY_KEY)); } catch (e) { id = null; }
+  if (!id || typeof id.token !== 'string' || id.adj === undefined) {
+    id = { token: randomToken(), ...newCodename() };
+    try { localStorage.setItem(IDENTITY_KEY, JSON.stringify(id)); } catch (e) { /* ignore */ }
+  }
+  return id;
+}
+function codenameOf(id) {
+  return `${ADJECTIVES[id.adj]} ${NOUNS[id.noun]} ${String(id.num).padStart(4, '0')}`;
+}
+function rerollCodename() {
+  const id = { ...getPlayerIdentity(), ...newCodename() };
+  try { localStorage.setItem(IDENTITY_KEY, JSON.stringify(id)); } catch (e) { /* ignore */ }
+  SFX.play('ui_click');
+  buildLeaderboard();
+}
+
+// Submissions are fire-and-forget: a dead network must never block the results
+// screen, so every failure just leaves the local Hall of Fame as the record.
+async function submitScoreToLeaderboard(entry) {
+  if (!leaderboardEnabled()) return null;
+  const id = getPlayerIdentity();
+  try {
+    const res = await fetch(LEADERBOARD_API.replace(/\/$/, '') + '/api/score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: id.token, adj: id.adj, noun: id.noun, num: id.num,
+        score: entry.score, world: entry.world, wave: entry.wave,
+        kills: entry.kills, bosses: entry.bosses || 0,
+        durationMs: entry.durationMs || 0, mode: entry.mode === 'daily' ? 'daily' : 'run',
+      }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function fetchLeaderboard(period, mode) {
+  if (!leaderboardEnabled()) return null;
+  const id = getPlayerIdentity();
+  try {
+    const url = LEADERBOARD_API.replace(/\/$/, '') +
+      `/api/leaderboard?period=${encodeURIComponent(period)}&mode=${encodeURIComponent(mode || 'run')}` +
+      `&token=${encodeURIComponent(id.token)}&limit=25`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
 }
 
 // ===== HALL OF FAME (local best runs) =====
@@ -1734,13 +1863,33 @@ const ACH_TROPHY_SVG = '<svg width="17" height="17" viewBox="0 0 24 24" fill="cu
 const ACH_LOCK_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9z"/></svg>';
 
 function openAchievementsScreen() {
-  buildHallOfFame();
+  buildLeaderboard();
   buildAchievementsList();
   document.getElementById('achievements-panel').classList.add('show');
 }
 function closeAchievementsScreen() {
   document.getElementById('achievements-panel').classList.remove('show');
 }
+// Which board the Hall of Fame screen is showing
+let lbView = 'local';      // 'local' | 'global'
+let lbPeriod = 'all';      // 'today' | 'week' | 'all'
+
+function buildLeaderboard() {
+  const tabs = document.getElementById('lb-tabs');
+  tabs.innerHTML = '';
+  const mk = (label, active, onClick) => {
+    const b = document.createElement('button');
+    b.className = 'lb-tab' + (active ? ' on' : '');
+    b.textContent = label;
+    b.addEventListener('click', onClick);
+    return b;
+  };
+  tabs.appendChild(mk('YOUR BEST RUNS', lbView === 'local', () => { lbView = 'local'; buildLeaderboard(); }));
+  tabs.appendChild(mk('GLOBAL', lbView === 'global', () => { lbView = 'global'; buildLeaderboard(); }));
+  if (lbView === 'local') buildHallOfFame();
+  else buildGlobalBoard();
+}
+
 function buildHallOfFame() {
   const body = document.getElementById('hof-body');
   const list = loadHallOfFame();
@@ -1764,6 +1913,78 @@ function buildHallOfFame() {
       <div class="hof-date">${r.date || ''}</div>`;
     body.appendChild(row);
   });
+}
+
+async function buildGlobalBoard() {
+  const body = document.getElementById('hof-body');
+  const id = getPlayerIdentity();
+
+  if (!leaderboardEnabled()) {
+    body.innerHTML = `<div class="lb-note">
+      The global leaderboard is <b>not switched on yet</b>. It needs a small server —
+      the whole thing (a Cloudflare Worker plus its database) is in the
+      <code>server/</code> folder of this project, with a five-minute setup guide.
+      Once it's deployed, paste the URL into <code>LEADERBOARD_API</code> in
+      <code>index.html</code> and this tab fills up.<br><br>
+      Your runs are still being saved locally under <b>YOUR BEST RUNS</b>.
+    </div>`;
+    return;
+  }
+
+  // Period picker + your identity card, then the rows
+  body.innerHTML = `
+    <div class="lb-periods">
+      ${['today', 'week', 'all'].map(p =>
+        `<button class="lb-period ${p === lbPeriod ? 'on' : ''}" data-p="${p}">${
+          p === 'today' ? 'TODAY' : p === 'week' ? 'THIS WEEK' : 'ALL TIME'}</button>`).join('')}
+    </div>
+    <div class="lb-you">
+      You play as <b>${codenameOf(id)}</b>
+      <span id="lb-you-rank"></span>
+      <button class="lb-reroll" onclick="rerollCodename()">NEW NAME</button>
+    </div>
+    <div id="lb-rows"><div class="hof-empty">Loading the global board…</div></div>`;
+  body.querySelectorAll('.lb-period').forEach(b =>
+    b.addEventListener('click', () => { lbPeriod = b.dataset.p; buildGlobalBoard(); }));
+
+  const data = await fetchLeaderboard(lbPeriod, 'run');
+  const rows = document.getElementById('lb-rows');
+  if (!rows) return; // screen closed while we were waiting
+  if (!data) {
+    rows.innerHTML = '<div class="hof-empty">Could not reach the leaderboard right now. Your runs are safe locally — try again in a bit.</div>';
+    return;
+  }
+  const rankEl = document.getElementById('lb-you-rank');
+  if (rankEl && data.you) rankEl.textContent = `· your best here: ${Number(data.you.score) || 0} waves (#${Number(data.you.rank) || 0})`;
+
+  if (!data.entries.length) {
+    rows.innerHTML = '<div class="hof-empty">Nobody has posted a score for this period yet. Be the first.</div>';
+    return;
+  }
+  rows.innerHTML = '';
+  const n = (v) => Number(v) || 0; // never interpolate raw server values into markup
+  for (const e of data.entries) {
+    const rank = n(e.rank), bosses = n(e.bosses);
+    const row = document.createElement('div');
+    row.className = 'hof-row' + (rank === 1 ? ' top' : '') + (e.you ? ' you' : '');
+    row.innerHTML = `<div class="hof-rank">#${rank}</div>
+      <div class="hof-score">${n(e.score)} <span>waves</span></div>
+      <div class="hof-meta">
+        <span class="lb-name"></span>
+        <span>World ${n(e.world)}, Wave ${n(e.wave)}</span>
+        <span>${n(e.kills).toLocaleString()} kills</span>
+        ${bosses ? `<span>${bosses} boss${bosses > 1 ? 'es' : ''}</span>` : ''}
+      </div>`;
+    // Names come from the server — render as text, never as markup
+    row.querySelector('.lb-name').textContent = e.name + (e.you ? ' (you)' : '');
+    rows.appendChild(row);
+  }
+  const foot = document.createElement('div');
+  foot.className = 'lb-note';
+  foot.style.marginTop = '12px';
+  const players = Number(data.players) || 0;
+  foot.textContent = `${players.toLocaleString()} player${players === 1 ? '' : 's'} on this board.`;
+  rows.appendChild(foot);
 }
 
 function buildAchievementsList() {
@@ -2063,6 +2284,7 @@ function initGame() {
     usedZAP: false,
     dailyChallenge: false,
     forcedThemeIdx: null,
+    startedAt: Date.now(),
     // Lifetime totals at run start, so the results screen can show "+N this run" deltas
     profileStart: {
       kills: profile.stats.totalKills || 0,
@@ -5394,10 +5616,21 @@ function endGame() {
   const killDelta = (profile.stats.totalKills || 0) - ps.kills;
   const waveDelta = (profile.stats.wavesCleared || 0) - ps.waves;
   const newBest = !game.dailyChallenge && (profile.stats.bestScore || 0) > (ps.bestScore || 0);
-  const hofRank = recordHallOfFame({
+  const runEntry = {
     score: runScore, world: game.world, wave: game.wave, kills: game.kills,
     towers: game.towers.length, bosses: game.bossesSlain || 0,
+    durationMs: game.startedAt ? Date.now() - game.startedAt : 0,
     date: todayStr(), mode: game.dailyChallenge ? 'daily' : 'run',
+  };
+  const hofRank = recordHallOfFame(runEntry);
+  // Fire-and-forget: the results screen never waits on the network
+  submitScoreToLeaderboard(runEntry).then(res => {
+    const el = document.getElementById('global-rank');
+    if (!el) return;
+    if (res && res.rank) {
+      el.textContent = `Global rank #${Number(res.rank) || 0}`;
+      el.style.display = '';
+    }
   });
   const achEarned = Object.keys(game.achievements || {});
   const achChips = achEarned.length
@@ -5414,6 +5647,7 @@ function endGame() {
       <h1>DAILY CHALLENGE OVER</h1>
       <div class="sub">Seed ${todayStr()} — everyone plays this exact gauntlet today</div>
       ${isNewBest ? '<div class="go-badge">NEW BEST SCORE</div>' : ''}
+      <div id="global-rank" class="go-global" style="display:none"></div>
       <div class="go-grid">
         ${statCard(runScore, 'Waves survived', isNewBest ? '' : `best ever: ${best}`)}
         ${statCard(game.kills, 'Enemies slain', killDelta > 0 ? `lifetime: ${(profile.stats.totalKills || 0).toLocaleString()}` : '')}
@@ -5431,6 +5665,7 @@ function endGame() {
       <h1>THE CASTLE HAS FALLEN</h1>
       <div class="sub">You held the line until World ${game.world}, Wave ${game.wave}</div>
       ${newBest ? '<div class="go-badge">NEW PERSONAL BEST</div>' : (hofRank ? `<div class="go-badge rank">#${hofRank} BEST RUN EVER</div>` : '')}
+      <div id="global-rank" class="go-global" style="display:none"></div>
       <div class="go-grid">
         ${statCard(runScore, 'Waves survived', waveDelta > 0 ? `lifetime: ${(profile.stats.wavesCleared || 0).toLocaleString()} (+${waveDelta})` : '')}
         ${statCard(game.kills, 'Enemies slain', killDelta > 0 ? `lifetime: ${(profile.stats.totalKills || 0).toLocaleString()} (+${killDelta})` : '')}

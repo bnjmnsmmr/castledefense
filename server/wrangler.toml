@@ -1,0 +1,18 @@
+name = "castle-defense-leaderboard"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Lock the API to the game's origin once you're happy it works. "*" is fine
+# while testing, but tightening this stops other sites using your database.
+[vars]
+ALLOWED_ORIGIN = "https://bnjmnsmmr.github.io"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "castle-defense"
+# Replace with the id printed by: wrangler d1 create castle-defense
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# Nightly cleanup of expired rate-limit rows.
+[triggers]
+crons = ["17 4 * * *"]

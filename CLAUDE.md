@@ -11,7 +11,8 @@ Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build s
 - **Single file**: `/index.html` (~4500 lines) — CSS variables in `:root`, all JS in one `<script>` block
 - **Rendering**: HTML5 Canvas (`#c`), tile-based grid (COLS x ROWS, TILE=40px)
 - **Game state**: `game` object initialized by `initGame()`, started by `startGame(resume)`
-- **Persistence**: `localStorage` for saves (`castleDefenseSave`), admin config (`castleDefenseConfig`), skins (`castleDefenseSkins`), daily best (`castleDefenseDailyBest`)
+- **Persistence**: `localStorage` for saves (`castleDefenseSave`), admin config (`castleDefenseConfig`), skins (`castleDefenseSkins`), daily best (`castleDefenseDailyBest`), lifetime profile (`castleDefenseProfile`), local board (`castleDefenseHallOfFame`), leaderboard identity (`castleDefenseIdentity`)
+- **Optional backend**: `server/` (Cloudflare Worker + D1) powers the global leaderboard; the game runs fully standalone without it
 - **Deployment**: GitHub Actions workflow (`.github/workflows/deploy-pages.yml`) — pushes to main auto-deploy
 
 ## Key sections (approximate line ranges)
@@ -46,8 +47,17 @@ Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build s
 - Runs once for a brand-new player (`tutorialShouldRun()` checks `profile.stats.gamesPlayed` / `profile.tutorialDone` only — do NOT check `loadGameState()` here, `updateUI()` writes a save before the tutorial starts). Replayable from the home screen (`replayTutorial()`), skippable.
 
 ## Hall of Fame & sharing
-- `castleDefenseHallOfFame`: top 10 local runs (`recordHallOfFame` returns the 1-based rank, shown as a badge on the results screen). Rendered by `buildHallOfFame()` at the top of the achievements screen.
-- `shareRun()` uses the Web Share API when available, else copies to clipboard. A **global** leaderboard would need a backend (and, for a kids' audience, a hard look at COPPA/usernames) — deliberately not built.
+- `castleDefenseHallOfFame`: top 10 local runs (`recordHallOfFame` returns the 1-based rank, shown as a badge on the results screen). Rendered by `buildHallOfFame()`.
+- `shareRun()` uses the Web Share API when available, else copies to clipboard.
+- The Hall of Fame screen has two tabs driven by `buildLeaderboard()` — local (`buildHallOfFame`) and global (`buildGlobalBoard`).
+
+## Global leaderboard
+- **Off by default.** `LEADERBOARD_API` is an empty string in index.html; the game behaves exactly as before and the GLOBAL tab explains how to switch it on. Set it to a deployed Worker URL to enable.
+- Backend lives in `server/` — Cloudflare Worker + D1. See `server/README.md` for the ~5-minute deploy and the anti-cheat/privacy reasoning.
+- **No PII, by construction.** No accounts, no free text. A player is an opaque `castleDefenseIdentity` token generated in-browser plus a codename that is only ever *indices* into `ADJECTIVES`/`NOUNS` + a 4-digit number, validated the same way server-side — so arbitrary text cannot reach the database. This is why there is no "enter your name" box; players reroll instead (`rerollCodename()`). **Keep the word lists in index.html and server/worker.js in sync.**
+- Submission is fire-and-forget on game over; any network failure silently leaves the local Hall of Fame as the record. Never block UI on it.
+- Server rejects implausible runs (score must equal `(world-1)*15+wave`, bounded kills/bosses/duration) and rate-limits on token + hashed IP. Client-authoritative scores can never be fully trusted — see the README before treating the board as competitive.
+- Render server-supplied values defensively: names via `textContent`, numbers via `Number()` coercion.
 
 ## Meta-progression (lifetime profile)
 - `castleDefenseProfile` in localStorage: lifetime stats (totalKills, wavesCleared, bestScore/World/Wave, gamesPlayed), global achievement record, notified-skin list. `profile` / `saveProfile()` / `loadProfile()`.
@@ -82,6 +92,7 @@ Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build s
 - Flawless-wave bonus gold + "Flawless Defense" achievement; wave-cleared banner shows earnings; gold popups on kills
 - Results screen on game over: stat cards (waves/kills/towers/achievements) with lifetime deltas from `game.profileStart`, NEW PERSONAL BEST badge, chips for achievements earned that run
 - Home/pause/game-over overlays are translucent with backdrop blur over the live map; HUD + tower bar hide while menus are up (`setGameChromeVisible`)
+- Global leaderboard (optional, off until a Worker URL is configured) with anonymous codenames, Today/Week/All-time boards, and your rank on the results screen
 - OG/Twitter Card meta tags with branded og-image.png
 
 ## Conventions
