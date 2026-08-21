@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Ben's Castle Defense</title>
 <meta name="description" content="An epic browser-based tower defense game. 8 towers, 9 enemy types, multiple worlds — no download required. Can you hold the castle?">
 <meta property="og:type" content="website">
@@ -38,8 +38,8 @@
   --radius: 6px; --radius-lg: 10px;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: var(--bg-deep); display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: var(--font-ui); }
-canvas#c { display: block; cursor: crosshair; }
+body { background: var(--bg-deep); display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; overflow: hidden; font-family: var(--font-ui); touch-action: manipulation; }
+canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 
 /* ===== HUD ===== */
 #ui {
@@ -426,6 +426,80 @@ canvas#c { display: block; cursor: crosshair; }
   border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 800;
   animation: starpulse 1.4s infinite; white-space: nowrap;
 }
+
+/* ===== Achievements panel ===== */
+#achievements-panel {
+  display: none; position: absolute; inset: 0; z-index: 200;
+  background: var(--bg-deep); color: var(--parchment); font-family: var(--font-ui);
+  overflow-y: auto; padding: 20px 20px 100px;
+}
+#achievements-panel.show { display: block; }
+#achievements-close-btn { position: fixed; top: 16px; right: 16px; z-index: 210; width: 44px; height: 44px; border-radius: 50%; background: var(--blood); color: #fff; border: 2px solid #ff9088; font-size: 20px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.5), 0 0 0 4px rgba(179,54,46,0.2); }
+#achievements-close-btn:hover { background: #d1443a; transform: scale(1.06); }
+.ach-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--bg-panel); border: 1px solid var(--border-brass); border-radius: var(--radius-lg);
+  padding: 12px 16px; margin-bottom: 10px;
+}
+.ach-card.unlocked { border-color: var(--gold); box-shadow: 0 0 12px rgba(232,182,76,0.15); }
+.ach-card.locked { opacity: 0.5; filter: grayscale(0.8); }
+.ach-icon { width: 34px; height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--bg-panel-raised); border: 1px solid var(--border-brass); }
+.ach-card.unlocked .ach-icon { background: rgba(232,182,76,0.18); border-color: var(--gold); color: var(--gold-bright); }
+.ach-card.locked .ach-icon { color: var(--parchment-dim); }
+.ach-name { font-weight: 800; font-size: 14px; color: var(--gold-bright); margin-bottom: 2px; }
+.ach-card.locked .ach-name { color: var(--parchment-dim); }
+.ach-desc { font-size: 12px; color: var(--parchment-dim); line-height: 1.4; }
+.ach-date { margin-left: auto; font-size: 10.5px; color: var(--parchment-dim); white-space: nowrap; align-self: flex-start; padding-top: 2px; }
+
+/* ===== Locked skins ===== */
+.cust-skin-opt.locked { opacity: 0.45; filter: grayscale(0.9); cursor: pointer; }
+.cust-skin-opt.locked:hover { transform: none; }
+.cust-skin-label svg { vertical-align: -1px; margin-right: 2px; }
+
+/* ===== Home profile summary ===== */
+.home-profile {
+  display: flex; gap: 16px; align-items: center; margin: -14px 0 22px; font-size: 12.5px;
+  color: var(--parchment-dim); letter-spacing: 0.3px;
+}
+.home-profile b { color: var(--gold-bright); font-weight: 800; }
+.home-profile svg { vertical-align: -2px; margin-right: 3px; }
+
+/* ===== Responsive / mobile ===== */
+@media (max-width: 1000px), (max-height: 620px) {
+  #ui { gap: 12px; padding: 5px 12px; font-size: 12px; top: 6px; border-radius: var(--radius); }
+  #ui .stat svg { width: 14px; height: 14px; }
+  #ui .stat .val { font-size: 13px; min-width: 18px; }
+  #gold { font-size: 15px !important; }
+  .hud-wave-block #wave { font-size: 20px; }
+  .hud-wave-block .lbl { font-size: 8px; letter-spacing: 1px; }
+  .hp-pip { width: 4px; height: 11px; }
+  .hp-pips { gap: 3px; }
+  .xp-wrap { width: 64px; }
+  #kills-stat { display: none; }
+  #tower-bar { gap: 5px; bottom: 8px; }
+  .tower-btn { width: 56px; padding: 4px 2px 4px; border-width: 1.5px; }
+  .tower-btn canvas { width: 32px; height: 32px; }
+  .tower-btn .name { font-size: 8.5px; }
+  .tower-btn .cost { font-size: 8.5px; }
+  .tower-btn .key { display: none; }
+  #send-wave-btn { bottom: 104px; padding: 10px 26px; font-size: 13px; }
+  #speed-btn, #auto-wave-btn { padding: 9px 12px; font-size: 10.5px; bottom: 10px; min-width: 0; }
+  #speed-btn { left: 10px; }
+  #auto-wave-btn { right: 10px; }
+  .home-title { font-size: 32px; letter-spacing: 3px; }
+  .home-sub { font-size: 13px; margin-bottom: 20px; }
+  #start-buttons { width: 280px; gap: 10px; }
+  #overlay button, #pause-overlay button { padding: 12px 30px; font-size: 14px; }
+  #overlay h1, #pause-overlay h1 { font-size: 32px; letter-spacing: 3px; }
+  .hint-banner { font-size: 11px; padding: 5px 12px; max-width: 92vw; white-space: normal; text-align: center; }
+  #toast-stack { top: 52px; max-width: 240px; }
+  .toast { font-size: 11px; padding: 7px 10px; }
+}
+@media (pointer: coarse) {
+  .tb-tooltip { display: none !important; }
+  .home-hints { display: none; }
+  .tower-btn:hover { transform: none; }
+}
 </style>
 </head>
 <body>
@@ -451,7 +525,7 @@ canvas#c { display: block; cursor: crosshair; }
     <div class="lbl">World <span id="world" style="color:var(--arcane)">1</span> · Wave</div>
     <div id="wave">1</div>
   </div>
-  <div class="stat">
+  <div class="stat" id="kills-stat">
     <svg viewBox="0 0 24 24" fill="var(--parchment-dim)"><path d="M12 3c1 3 2 4 4 5-2 1-3 2-4 5-1-3-2-4-4-5 2-1 3-2 4-5zm6 9c.6 1.7 1.2 2.4 2.5 3-1.3.6-1.9 1.3-2.5 3-.6-1.7-1.2-2.4-2.5-3 1.3-.6 1.9-1.3 2.5-3zM7 14c.7 2 1.4 2.8 3 3.5-1.6.7-2.3 1.5-3 3.5-.7-2-1.4-2.8-3-3.5 1.6-.7 2.3-1.5 3-3.5z"/></svg>
     <span class="val" id="kills">0</span>
   </div>
@@ -577,15 +651,24 @@ canvas#c { display: block; cursor: crosshair; }
 <div id="customize-panel">
   <button id="customize-close-btn" onclick="closeCustomizeScreen()" title="Close and return to menu">✕</button>
   <div class="cust-wrap">
-    <h1>🎨 TOWER CUSTOMIZATION</h1>
-    <div class="sub">Pick a color skin for each tower. Your choice is saved and applies to every future game.</div>
+    <h1>TOWER CUSTOMIZATION</h1>
+    <div class="sub">Pick a color skin for each tower. Skins are trophies — earn them by playing, then they apply to every future game.</div>
     <div id="customize-body"></div>
+  </div>
+</div>
+
+<div id="achievements-panel">
+  <button id="achievements-close-btn" onclick="closeAchievementsScreen()" title="Close and return to menu">✕</button>
+  <div class="cust-wrap">
+    <h1>ACHIEVEMENTS</h1>
+    <div class="sub" id="ach-progress"></div>
+    <div id="achievements-body"></div>
   </div>
 </div>
 
 <script>
 const C = document.getElementById('c');
-const ctx = C.getContext('2d');
+let ctx = C.getContext('2d'); // `let` so drawEnemies can temporarily retarget the enemy artists to an offscreen buffer
 
 // --- CONSTANTS ---
 const TILE = 40;
@@ -826,6 +909,65 @@ function buildSkinOptionsFor(tower) {
 }
 const TOWER_SKIN_OPTIONS = {};
 for (const t of TOWER_TYPES) { if (!t.secret) TOWER_SKIN_OPTIONS[t.id] = buildSkinOptionsFor(t); }
+
+// ===== PLAYER PROFILE (lifetime meta-progression, survives every run) =====
+const PROFILE_KEY = 'castleDefenseProfile';
+function loadProfile() {
+  let p = {};
+  try { p = JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}; } catch (e) { p = {}; }
+  p.stats = p.stats || {};
+  p.achievements = p.achievements || {};
+  p.notifiedSkins = p.notifiedSkins || [];
+  return p;
+}
+let profile = loadProfile();
+function saveProfile() {
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) { /* ignore */ }
+}
+
+// Canonical achievement list for the gallery. Secrets show as "???" until earned.
+const ACHIEVEMENT_DEFS = [
+  { name: 'Flawless Defense', desc: 'Clear a wave without losing a single heart' },
+  { name: 'World 1 Cleared', desc: 'Survive all the waves of World 1 — Greenwood' },
+  { name: 'World 2 Cleared', desc: 'Survive all the waves of World 2 — Scorched Desert' },
+  { name: 'World 3 Cleared', desc: 'Survive all the waves of World 3 — Frozen Tundra' },
+  { name: 'World 4 Cleared', desc: 'Survive all the waves of World 4 — Volcanic Hellscape' },
+  { name: 'World 5 Cleared', desc: 'Survive all the waves of World 5 — Enchanted Grove' },
+  { name: 'World 6 Cleared', desc: 'Survive all the waves of World 6 — Deep Space' },
+  { name: 'World 7 Cleared', desc: 'Survive all the waves of World 7 — Ocean Depths' },
+  { name: 'World 8 Cleared', desc: 'Survive all the waves of World 8 — Shadow Realm' },
+  { name: 'The Annihilator', secret: true },
+  { name: 'Tri-Beam Online', secret: true },
+  { name: 'Pest of the Realm', secret: true },
+  { name: 'Rapid Fire', secret: true },
+  { name: 'Thunderstruck', secret: true },
+  { name: 'GG Easy Money', secret: true },
+];
+
+// Skin colors are trophies: each palette color has a lifetime unlock condition.
+const SKIN_UNLOCKS = {
+  crimson: { desc: 'Slay 250 enemies (lifetime)', test: p => (p.stats.totalKills || 0) >= 250 },
+  azure:   { desc: 'Clear World 1', test: p => !!p.achievements['World 1 Cleared'] },
+  gold:    { desc: 'Slay 1,000 enemies (lifetime)', test: p => (p.stats.totalKills || 0) >= 1000 },
+  violet:  { desc: 'Earn the Flawless Defense achievement', test: p => !!p.achievements['Flawless Defense'] },
+};
+function isSkinUnlocked(skinId) {
+  if (skinId === 'default') return true;
+  const rule = SKIN_UNLOCKS[skinId];
+  return !rule || rule.test(profile);
+}
+// Announce freshly-earned skins (called after waves / achievements land)
+function checkSkinUnlockNotifications() {
+  for (const id in SKIN_UNLOCKS) {
+    if (isSkinUnlocked(id) && !profile.notifiedSkins.includes(id)) {
+      profile.notifiedSkins.push(id);
+      const pal = SKIN_PALETTE.find(s => s.id === id);
+      notify('epic', `New skin unlocked: ${pal ? pal.name : id} — equip it in Customize!`);
+      SFX.play('unlock');
+      saveProfile();
+    }
+  }
+}
 
 const SKIN_STORAGE_KEY = 'castleDefenseSkins';
 function loadSkinSelections() {
@@ -1094,6 +1236,7 @@ const MENU_ICONS = {
   daily: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm-2 8h14v10H5V10z"/></svg>',
   customize: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.4A4.6 4.6 0 0 0 22 10.9C21.9 6 17.5 2 12 2zm-5.5 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>',
   restart: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.76-4.24L13 11h7V4l-2.35 2.35z"/></svg>',
+  trophy: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2h3v4c0 2.2-1.8 4-4 4h-.4A6 6 0 0 1 13 16.9V19h4v2H7v-2h4v-2.1A6 6 0 0 1 6.4 13H6c-2.2 0-4-1.8-4-4V5h3V3zm-1 4v2c0 1.1.9 2 2 2V7H4zm16 0h-2v4c1.1 0 2-.9 2-2V7z"/></svg>',
 };
 function menuBtn(icon, label, onclick, secondary) {
   return `<button class="${secondary ? 'secondary-btn' : ''}" onclick="${onclick}"><span class="mi">${MENU_ICONS[icon]}</span>${label}</button>`;
@@ -1111,6 +1254,8 @@ function refreshStartScreenButtons() {
   }
   html += menuBtn('daily', `DAILY CHALLENGE${dailyBest ? ` — best: ${dailyBest}` : ''}`, 'startDailyChallenge()', true);
   html += menuBtn('customize', 'CUSTOMIZE TOWERS', 'openCustomizeScreen()', true);
+  const achCount = ACHIEVEMENT_DEFS.filter(d => profile.achievements[d.name]).length;
+  html += menuBtn('trophy', `ACHIEVEMENTS${achCount ? ` — ${achCount}/${ACHIEVEMENT_DEFS.length}` : ''}`, 'openAchievementsScreen()', true);
   if (saved) {
     html += menuBtn('restart', 'NEW GAME', 'startGame(false)', true);
   }
@@ -1141,9 +1286,17 @@ function setGameChromeVisible(show) {
 function renderHomeScreen() {
   setGameChromeVisible(false);
   const ov = document.getElementById('overlay');
+  const kills = profile.stats.totalKills || 0;
+  const best = profile.stats.bestScore || 0;
+  const profileLine = (kills > 0 || best > 0) ? `
+    <div class="home-profile">
+      <span><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c1 3 2 4 4 5-2 1-3 2-4 5-1-3-2-4-4-5 2-1 3-2 4-5z"/></svg><b>${kills.toLocaleString()}</b> lifetime kills</span>
+      ${best ? `<span><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2h3v4c0 2.2-1.8 4-4 4h-.4A6 6 0 0 1 13 16.9V19h4v2H7v-2h4v-2.1A6 6 0 0 1 6.4 13H6c-2.2 0-4-1.8-4-4V5h3V3z"/></svg>best: <b>World ${profile.stats.bestWorld}, Wave ${profile.stats.bestWave}</b></span>` : ''}
+    </div>` : '';
   ov.innerHTML = `
     <h1 class="home-title">BEN'S CASTLE DEFENSE</h1>
     <div class="home-sub">Defend the castle. Survive the waves. Outsmart the horde.</div>
+    ${profileLine}
     <div id="start-buttons"></div>
     <button class="how-to-btn" onclick="toggleTutorial()">HOW TO PLAY</button>
     <div class="tut-steps" id="tut-steps" style="display:none">${TUT_STEPS_HTML}</div>
@@ -1274,9 +1427,12 @@ function buildCustomizeForm() {
     const row = card.querySelector('.cust-skin-row');
     const drawFn = TOWER_SPRITES[t.id];
     opts.forEach(opt => {
+      const unlocked = isSkinUnlocked(opt.id);
       const box = document.createElement('div');
-      box.className = 'cust-skin-opt' + (opt.id === curSel ? ' selected' : '');
-      box.innerHTML = `<canvas width="48" height="48"></canvas><div class="cust-skin-label">${opt.name}</div>`;
+      box.className = 'cust-skin-opt' + (opt.id === curSel ? ' selected' : '') + (unlocked ? '' : ' locked');
+      const label = unlocked ? opt.name : `${ACH_LOCK_SVG.replace('width="14" height="14"', 'width="9" height="9"')} ${opt.name}`;
+      box.innerHTML = `<canvas width="48" height="48"></canvas><div class="cust-skin-label">${label}</div>`;
+      if (!unlocked && SKIN_UNLOCKS[opt.id]) box.title = 'Locked — ' + SKIN_UNLOCKS[opt.id].desc;
       const cv = box.querySelector('canvas').getContext('2d');
       if (drawFn) drawFn(cv, 0.8);
       if (opt.id !== 'default') {
@@ -1287,10 +1443,58 @@ function buildCustomizeForm() {
         cv.fillRect(0, 0, 48, 48);
         cv.restore();
       }
-      box.addEventListener('click', () => { setTowerSkin(t.id, opt.id); buildCustomizeForm(); });
+      box.addEventListener('click', () => {
+        if (!isSkinUnlocked(opt.id)) {
+          SFX.play('error');
+          notify('warning', `Locked — ${SKIN_UNLOCKS[opt.id] ? SKIN_UNLOCKS[opt.id].desc : 'keep playing to unlock'}`);
+          return;
+        }
+        setTowerSkin(t.id, opt.id);
+        buildCustomizeForm();
+      });
       row.appendChild(box);
     });
   }
+}
+
+// ===== ACHIEVEMENT GALLERY SCREEN =====
+const ACH_TROPHY_SVG = '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2h3v4c0 2.2-1.8 4-4 4h-.4A6 6 0 0 1 13 16.9V19h4v2H7v-2h4v-2.1A6 6 0 0 1 6.4 13H6c-2.2 0-4-1.8-4-4V5h3V3zm-1 4v2c0 1.1.9 2 2 2V7H4zm16 0h-2v4c1.1 0 2-.9 2-2V7z"/></svg>';
+const ACH_LOCK_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9z"/></svg>';
+
+function openAchievementsScreen() {
+  buildAchievementsList();
+  document.getElementById('achievements-panel').classList.add('show');
+}
+function closeAchievementsScreen() {
+  document.getElementById('achievements-panel').classList.remove('show');
+}
+function buildAchievementsList() {
+  const body = document.getElementById('achievements-body');
+  const defs = [...ACHIEVEMENT_DEFS];
+  // Achievements earned beyond the canonical list (e.g. deep endless worlds) still show up
+  for (const name in profile.achievements) {
+    if (!defs.some(d => d.name === name)) defs.push({ name, desc: profile.achievements[name].sub || '' });
+  }
+  let unlockedCount = 0;
+  body.innerHTML = '';
+  for (const d of defs) {
+    const earned = profile.achievements[d.name];
+    if (earned) unlockedCount++;
+    const card = document.createElement('div');
+    card.className = 'ach-card ' + (earned ? 'unlocked' : 'locked');
+    const title = (earned || !d.secret) ? d.name : '???';
+    const desc = earned
+      ? (earned.sub || d.desc || 'Unlocked!')
+      : (d.secret ? 'A secret waits to be discovered. Keep experimenting...' : d.desc);
+    card.innerHTML = `<div class="ach-icon">${earned ? ACH_TROPHY_SVG : ACH_LOCK_SVG}</div>
+      <div><div class="ach-name"></div><div class="ach-desc"></div></div>
+      ${earned && earned.date ? `<div class="ach-date">${earned.date}</div>` : ''}`;
+    card.querySelector('.ach-name').textContent = title;
+    card.querySelector('.ach-desc').textContent = desc;
+    body.appendChild(card);
+  }
+  document.getElementById('ach-progress').textContent =
+    `${unlockedCount} of ${defs.length} unlocked · ${(profile.stats.totalKills || 0).toLocaleString()} lifetime kills · ${(profile.stats.wavesCleared || 0).toLocaleString()} waves cleared`;
 }
 
 function toggleAdminPanel() {
@@ -1621,6 +1825,12 @@ function unlockAchievement(name, sub) {
   if (!game.achievements) game.achievements = {};
   if (game.achievements[name]) return false;
   game.achievements[name] = true;
+  // Record in the lifetime profile (achievement gallery on the home screen)
+  if (!profile.achievements[name]) {
+    profile.achievements[name] = { sub: sub || '', date: todayStr() };
+    saveProfile();
+    setTimeout(checkSkinUnlockNotifications, 800);
+  }
   const stack = document.getElementById('toast-stack');
   while (stack.childElementCount >= 3) stack.removeChild(stack.firstChild);
   const t = document.createElement('div');
@@ -1773,6 +1983,7 @@ const SFX = {
     coin()      { sfxTone('sine', 988, 0, 0.06, 0.2); sfxTone('sine', 1319, 0, 0.09, 0.2, 0.06); },
     death()     { sfxTone('triangle', 260, 70, 0.13, 0.3); sfxNoise(0.06, 0.2, 900); },
     hurt()      { sfxTone('sawtooth', 170, 60, 0.3, 0.4); sfxNoise(0.25, 0.35, 320); },
+    boss()      { sfxTone('sawtooth', 98, 60, 0.7, 0.35); sfxTone('sawtooth', 49, 38, 0.9, 0.3, 0.05); sfxNoise(0.45, 0.3, 190); },
     horn()      { sfxTone('sawtooth', 196, 0, 0.5, 0.16); sfxTone('sawtooth', 294, 0, 0.5, 0.14, 0.12); sfxTone('sawtooth', 392, 0, 0.65, 0.14, 0.24); },
     clear()     { [523, 659, 784, 1047].forEach((f, i) => sfxTone('triangle', f, 0, 0.22, 0.22, i * 0.08)); },
     flawless()  { [659, 784, 988, 1319].forEach((f, i) => sfxTone('sine', f, 0, 0.3, 0.22, i * 0.07)); },
@@ -1883,6 +2094,7 @@ function sendWave() {
   game.prepPhase = false;
   game.newPathUnlocked = null;
   game.waveStartHp = game.hp; // for the Flawless bonus
+  game.bossAnnounced = false;
   SFX.play('horn');
   document.getElementById('send-wave-btn').style.display = 'none';
   document.getElementById('hint').style.display = 'none';
@@ -2602,17 +2814,64 @@ function drawTowers() {
   }
 }
 
+// Offscreen buffers, shared and reused per enemy per frame. Every character is drawn into
+// enemyBufCv, a dark silhouette of it becomes a consistent ink outline (comic-style pass),
+// then both are composited onto the board. This unifies the look of all 9 enemy designs.
+const ENEMY_BUF = 112;
+const enemyBufCv = document.createElement('canvas');
+enemyBufCv.width = enemyBufCv.height = ENEMY_BUF;
+const enemyBufCtx = enemyBufCv.getContext('2d');
+const enemyOutCv = document.createElement('canvas');
+enemyOutCv.width = enemyOutCv.height = ENEMY_BUF;
+const enemyOutCtx = enemyOutCv.getContext('2d');
+const ENEMY_DRAWERS = [drawSkeleton, drawGoblin, drawOgre, drawDarkKnight, drawRats, drawWizard, drawBat, drawShieldBearer, drawNecromancer];
+
 function drawEnemies() {
   const t = Date.now() / 1000;
   const frameDt = 1/60;
+  const HALF = ENEMY_BUF / 2;
   for (const e of game.enemies) {
     if (e.dead && !(e.squash > 0)) continue;
     const def = ENEMY_DEFS[e.type];
     const s = def.size / 10; // scale factor
     const bob = Math.sin(t * 6 + e.x * 0.1) * 1.5; // walk bob
+    const frozen = e.slowed > 0;
+
+    // Figure out facing direction
+    let facing = 1;
+    if (e.pathIdx + 1 < e.path.length) {
+      const np = e.path[e.pathIdx + 1];
+      if (np.x < e.x) facing = -1;
+    }
+
+    // 1. Paint the character into the offscreen buffer (drawer fns target the global `ctx`)
+    enemyBufCtx.clearRect(0, 0, ENEMY_BUF, ENEMY_BUF);
+    enemyBufCtx.save();
+    enemyBufCtx.translate(HALF, HALF);
+    enemyBufCtx.scale(facing, 1);
+    const mainCtx = ctx;
+    ctx = enemyBufCtx;
+    ENEMY_DRAWERS[e.type](s, frozen, t, e);
+    ctx = mainCtx;
+    enemyBufCtx.restore();
+
+    // 2. Ink silhouette for the outline pass
+    enemyOutCtx.clearRect(0, 0, ENEMY_BUF, ENEMY_BUF);
+    enemyOutCtx.drawImage(enemyBufCv, 0, 0);
+    enemyOutCtx.globalCompositeOperation = 'source-in';
+    enemyOutCtx.fillStyle = 'rgba(18,14,10,0.85)';
+    enemyOutCtx.fillRect(0, 0, ENEMY_BUF, ENEMY_BUF);
+    enemyOutCtx.globalCompositeOperation = 'source-over';
 
     ctx.save();
     ctx.translate(e.x, e.y + bob);
+
+    // Spawn pop-in: characters grow into the world instead of blinking in
+    if (e.spawnT > 0) {
+      e.spawnT -= frameDt;
+      const g = 1 - Math.max(e.spawnT, 0) / 0.25;
+      ctx.scale(g, g);
+    }
 
     // Death squash: stretch wide + flat, fade out
     if (e.dead && e.squash > 0) {
@@ -2622,31 +2881,17 @@ function drawEnemies() {
       ctx.scale(1 + (1-p)*0.5, Math.max(p, 0.15));
     }
 
-    // Figure out facing direction
-    let facing = 1;
-    if (e.pathIdx + 1 < e.path.length) {
-      const np = e.path[e.pathIdx + 1];
-      if (np.x < e.x) facing = -1;
-    }
-    ctx.scale(facing, 1);
-
     // Shadow
     ctx.fillStyle = 'rgba(0,0,0,0.25)';
     ctx.beginPath();
     ctx.ellipse(0, def.size + 2, def.size * 0.9, 3, 0, 0, Math.PI*2);
     ctx.fill();
 
-    const frozen = e.slowed > 0;
-
-    if (e.type === 0) drawSkeleton(s, frozen, t);
-    else if (e.type === 1) drawGoblin(s, frozen, t);
-    else if (e.type === 2) drawOgre(s, frozen, t);
-    else if (e.type === 3) drawDarkKnight(s, frozen, t);
-    else if (e.type === 4) drawRats(s, frozen, t);
-    else if (e.type === 5) drawWizard(s, frozen, t);
-    else if (e.type === 6) drawBat(s, frozen, t);
-    else if (e.type === 7) drawShieldBearer(s, frozen, t, e);
-    else if (e.type === 8) drawNecromancer(s, frozen, t);
+    // 3. Composite: outline underneath, character on top
+    for (const [ox, oy] of [[-1.5, 0], [1.5, 0], [0, -1.5], [0, 1.5]]) {
+      ctx.drawImage(enemyOutCv, -HALF + ox, -HALF + oy);
+    }
+    ctx.drawImage(enemyBufCv, -HALF, -HALF);
 
     // Hit flash: brief white glow
     if (e.hitFlash > 0) {
@@ -2661,13 +2906,20 @@ function drawEnemies() {
 
     ctx.restore();
 
-    // HP bar (drawn in world space, not flipped)
+    // HP bar (drawn in world space, not flipped) — bosses get a chunkier framed bar
+    const isBoss = def.size >= 16;
     const barW = Math.max(def.size * 2.5, 20);
+    const barH = isBoss ? 5 : 3;
+    const barY = e.y - def.size - (isBoss ? 15 : 10) + bob;
     const hpPct = e.hp / e.maxHp;
+    if (isBoss) {
+      ctx.fillStyle = 'rgba(10,8,6,0.85)';
+      ctx.fillRect(e.x - barW/2 - 1.5, barY - 1.5, barW + 3, barH + 3);
+    }
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(e.x - barW/2, e.y - def.size - 10 + bob, barW, 3);
+    ctx.fillRect(e.x - barW/2, barY, barW, barH);
     ctx.fillStyle = hpPct > 0.5 ? '#44cc44' : (hpPct > 0.25 ? '#ccaa44' : '#cc4444');
-    ctx.fillRect(e.x - barW/2, e.y - def.size - 10 + bob, barW * hpPct, 3);
+    ctx.fillRect(e.x - barW/2, barY, barW * hpPct, barH);
   }
 }
 
@@ -3621,6 +3873,7 @@ function update(dt) {
         e.dead = true;
         game.gold += ENEMY_DEFS[e.type].reward;
         game.kills++;
+        profile.stats.totalKills = (profile.stats.totalKills || 0) + 1;
         gainXP(ENEMY_DEFS[e.type].xp || 1);
         playFart();
         spawnParticles(e.x, e.y, '#ff4444', 10);
@@ -3655,8 +3908,15 @@ function update(dt) {
         hp, maxHp: hp, speed: def.speed * (next.spdMult || 1),
         path, pathIdx: 0, dead: false, slowed: 0,
         shieldHp: def.shield || 0,
-        healTimer: 0, necroTimer: 0,
+        healTimer: 0, necroTimer: 0, spawnT: 0.25,
       });
+      // Boss entrance: announce the first Dark Knight of each wave
+      if (next.type === 3 && !game.bossAnnounced) {
+        game.bossAnnounced = true;
+        showBannerText('DARK KNIGHT', 'A CHAMPION OF THE HORDE RIDES FORTH', 2200);
+        SFX.play('boss');
+        triggerShake(5, 0.35);
+      }
       game.waveSpawnIdx++;
     }
   }
@@ -3736,7 +3996,7 @@ function update(dt) {
             type: 0, x: e.x, y: e.y,
             hp: 30, maxHp: 30, speed: 1.0,
             path, pathIdx: closestIdx, dead: false, slowed: 0,
-            shieldHp: 0, healTimer: 0, necroTimer: 0,
+            shieldHp: 0, healTimer: 0, necroTimer: 0, spawnT: 0.25,
           });
           spawnParticles(e.x, e.y, '#22ff44', 8);
           break;
@@ -4054,6 +4314,17 @@ function update(dt) {
     }
     game.gold += waveBonus; // Wave bonus
 
+    // Lifetime stats + skin unlock checks
+    profile.stats.wavesCleared = (profile.stats.wavesCleared || 0) + 1;
+    const runScore = (game.world - 1) * DIFFICULTY.wavesPerWorld + clearedWave;
+    if (runScore > (profile.stats.bestScore || 0)) {
+      profile.stats.bestScore = runScore;
+      profile.stats.bestWorld = game.world;
+      profile.stats.bestWave = clearedWave;
+    }
+    saveProfile();
+    checkSkinUnlockNotifications();
+
     const WAVES_PER_WORLD = DIFFICULTY.wavesPerWorld;
     let worldedUp = false;
     if (game.wave > WAVES_PER_WORLD) {
@@ -4133,6 +4404,7 @@ function damageEnemy(e, dmg) {
     const def = ENEMY_DEFS[e.type];
     game.gold += def.reward;
     game.kills++;
+    profile.stats.totalKills = (profile.stats.totalKills || 0) + 1;
     gainXP(def.xp || 1);
     SFX.play('death');
     SFX.play('coin');
@@ -4452,6 +4724,8 @@ function endGame() {
   game.running = false;
   game.gameOver = true;
   if (!game.dailyChallenge) clearGameState();
+  profile.stats.gamesPlayed = (profile.stats.gamesPlayed || 0) + 1;
+  saveProfile();
   playEvilLaugh();
   for (const id of ['send-wave-btn', 'auto-wave-btn', 'speed-btn', 'hint', 'pause-toggle-btn']) {
     document.getElementById(id).style.display = 'none';
@@ -4495,6 +4769,7 @@ function endGame() {
 }
 
 // --- INPUT ---
+const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
 const mouse = { x: 0, y: 0, tx: -1, ty: -1 };
 
 C.addEventListener('mousemove', e => {
@@ -4514,9 +4789,25 @@ C.addEventListener('mousemove', e => {
 });
 
 C.addEventListener('click', e => {
-  if (!game || game.gameOver) return;
+  if (!game || game.gameOver || game.paused) return;
+  // Compute the tile from the event itself — on touch there's no mousemove beforehand
+  const rect = C.getBoundingClientRect();
+  mouse.x = (e.clientX - rect.left) * (C.width / rect.width);
+  mouse.y = (e.clientY - rect.top) * (C.height / rect.height);
+  mouse.tx = Math.floor(mouse.x / TILE);
+  mouse.ty = Math.floor(mouse.y / TILE);
   const tx = mouse.tx, ty = mouse.ty;
   if (tx < 0 || tx >= COLS || ty < 0 || ty >= ROWS) return;
+
+  // Touch flow: first tap arms the tile (ghost + range preview), second tap on the same tile confirms
+  if (IS_TOUCH) {
+    for (const t of game.towers) t.hover = (t.tx === tx && t.ty === ty);
+    if (!game.pendingTile || game.pendingTile.tx !== tx || game.pendingTile.ty !== ty) {
+      game.pendingTile = { tx, ty };
+      return;
+    }
+    game.pendingTile = null;
+  }
 
   if (game.trashMode) {
     const idx = game.towers.findIndex(t => t.tx === tx && t.ty === ty);
@@ -4776,6 +5067,7 @@ function updateTowerBar() {
 }
 
 buildTowerBar();
+if (IS_TOUCH) document.getElementById('hint').textContent = 'Tap a green tile to preview a tower, tap it again to build — then press SEND WAVE';
 renderHomeScreen();
 drawGround(); // paint the map behind the (translucent) home screen so the menu sits on the world
 window.addEventListener('beforeunload', saveGameState);
