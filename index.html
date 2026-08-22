@@ -334,6 +334,8 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 #admin-close-btn:hover { background: #d1443a; transform: scale(1.06); }
 #customize-close-btn { position: fixed; top: 16px; right: 16px; z-index: 210; width: 44px; height: 44px; border-radius: 50%; background: var(--blood); color: #fff; border: 2px solid #ff9088; font-size: 20px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.5), 0 0 0 4px rgba(179,54,46,0.2); }
 #customize-close-btn:hover { background: #d1443a; transform: scale(1.06); }
+#community-close-btn { position: fixed; top: 16px; right: 16px; z-index: 210; width: 44px; height: 44px; border-radius: 50%; background: var(--blood); color: #fff; border: 2px solid #ff9088; font-size: 20px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.5), 0 0 0 4px rgba(179,54,46,0.2); }
+#community-close-btn:hover { background: #d1443a; transform: scale(1.06); }
 .admin-wrap { max-width: 980px; margin: 0 auto; }
 .admin-wrap h1 { font-family: var(--font-display); color: var(--gold); font-size: 26px; letter-spacing: 1.5px; margin: 0 0 4px; }
 .admin-wrap .sub { color: var(--parchment-dim); font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
@@ -422,6 +424,18 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 .toast.achieve .ach-sub { display: block; font-weight: 600; font-size: 11px; color: var(--parchment-dim); margin-top: 1px; }
 
 /* ===== Home screen ===== */
+#overlay.home-mode {
+  background:
+    radial-gradient(ellipse at 50% -8%, rgba(232,182,76,0.14), transparent 55%),
+    radial-gradient(ellipse at 50% 108%, rgba(179,54,46,0.16), transparent 60%),
+    linear-gradient(180deg, #1c150e 0%, #241b11 45%, #100c0a 100%);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+.home-screen {
+  width: 100%; height: 100%; box-sizing: border-box; overflow-y: auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 32px 20px;
+}
 .home-title {
   font-family: var(--font-display); font-weight: 900; font-size: 52px; letter-spacing: 5px;
   text-align: center; margin-bottom: 6px;
@@ -429,11 +443,27 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
   background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
   animation: titleShimmer 5s linear infinite, titleGlow 3s ease-in-out infinite;
 }
+.home-title-lg { font-size: 76px; letter-spacing: 8px; margin-bottom: 10px; }
 @keyframes titleShimmer { 0% { background-position: 200% 0; } 100% { background-position: -50% 0; } }
 @keyframes titleGlow { 0%,100% { filter: drop-shadow(0 0 10px rgba(232,182,76,0.35)); } 50% { filter: drop-shadow(0 0 22px rgba(255,216,122,0.65)); } }
 .home-sub { font-size: 15px; margin-bottom: 26px; color: var(--parchment-dim); text-align: center; letter-spacing: 0.5px; }
+.home-sub-lg { font-size: 18px; margin-bottom: 14px; }
 #start-buttons { display: flex; flex-direction: column; gap: 12px; align-items: stretch; width: 320px; }
 #start-buttons button { width: 100%; }
+
+/* Full-screen title menu: three big primary actions, small secondary links below */
+.home-main-btns { display: flex; flex-direction: column; gap: 16px; align-items: stretch; width: 400px; max-width: 92vw; margin: 8px 0 20px; }
+.home-main-btns button { width: 100%; }
+.home-main-btns .home-btn-main { padding: 22px 34px !important; font-size: 19px !important; letter-spacing: 1.6px !important; }
+.home-main-btns .mi { display: inline-flex; width: 17px; height: 17px; flex-shrink: 0; }
+.home-main-btns .mi svg { width: 100%; height: 100%; }
+.home-secondary-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 4px; }
+.home-link-btn {
+  background: transparent; color: var(--parchment-dim); border: 1px solid var(--border-brass);
+  border-radius: var(--radius); padding: 9px 18px; font-family: var(--font-ui); font-size: 12px; font-weight: 700;
+  letter-spacing: 0.4px; cursor: pointer; transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.home-link-btn:hover { color: var(--gold-bright); border-color: var(--gold); background: rgba(232,182,76,0.08); }
 .how-to-btn {
   background: transparent !important; color: var(--parchment-dim) !important; border: none !important;
   font-size: 12.5px !important; font-weight: 700 !important; padding: 6px !important; margin-top: 18px;
@@ -441,6 +471,54 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 }
 .how-to-btn:hover { color: var(--gold) !important; }
 #tut-steps.tut-steps { margin-top: 10px; }
+
+/* ===== Community Levels panel ===== */
+#community-panel {
+  display: none; position: absolute; inset: 0; z-index: 200;
+  background: var(--bg-deep); color: var(--parchment); font-family: var(--font-ui);
+  overflow-y: auto; padding: 20px 20px 100px;
+}
+#community-panel.show { display: block; }
+.comm-load-box { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 6px; }
+.text-input {
+  flex: 1; min-width: 220px; background: #1a1410; border: 1px solid #4a3d2a; color: var(--parchment);
+  border-radius: var(--radius); padding: 11px 14px; font-family: var(--font-ui); font-size: 13.5px;
+}
+.text-input:focus { outline: 1px solid var(--gold); border-color: var(--gold); }
+.comm-load-box button {
+  background: var(--gold); color: #241c14; border: none; border-radius: var(--radius);
+  padding: 11px 20px; font-weight: 800; font-size: 13px; cursor: pointer; letter-spacing: 0.4px;
+}
+.comm-load-box button:hover { filter: brightness(1.1); }
+.comm-status { font-size: 12.5px; color: #e0766f; min-height: 16px; margin-bottom: 8px; }
+.comm-status.ok { color: #9fd68f; }
+.comm-empty { color: var(--parchment-dim); font-size: 13px; padding: 14px 0; }
+.comm-level-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--bg-panel); border: 1px solid var(--border-brass); border-radius: var(--radius-lg);
+  padding: 12px 16px; margin-bottom: 10px;
+}
+.comm-level-name { font-weight: 800; color: var(--gold-bright); font-size: 14.5px; }
+.comm-level-meta { font-size: 11.5px; color: var(--parchment-dim); margin-top: 2px; }
+.comm-level-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.comm-share-btn, .comm-del-btn {
+  border-radius: var(--radius); padding: 8px 14px; font-weight: 700; font-size: 11.5px; cursor: pointer;
+}
+.comm-share-btn { background: var(--arcane); color: #fff; border: none; }
+.comm-share-btn:hover { background: #b48ae8; }
+.comm-del-btn { background: transparent; color: #e0766f; border: 1px solid var(--blood); }
+.comm-del-btn:hover { color: #fff; background: var(--blood); }
+
+/* ===== Save-layout flow (pause menu) ===== */
+.save-layout-form { width: 280px; margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.save-layout-form input { width: 100%; box-sizing: border-box; }
+.save-layout-hint { font-size: 10.5px; color: var(--parchment-dim); text-align: center; }
+.save-layout-code-lbl { font-size: 11.5px; color: var(--parchment-dim); margin-top: 4px; }
+.save-layout-code {
+  width: 100%; box-sizing: border-box; height: 64px; resize: none; background: #1a1410;
+  border: 1px solid #4a3d2a; color: var(--gold-bright); font-family: monospace; font-size: 10.5px;
+  border-radius: var(--radius); padding: 8px; word-break: break-all;
+}
 
 /* ===== Customize panel ===== */
 #customize-panel {
@@ -627,8 +705,13 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
   #speed-btn { left: 10px; }
   #auto-wave-btn { right: 10px; }
   .home-title { font-size: 32px; letter-spacing: 3px; }
+  .home-title-lg { font-size: 40px; letter-spacing: 4px; }
   .home-sub { font-size: 13px; margin-bottom: 20px; }
+  .home-sub-lg { font-size: 14px; margin-bottom: 10px; }
   #start-buttons { width: 280px; gap: 10px; }
+  .home-main-btns { width: 300px; gap: 10px; }
+  .home-main-btns .home-btn-main { padding: 15px 24px !important; font-size: 15px !important; }
+  .home-link-btn { font-size: 10.5px; padding: 7px 13px; }
   #overlay button, #pause-overlay button { padding: 12px 30px; font-size: 14px; }
   #overlay h1, #pause-overlay h1 { font-size: 32px; letter-spacing: 3px; }
   .hint-banner { font-size: 11px; padding: 5px 12px; max-width: 92vw; white-space: normal; text-align: center; }
@@ -719,8 +802,10 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
   <div class="sub">The horde waits for no one... except right now.</div>
   <div class="pause-btns">
     <button onclick="togglePause()">RESUME</button>
+    <button class="secondary-btn" onclick="openSaveLayoutFlow()">SAVE LAYOUT</button>
     <button class="secondary-btn" onclick="quitToMenu()">MAIN MENU</button>
   </div>
+  <div id="save-layout-box" style="display:none"></div>
 </div>
 
 <div id="merchant">
@@ -834,6 +919,21 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
     <h1>TOWER CUSTOMIZATION</h1>
     <div class="sub">Pick a color skin for each tower. Skins are trophies — earn them by playing, then they apply to every future game.</div>
     <div id="customize-body"></div>
+  </div>
+</div>
+
+<div id="community-panel">
+  <button id="community-close-btn" onclick="closeCommunityScreen()" title="Close and return to menu">✕</button>
+  <div class="cust-wrap">
+    <h1>COMMUNITY LEVELS</h1>
+    <div class="sub">Paste a level code shared by another player to load their tower layout instantly, or manage the layouts you've saved from your own runs. Save a layout mid-game from the pause menu's SAVE LAYOUT button.</div>
+    <div class="comm-load-box">
+      <input type="text" id="comm-code-input" class="text-input" placeholder="Paste a level code here&hellip;">
+      <button onclick="loadLevelFromInput()">LOAD LEVEL</button>
+    </div>
+    <div class="comm-status" id="comm-load-status"></div>
+    <div class="hof-head" style="margin-top:26px">YOUR SAVED LEVELS (<span id="comm-saved-count">0</span>/5)</div>
+    <div id="comm-saved-body"></div>
   </div>
 </div>
 
@@ -1715,6 +1815,246 @@ function clearGameState() {
   try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
 }
 
+// ===== COMMUNITY LEVELS =====
+// A level code is just base64(JSON) of tower/wall positions — no server involved.
+// Players trade codes by hand (chat, forum, whatever); LOAD LEVEL decodes and
+// validates it defensively since the string could have come from anyone.
+const LEVELS_KEY = 'castleDefenseLevels';
+const MAX_SAVED_LEVELS = 5;
+const LEVEL_CODE_VERSION = 1;
+
+function loadSavedLevels() {
+  try { return JSON.parse(localStorage.getItem(LEVELS_KEY)) || []; } catch (e) { return []; }
+}
+function persistSavedLevels(list) {
+  try { localStorage.setItem(LEVELS_KEY, JSON.stringify(list)); } catch (e) {}
+}
+
+function encodeLevelCode(obj) {
+  try { return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); } catch (e) { return ''; }
+}
+function decodeLevelCode(code) {
+  try { return JSON.parse(decodeURIComponent(escape(atob(String(code).trim())))); } catch (e) { return null; }
+}
+
+function buildLevelPayload(name) {
+  if (!game) return null;
+  return {
+    v: LEVEL_CODE_VERSION,
+    name: String(name || 'My Defense').slice(0, 40),
+    towers: game.towers.map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0 })),
+    walls: (game.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type })),
+    world: game.world,
+  };
+}
+
+// Saves the current run's layout into the local "my saved levels" list (max 5,
+// oldest dropped) and returns the shareable code, or null if there's nothing to save.
+function saveCurrentLayoutAsLevel(name) {
+  if (!game || !game.towers.length) return null;
+  const payload = buildLevelPayload(name);
+  const code = encodeLevelCode(payload);
+  if (!code) return null;
+  let list = loadSavedLevels();
+  list.unshift({
+    id: Date.now(), name: payload.name, code,
+    towerCount: payload.towers.length, wallCount: payload.walls.length,
+    world: payload.world, createdAt: Date.now(),
+  });
+  if (list.length > MAX_SAVED_LEVELS) list = list.slice(0, MAX_SAVED_LEVELS);
+  persistSavedLevels(list);
+  return code;
+}
+
+function deleteSavedLevel(id) {
+  persistSavedLevels(loadSavedLevels().filter(l => l.id !== id));
+  buildCommunityBody();
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(() => fallbackCopyToClipboard(text));
+  } else {
+    fallbackCopyToClipboard(text);
+  }
+}
+function fallbackCopyToClipboard(text) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  } catch (e) { /* clipboard unavailable, code is still shown on screen */ }
+}
+
+function shareSavedLevel(id) {
+  const lvl = loadSavedLevels().find(l => l.id === id);
+  if (!lvl) return;
+  copyToClipboard(lvl.code);
+  SFX.play('ui_click');
+  showFlash(`Code for "${lvl.name}" copied to clipboard!`);
+}
+
+function openCommunityScreen() {
+  buildCommunityBody();
+  const input = document.getElementById('comm-code-input');
+  if (input) input.value = '';
+  const status = document.getElementById('comm-load-status');
+  if (status) { status.textContent = ''; status.classList.remove('ok'); }
+  document.getElementById('community-panel').classList.add('show');
+}
+function closeCommunityScreen() {
+  document.getElementById('community-panel').classList.remove('show');
+}
+
+function buildCommunityBody() {
+  const list = loadSavedLevels();
+  document.getElementById('comm-saved-count').textContent = list.length;
+  const body = document.getElementById('comm-saved-body');
+  if (!list.length) {
+    body.innerHTML = `<div class="comm-empty">No saved layouts yet. Build some towers in a game, pause, and hit SAVE LAYOUT.</div>`;
+    return;
+  }
+  body.innerHTML = list.map((l, i) => `
+    <div class="comm-level-card">
+      <div class="comm-level-info">
+        <div class="comm-level-name" data-i="${i}"></div>
+        <div class="comm-level-meta">${l.towerCount} tower${l.towerCount === 1 ? '' : 's'}${l.wallCount ? `, ${l.wallCount} wall${l.wallCount === 1 ? '' : 's'}` : ''} &middot; World ${l.world}</div>
+      </div>
+      <div class="comm-level-actions">
+        <button class="comm-share-btn" data-id="${l.id}">SHARE</button>
+        <button class="comm-del-btn" data-id="${l.id}">DELETE</button>
+      </div>
+    </div>
+  `).join('');
+  body.querySelectorAll('.comm-level-name').forEach(el => { el.textContent = list[Number(el.dataset.i)].name; });
+  body.querySelectorAll('.comm-share-btn').forEach(b => b.addEventListener('click', () => shareSavedLevel(Number(b.dataset.id))));
+  body.querySelectorAll('.comm-del-btn').forEach(b => b.addEventListener('click', () => deleteSavedLevel(Number(b.dataset.id))));
+}
+
+function loadLevelFromInput() {
+  const input = document.getElementById('comm-code-input');
+  const status = document.getElementById('comm-load-status');
+  const code = input ? input.value.trim() : '';
+  status.classList.remove('ok');
+  if (!code) { status.textContent = 'Paste a level code first.'; return; }
+  const payload = decodeLevelCode(code);
+  if (!payload || !Array.isArray(payload.towers)) {
+    status.textContent = 'That code could not be read — check it was copied in full.';
+    return;
+  }
+  status.classList.add('ok');
+  status.textContent = `Loading "${payload.name || 'Community Level'}"...`;
+  startLevelFromPayload(payload);
+}
+
+// Starts a fresh run seeded with someone else's (or your own saved) tower layout.
+// Every tile is re-validated against the current map/tower list rather than trusted —
+// the code could have been hand-edited or come from an older version of the game.
+function startLevelFromPayload(payload) {
+  closeCommunityScreen();
+  const world = Math.max(1, Math.min(WORLD_THEMES.length, Math.floor(Number(payload.world)) || 1));
+  game = initGame();
+  game.world = world;
+
+  let spent = 0;
+  const seen = new Set();
+  const placedTowers = [];
+  for (const t of (payload.towers || [])) {
+    const tx = Math.floor(t.tx), ty = Math.floor(t.ty);
+    if (!Number.isFinite(tx) || !Number.isFinite(ty)) continue;
+    if (tx < 0 || tx >= COLS || ty < 0 || ty >= ROWS) continue;
+    if (isPath(tx, ty) || isCastle(tx, ty)) continue;
+    const key = tx + ',' + ty;
+    if (seen.has(key)) continue;
+    const type = Math.max(0, Math.min(TOWER_TYPES.length - 1, Math.floor(Number(t.type)) || 0));
+    if (TOWER_TYPES[type].secret) continue; // no smuggling the Annihilator in via a level code
+    seen.add(key);
+    const level = Math.max(0, Math.min(5, Math.floor(Number(t.level)) || 0));
+    placedTowers.push({ tx, ty, type, level, cooldown: 0, angle: 0 });
+    spent += TOWER_TYPES[type].cost;
+  }
+  const placedWalls = [];
+  for (const w of (payload.walls || [])) {
+    const tx = Math.floor(w.tx), ty = Math.floor(w.ty);
+    if (!Number.isFinite(tx) || !Number.isFinite(ty)) continue;
+    if (!isPath(tx, ty) || isCastle(tx, ty)) continue;
+    const key = tx + ',' + ty;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const type = Math.max(0, Math.min(WALL_TYPES.length - 1, Math.floor(Number(w.type)) || 0));
+    const def = WALL_TYPES[type];
+    placedWalls.push({ tx, ty, type, hp: def.hp, maxHp: def.hp, buyCost: def.cost });
+    spent += def.cost;
+  }
+
+  game.towers = placedTowers;
+  game.walls = placedWalls;
+  game.gold = DIFFICULTY.startGold + spent; // enough that the imported layout reads as "already bought"
+  game.communityLevel = true;
+  game.communityLevelName = String(payload.name || 'Community Level').slice(0, 60);
+  clearGameState(); // this is a one-off mode, not the resumable "continue" save
+
+  game.prepPhase = true;
+  game.betweenWaves = false;
+  game.waveActive = false;
+  const ov = document.getElementById('overlay');
+  ov.classList.remove('home-mode');
+  ov.style.display = 'none';
+  setGameChromeVisible(true);
+  document.body.style.background = getWorldTheme().bgBase;
+  groundCache = null;
+  document.getElementById('send-wave-btn').style.display = 'block';
+  document.getElementById('hint').style.display = 'block';
+  const awBtn = document.getElementById('auto-wave-btn');
+  awBtn.style.display = 'block';
+  awBtn.textContent = 'AUTO-WAVE: OFF';
+  awBtn.classList.remove('on');
+  document.getElementById('speed-btn').style.display = 'block';
+  document.getElementById('pause-toggle-btn').style.display = 'flex';
+  updateSpeedBtn();
+  buildTowerBar();
+  startMusic();
+  updateUI();
+  resize();
+  render();
+  requestAnimationFrame(loop);
+  showFlash(`Loaded "${game.communityLevelName}" — ${placedTowers.length} towers ready!`);
+}
+
+// ===== SAVE LAYOUT (pause menu) =====
+function openSaveLayoutFlow() {
+  if (!game || !game.towers.length) { showFlash('Place some towers first!'); return; }
+  const box = document.getElementById('save-layout-box');
+  if (!box) return;
+  const count = loadSavedLevels().length;
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div class="save-layout-form">
+      <input type="text" id="save-layout-name" class="text-input" placeholder="Name this layout" maxlength="40" value="World ${game.world} Defense">
+      <button onclick="confirmSaveLayout()">SAVE &amp; GET CODE</button>
+      <div class="save-layout-hint">${count}/${MAX_SAVED_LEVELS} saved layouts${count >= MAX_SAVED_LEVELS ? ' — oldest will be replaced' : ''}</div>
+      <div id="save-layout-result"></div>
+    </div>
+  `;
+}
+function confirmSaveLayout() {
+  const nameInput = document.getElementById('save-layout-name');
+  const name = (nameInput && nameInput.value.trim()) || `World ${game.world} Defense`;
+  const code = saveCurrentLayoutAsLevel(name);
+  const result = document.getElementById('save-layout-result');
+  if (!result) return;
+  if (!code) { result.textContent = 'Could not save — try again.'; return; }
+  SFX.play('unlock');
+  result.innerHTML = `
+    <div class="save-layout-code-lbl">Saved! Share this code:</div>
+    <textarea readonly class="save-layout-code" onclick="this.select()"></textarea>
+    <button class="secondary-btn" onclick="copyToClipboard(this.previousElementSibling.value); showFlash('Code copied!')">COPY CODE</button>
+  `;
+  result.querySelector('.save-layout-code').value = code;
+}
+
 const MENU_ICONS = {
   play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
   resume: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 5h3v14H5zM10 5l10 7-10 7z"/></svg>',
@@ -1722,30 +2062,38 @@ const MENU_ICONS = {
   customize: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.4A4.6 4.6 0 0 0 22 10.9C21.9 6 17.5 2 12 2zm-5.5 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>',
   restart: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.76-4.24L13 11h7V4l-2.35 2.35z"/></svg>',
   trophy: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2h3v4c0 2.2-1.8 4-4 4h-.4A6 6 0 0 1 13 16.9V19h4v2H7v-2h4v-2.1A6 6 0 0 1 6.4 13H6c-2.2 0-4-1.8-4-4V5h3V3zm-1 4v2c0 1.1.9 2 2 2V7H4zm16 0h-2v4c1.1 0 2-.9 2-2V7z"/></svg>',
+  community: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.3 0-8 1.66-8 4.5V21h16v-2.5c0-2.84-4.7-4.5-8-4.5zm8.5-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm1.2 2.2c1.3.7 2.3 1.8 2.3 3.3V21h-3v-2.5c0-1.3-.5-2.4-1.3-3.2.7-.2 1.4-.2 2-.1zM3.5 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-1.2 2.2c-.6-.1-1.3-.1-2 .1C-.5 15 0 16.1 0 17.4V21h3v-2.5c0-1.5 1-2.6 2.3-3.3-1-.6-2-1-3-1z"/></svg>',
 };
 function menuBtn(icon, label, onclick, secondary) {
   return `<button class="${secondary ? 'secondary-btn' : ''}" onclick="${onclick}"><span class="mi">${MENU_ICONS[icon]}</span>${label}</button>`;
 }
 function refreshStartScreenButtons() {
   const saved = loadGameState();
-  const wrap = document.getElementById('start-buttons');
-  if (!wrap) return;
+  const wrapMain = document.getElementById('start-buttons-main');
+  const wrapSec = document.getElementById('start-buttons-secondary');
+  if (!wrapMain || !wrapSec) return;
   const dailyBest = getDailyBest().best || 0;
-  let html = '';
+
+  // Three big primary actions
+  let mainHtml = '';
   if (saved) {
-    html += menuBtn('resume', `CONTINUE — World ${saved.world}, Wave ${saved.wave}`, 'startGame(true)', false);
+    mainHtml += menuBtn('resume', `CONTINUE — World ${saved.world}, Wave ${saved.wave}`, 'startGame(true)', false);
   } else {
-    html += menuBtn('play', 'PLAY', 'startGame(false)', false);
+    mainHtml += menuBtn('play', 'PLAY', 'startGame(false)', false);
   }
-  html += menuBtn('daily', `DAILY CHALLENGE${dailyBest ? ` — best: ${dailyBest}` : ''}`, 'startDailyChallenge()', true);
-  html += menuBtn('customize', 'CUSTOMIZE TOWERS', 'openCustomizeScreen()', true);
+  mainHtml += menuBtn('community', 'COMMUNITY LEVELS', 'openCommunityScreen()', true);
+  mainHtml += menuBtn('customize', 'CUSTOMIZE', 'openCustomizeScreen()', true);
+  wrapMain.innerHTML = mainHtml;
+  wrapMain.querySelectorAll('button').forEach(b => b.classList.add('home-btn-main'));
+
+  // Smaller secondary links
   const achCount = ACHIEVEMENT_DEFS.filter(d => profile.achievements[d.name]).length;
   const hofTop = loadHallOfFame()[0];
-  html += menuBtn('trophy', `HALL OF FAME${hofTop ? ` — best: ${hofTop.score} waves` : (achCount ? ` — ${achCount}/${ACHIEVEMENT_DEFS.length}` : '')}`, 'openAchievementsScreen()', true);
-  if (saved) {
-    html += menuBtn('restart', 'NEW GAME', 'startGame(false)', true);
-  }
-  wrap.innerHTML = html;
+  let secHtml = '';
+  secHtml += `<button class="home-link-btn" onclick="startDailyChallenge()">DAILY CHALLENGE${dailyBest ? ` &middot; best ${dailyBest}` : ''}</button>`;
+  secHtml += `<button class="home-link-btn" onclick="openAchievementsScreen()">HALL OF FAME${hofTop ? ` &middot; best ${hofTop.score} waves` : (achCount ? ` &middot; ${achCount}/${ACHIEVEMENT_DEFS.length}` : '')}</button>`;
+  if (saved) secHtml += `<button class="home-link-btn" onclick="startGame(false)">NEW GAME</button>`;
+  wrapSec.innerHTML = secHtml;
 }
 
 // ===== HOME SCREEN =====
@@ -1773,6 +2121,7 @@ function setGameChromeVisible(show) {
 function renderHomeScreen() {
   setGameChromeVisible(false);
   const ov = document.getElementById('overlay');
+  ov.classList.add('home-mode');
   const kills = profile.stats.totalKills || 0;
   const best = profile.stats.bestScore || 0;
   const profileLine = (kills > 0 || best > 0) ? `
@@ -1781,19 +2130,22 @@ function renderHomeScreen() {
       ${best ? `<span><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2h3v4c0 2.2-1.8 4-4 4h-.4A6 6 0 0 1 13 16.9V19h4v2H7v-2h4v-2.1A6 6 0 0 1 6.4 13H6c-2.2 0-4-1.8-4-4V5h3V3z"/></svg>best: <b>World ${profile.stats.bestWorld}, Wave ${profile.stats.bestWave}</b></span>` : ''}
     </div>` : '';
   ov.innerHTML = `
-    <h1 class="home-title">BEN'S CASTLE DEFENSE</h1>
-    <div class="home-sub">Defend the castle. Survive the waves. Outsmart the horde.</div>
-    ${profileLine}
-    <div id="start-buttons"></div>
-    <button class="how-to-btn" onclick="toggleTutorial()">HOW TO PLAY</button>
-    <button class="how-to-btn" onclick="replayTutorial()" style="margin-top:2px">REPLAY INTERACTIVE TUTORIAL</button>
-    <div class="tut-steps" id="tut-steps" style="display:none">${TUT_STEPS_HTML}</div>
-    <div class="home-hints">
-      <span><kbd>1&ndash;8</kbd> towers</span>
-      <span><kbd>Q&ndash;R</kbd> walls</span>
-      <span><kbd>Space</kbd> send wave</span>
-      <span><kbd>P</kbd> pause</span>
-      <span><kbd>X</kbd> sell mode</span>
+    <div class="home-screen">
+      <h1 class="home-title home-title-lg">BEN'S CASTLE DEFENSE</h1>
+      <div class="home-sub home-sub-lg">Defend the castle. Survive the waves. Outsmart the horde.</div>
+      ${profileLine}
+      <div id="start-buttons-main" class="home-main-btns"></div>
+      <div id="start-buttons-secondary" class="home-secondary-row"></div>
+      <button class="how-to-btn" onclick="toggleTutorial()">HOW TO PLAY</button>
+      <button class="how-to-btn" onclick="replayTutorial()" style="margin-top:2px">REPLAY INTERACTIVE TUTORIAL</button>
+      <div class="tut-steps" id="tut-steps" style="display:none">${TUT_STEPS_HTML}</div>
+      <div class="home-hints">
+        <span><kbd>1&ndash;8</kbd> towers</span>
+        <span><kbd>Q&ndash;R</kbd> walls</span>
+        <span><kbd>Space</kbd> send wave</span>
+        <span><kbd>P</kbd> pause</span>
+        <span><kbd>X</kbd> sell mode</span>
+      </div>
     </div>
   `;
   refreshStartScreenButtons();
@@ -5924,6 +6276,7 @@ function endGame() {
   tutorial = null;
   setGameChromeVisible(false);
   const ov = document.getElementById('overlay');
+  ov.classList.remove('home-mode');
   ov.style.display = 'flex';
 
   // Run summary + lifetime deltas for the results screen
