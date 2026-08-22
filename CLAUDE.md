@@ -35,6 +35,14 @@ Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build s
 - Secret keyboard combos: ~4360
 - Tower bar UI (`buildTowerBar`): ~4500
 
+## Walls (barricades)
+- `WALL_TYPES` (Palisade / Rampart / Stone / Bulwark) — built **on the path**, which is the opposite of towers. `game.walls` holds `{tx, ty, type, hp, maxHp}`; persisted in the save.
+- **They do not reroute anything.** This game runs on fixed lanes (`ALL_PATHS`) with no pathfinding, so walls physically stop the horde, which then smashes through. That buys towers free seconds against a bunched-up crowd — that IS the mechanic. Adding rerouting would mean A* plus maze-TD rules and is a different game.
+- Blocking lives in the enemy move loop: if `wallAt()` finds a wall on the *next* path tile, the enemy stops and `damageWall(w, wallDps(e) * dt)`. Flying enemies (`def.flying`) and burrowed bosses (`e.untargetable`) pass straight over.
+- `wallDps(e)` scales with `enemySize(e)`; bosses hit 6×. `damageWall` guards with `w.destroyed` so two enemies finishing the same wall in one frame can't double-splice.
+- Placement rules in `canPlaceWall()`: path only, not the castle, not a lane's spawn tile, not on a tower or existing wall, and not on a tile an enemy currently occupies. Selling refunds pro-rata by remaining HP.
+- UI: `#build-tabs` toggles `game.buildMode` between `'tower'` and `'wall'`; `buildTowerBar()` renders whichever is active. Hotkeys Q/W/E/R pick walls (and flip the mode), 1-8 flip back to towers. Tunable in the admin panel.
+
 ## Bosses
 - `BOSS_DEFS` — one named boss per world (cycles past 8), spawned on the **final wave of each world** (`spawnWave`); excluded from the Daily Challenge, which is meant to be a short sharp gauntlet.
 - A boss is a normal enemy type wearing a costume: `sizeMult` / `hpMult` / `speedMult` plus an `abilities` list. `enemySize(e)` returns the per-enemy size (never read `ENEMY_DEFS[..].size` directly for a live enemy).
@@ -81,6 +89,7 @@ Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build s
 
 ## Features
 - 8 towers (+1 secret Annihilator via B→N key combo) with level-2 upgrades
+- 4 wall types built on the path — enemies stop and smash through them, flyers pass over
 - 9 enemy types across escalating worlds, plus 8 named bosses (one per world, final wave)
 - 8 distinct world themes (Medieval, Frozen, Desert, Deep Space, Ocean, Volcanic, Enchanted Grove, Shadow Realm)
 - Home screen with animated title and menu

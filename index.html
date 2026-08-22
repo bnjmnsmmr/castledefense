@@ -124,9 +124,24 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 .tb-tooltip .tt-row b { color: var(--parchment); font-weight: 600; }
 .tb-tooltip .tt-special { margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(138,109,59,0.35); color: #c39bf0; line-height: 1.35; }
 
+#build-tabs {
+  position: absolute; bottom: 107px; left: 50%; transform: translateX(-50%);
+  display: none; gap: 6px; z-index: 11;
+}
+#build-tabs.show { display: flex; }
+.build-tab {
+  background: linear-gradient(180deg, var(--bg-panel-raised), var(--bg-panel));
+  border: 1px solid var(--border-brass); color: var(--parchment-dim);
+  border-radius: 20px; padding: 4px 16px; font-family: var(--font-ui);
+  font-size: 11px; font-weight: 800; letter-spacing: 1px; cursor: pointer;
+}
+.build-tab.on { background: var(--gold); border-color: var(--gold); color: var(--bg-deep); }
+.build-tab:hover { filter: brightness(1.15); }
+.tower-btn .hp-tag { font-size: 9px; color: var(--venom); font-weight: 700; }
+
 /* ===== Buttons ===== */
 #send-wave-btn {
-  position: absolute; bottom: 134px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: 143px; left: 50%; transform: translateX(-50%);
   background: var(--gold); color: var(--bg-deep); border: none; padding: 12px 34px;
   font-family: var(--font-ui); font-size: 15px; font-weight: 800; border-radius: var(--radius); cursor: pointer;
   z-index: 15; letter-spacing: 1px; display: none;
@@ -604,7 +619,10 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
   .tower-btn .name { font-size: 8.5px; }
   .tower-btn .cost { font-size: 8.5px; }
   .tower-btn .key { display: none; }
-  #send-wave-btn { bottom: 104px; padding: 10px 26px; font-size: 13px; }
+  #send-wave-btn { bottom: 112px; padding: 10px 26px; font-size: 13px; }
+  #build-tabs { bottom: 80px; gap: 4px; }
+  .build-tab { padding: 3px 11px; font-size: 9.5px; letter-spacing: 0.6px; }
+  .tower-btn .hp-tag { font-size: 8px; }
   #speed-btn, #auto-wave-btn { padding: 9px 12px; font-size: 10.5px; bottom: 10px; min-width: 0; }
   #speed-btn { left: 10px; }
   #auto-wave-btn { right: 10px; }
@@ -672,6 +690,10 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 <div id="toast-stack"></div>
 <div id="wave-banner"><div class="wv" id="wave-banner-title"></div><div class="wv-sub" id="wave-banner-sub"></div></div>
 
+<div id="build-tabs">
+  <button class="build-tab" id="tab-towers" onclick="setBuildMode('tower')">TOWERS</button>
+  <button class="build-tab" id="tab-walls" onclick="setBuildMode('wall')">WALLS</button>
+</div>
 <div id="tower-bar"></div>
 <button id="send-wave-btn" onclick="sendWave()">SEND WAVE</button>
 <button id="auto-wave-btn" onclick="toggleAutoWave()">AUTO-WAVE: OFF</button>
@@ -776,6 +798,14 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
       <table>
         <thead><tr><th>Tower</th><th>Cost</th><th>Range</th><th>Fire Rate (s)</th><th>Damage</th><th>Ammo</th><th>Reload (s)</th></tr></thead>
         <tbody id="admin-tower-body"></tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Walls</h2>
+      <table>
+        <thead><tr><th>Wall</th><th>Cost</th><th>HP</th></tr></thead>
+        <tbody id="admin-wall-body"></tbody>
       </table>
     </section>
 
@@ -931,6 +961,133 @@ const TOWER_TYPES = [
   { id:'poison', name:'Poison',  cost:50,  range:100, rate:2.0, dmg:4,   color:'#44cc66', projColor:'#66ff88', projSpeed:5, dot:8, dotDur:4, key:'8', ammo:5, reload:3 },
   { id:'annihilator', name:'Annihilator', cost:25, range:12*40, rate:0.05, dmg:125, pctDmg:0.25, color:'#ffffff', projColor:'#ffffff', projSpeed:0, chain:99, key:'9', ammo:9999, reload:0.1, secret:true },
 ];
+
+// ===== WALLS =====
+// Barricades built ON the path. They do not reroute anything — this game runs on
+// fixed lanes with no pathfinding — they physically stop the horde, which then
+// has to smash through. That buys your towers free seconds against a bunched-up
+// crowd, which is the whole point. Flying enemies sail straight over.
+const WALL_TYPES = [
+  { id:'palisade', name:'Palisade', cost:60,  hp:250,  key:'Q', wood:'#7a5b38', trim:'#573f24' },
+  { id:'rampart',  name:'Rampart',  cost:110, hp:550,  key:'W', wood:'#6b5138', trim:'#4a6238' },
+  { id:'stone',    name:'Stone',    cost:200, hp:1100, key:'E', wood:'#6b6f76', trim:'#4a4d53' },
+  { id:'bulwark',  name:'Bulwark',  cost:350, hp:2200, key:'R', wood:'#3d4148', trim:'#5c626b' },
+];
+const DEFAULT_WALLS = WALL_TYPES.map(w => ({ id: w.id, cost: w.cost, hp: w.hp }));
+
+function wallAt(tx, ty) {
+  if (!game || !game.walls) return null;
+  return game.walls.find(w => w.tx === tx && w.ty === ty) || null;
+}
+// How hard a given enemy hits masonry. Big bruisers smash, rats nibble, bosses wreck.
+function wallDps(e) {
+  return (5 + enemySize(e) * 0.8) * (e.boss ? 6 : 1);
+}
+
+// Each wall draws into a 48x48 box, so the same art serves the board and the cards.
+const WALL_SPRITES = {
+  palisade(c, dmg) {
+    c.fillStyle = 'rgba(0,0,0,0.3)';
+    c.beginPath(); c.ellipse(24, 42, 18, 4, 0, 0, 7); c.fill();
+    for (let i = 0; i < 5; i++) {
+      const x = 4 + i * 9;
+      if (dmg > 0.6 && (i === 1 || i === 3)) continue; // splintered away
+      const h = dmg > 0.3 && i === 2 ? 20 : 30;
+      c.fillStyle = '#7a5b38';
+      c.beginPath();
+      c.moveTo(x, 42); c.lineTo(x, 44 - h); c.lineTo(x + 4, 40 - h); c.lineTo(x + 8, 44 - h); c.lineTo(x + 8, 42);
+      c.closePath(); c.fill();
+      c.strokeStyle = '#1a1512'; c.lineWidth = 1.5; c.stroke();
+      c.strokeStyle = '#573f24'; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(x + 4, 40 - h + 4); c.lineTo(x + 4, 40); c.stroke();
+    }
+    c.strokeStyle = '#573f24'; c.lineWidth = 2.5;
+    c.beginPath(); c.moveTo(3, 26); c.lineTo(45, 26); c.stroke();
+  },
+  rampart(c, dmg) {
+    c.fillStyle = 'rgba(0,0,0,0.3)';
+    c.beginPath(); c.ellipse(24, 43, 20, 4, 0, 0, 7); c.fill();
+    // earth mound
+    c.fillStyle = '#6b5138';
+    c.beginPath();
+    c.moveTo(2, 43); c.lineTo(7, 16); c.lineTo(41, 16); c.lineTo(46, 43);
+    c.closePath(); c.fill();
+    c.strokeStyle = '#1a1512'; c.lineWidth = 2; c.stroke();
+    // timber facing
+    c.strokeStyle = '#4a3826'; c.lineWidth = 2;
+    for (let i = 0; i < 4; i++) {
+      const x = 9 + i * 8;
+      c.beginPath(); c.moveTo(x, 41); c.lineTo(x + 1, 18); c.stroke();
+    }
+    // turf cap
+    c.fillStyle = dmg > 0.5 ? '#4a3826' : '#4a6238';
+    c.beginPath(); c.ellipse(24, 16, 17, 4.5, 0, 0, 7); c.fill();
+    c.strokeStyle = '#1a1512'; c.lineWidth = 1.5; c.stroke();
+    if (dmg > 0.4) { // blown-out crater
+      c.fillStyle = '#2a2018';
+      c.beginPath(); c.ellipse(30, 30, 8, 7, 0.3, 0, 7); c.fill();
+    }
+  },
+  stone(c, dmg) {
+    c.fillStyle = 'rgba(0,0,0,0.3)';
+    c.beginPath(); c.ellipse(24, 43, 19, 4, 0, 0, 7); c.fill();
+    c.fillStyle = '#6b6f76';
+    c.fillRect(4, 12, 40, 31);
+    c.strokeStyle = '#1a1512'; c.lineWidth = 2; c.strokeRect(4, 12, 40, 31);
+    // staggered blocks
+    c.strokeStyle = 'rgba(30,32,36,0.6)'; c.lineWidth = 1.2;
+    for (let r = 0; r < 3; r++) {
+      const y = 12 + r * 10.3;
+      c.beginPath(); c.moveTo(4, y + 10.3); c.lineTo(44, y + 10.3); c.stroke();
+      const off = r % 2 ? 0 : 10;
+      for (let bx = 4 + off; bx < 44; bx += 20) {
+        c.beginPath(); c.moveTo(bx, y); c.lineTo(bx, y + 10.3); c.stroke();
+      }
+    }
+    c.fillStyle = '#8a8f96'; c.fillRect(4, 12, 40, 3);   // lit cap
+    if (dmg > 0.3) { // cracks
+      c.strokeStyle = '#241f1c'; c.lineWidth = 1.6;
+      c.beginPath(); c.moveTo(14, 12); c.lineTo(18, 24); c.lineTo(12, 33); c.lineTo(17, 43); c.stroke();
+    }
+    if (dmg > 0.6) { // hole punched through
+      c.fillStyle = '#181512';
+      c.beginPath();
+      c.moveTo(26, 20); c.lineTo(36, 22); c.lineTo(38, 33); c.lineTo(28, 36); c.closePath(); c.fill();
+    }
+  },
+  bulwark(c, dmg) {
+    c.fillStyle = 'rgba(0,0,0,0.35)';
+    c.beginPath(); c.ellipse(24, 43, 20, 4.5, 0, 0, 7); c.fill();
+    c.fillStyle = '#3d4148';
+    c.fillRect(3, 9, 42, 34);
+    c.strokeStyle = '#14100e'; c.lineWidth = 2; c.strokeRect(3, 9, 42, 34);
+    c.fillStyle = '#4a4f57'; c.fillRect(3, 9, 42, 4);
+    // iron bands + rivets
+    c.fillStyle = '#5c626b';
+    for (const by of [17, 30]) {
+      c.fillRect(3, by, 42, 5);
+      c.strokeStyle = '#14100e'; c.lineWidth = 1; c.strokeRect(3, by, 42, 5);
+      c.fillStyle = '#8d949d';
+      for (let rx = 8; rx < 44; rx += 9) { c.beginPath(); c.arc(rx, by + 2.5, 1.4, 0, 7); c.fill(); }
+      c.fillStyle = '#5c626b';
+    }
+    // crenellated top
+    for (let i = 0; i < 4; i++) {
+      c.fillStyle = '#4a4f57';
+      c.fillRect(4 + i * 11, 4, 7, 6);
+      c.strokeStyle = '#14100e'; c.lineWidth = 1.5; c.strokeRect(4 + i * 11, 4, 7, 6);
+    }
+    if (dmg > 0.35) {
+      c.strokeStyle = '#14100e'; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(30, 9); c.lineTo(26, 22); c.lineTo(33, 31); c.lineTo(29, 43); c.stroke();
+    }
+    if (dmg > 0.65) {
+      c.fillStyle = '#100d0b';
+      c.beginPath();
+      c.moveTo(10, 20); c.lineTo(21, 19); c.lineTo(23, 32); c.lineTo(11, 34); c.closePath(); c.fill();
+    }
+  },
+};
 
 // ===== TOWER SPRITES (shared: field + cards). Each draws centered in a 48x48 box at (0,0). =====
 const SPRITE_P = {
@@ -1489,6 +1646,7 @@ function loadConfigOverrides() {
     if (cfg.difficulty) Object.assign(DIFFICULTY, cfg.difficulty);
     if (cfg.towers) for (const t of TOWER_TYPES) if (cfg.towers[t.id]) Object.assign(t, cfg.towers[t.id]);
     if (cfg.enemies) for (const e of ENEMY_DEFS) if (cfg.enemies[e.id]) Object.assign(e, cfg.enemies[e.id]);
+    if (cfg.walls) for (const w of WALL_TYPES) if (cfg.walls[w.id]) Object.assign(w, cfg.walls[w.id]);
   } catch (err) {
     console.warn('Castle Defense: failed to load admin config overrides', err);
   }
@@ -1511,6 +1669,7 @@ function saveGameState() {
       triBeamGranted: !!game.triBeamGranted, merchantGone: !!game.merchantGone,
       achievements: game.achievements || {}, autoWave: !!game.autoWave, speed: game.speed || 1,
       towers: game.towers.map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0 })),
+      walls: (game.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp })),
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
   } catch (e) { /* storage unavailable, ignore */ }
@@ -1579,6 +1738,7 @@ const TUT_STEPS_HTML = `
 function setGameChromeVisible(show) {
   document.getElementById('ui').style.display = show ? 'flex' : 'none';
   document.getElementById('tower-bar').style.display = show ? 'flex' : 'none';
+  document.getElementById('build-tabs').classList.toggle('show', show);
 }
 
 function renderHomeScreen() {
@@ -1601,6 +1761,7 @@ function renderHomeScreen() {
     <div class="tut-steps" id="tut-steps" style="display:none">${TUT_STEPS_HTML}</div>
     <div class="home-hints">
       <span><kbd>1&ndash;8</kbd> towers</span>
+      <span><kbd>Q&ndash;R</kbd> walls</span>
       <span><kbd>Space</kbd> send wave</span>
       <span><kbd>P</kbd> pause</span>
       <span><kbd>X</kbd> sell mode</span>
@@ -1762,6 +1923,7 @@ function applyDefaultConfigForDaily() {
   Object.assign(DIFFICULTY, DEFAULT_DIFFICULTY);
   for (const t of TOWER_TYPES) { const d = DEFAULT_TOWERS.find(x => x.id === t.id); if (d) { t.cost = d.cost; t.range = d.range; t.rate = d.rate; t.dmg = d.dmg; t.ammo = d.ammo; t.reload = d.reload; } }
   for (const e of ENEMY_DEFS) { const d = DEFAULT_ENEMIES.find(x => x.id === e.id); if (d) Object.assign(e, d); }
+  for (const w of WALL_TYPES) { const d = DEFAULT_WALLS.find(x => x.id === w.id); if (d) { w.cost = d.cost; w.hp = d.hp; } }
   dailyDefaultConfigActive = true;
 }
 function restoreConfigAfterDaily() {
@@ -2055,6 +2217,16 @@ function buildAdminForm() {
       <td><input type="number" step="0.1" id="at_${t.id}_reload" value="${t.reload}"></td>`;
     towerBody.appendChild(tr);
   }
+  const wallBody = document.getElementById('admin-wall-body');
+  wallBody.innerHTML = '';
+  for (const w of WALL_TYPES) {
+    const tr = document.createElement('tr');
+    tr.className = 'row';
+    tr.innerHTML = `<td>${w.name}</td>
+      <td><input type="number" id="aw_${w.id}_cost" value="${w.cost}"></td>
+      <td><input type="number" id="aw_${w.id}_hp" value="${w.hp}"></td>`;
+    wallBody.appendChild(tr);
+  }
   const enemyBody = document.getElementById('admin-enemy-body');
   enemyBody.innerHTML = '';
   for (const e of ENEMY_DEFS) {
@@ -2076,8 +2248,11 @@ function adminNumVal(id, fallback) {
 }
 
 function readAdminConfig() {
-  const cfg = { difficulty: {}, towers: {}, enemies: {} };
+  const cfg = { difficulty: {}, towers: {}, enemies: {}, walls: {} };
   for (const key in DEFAULT_DIFFICULTY) cfg.difficulty[key] = adminNumVal('ad_' + key, DEFAULT_DIFFICULTY[key]);
+  for (const w of WALL_TYPES) {
+    cfg.walls[w.id] = { cost: adminNumVal('aw_' + w.id + '_cost', w.cost), hp: adminNumVal('aw_' + w.id + '_hp', w.hp) };
+  }
   for (const t of TOWER_TYPES) {
     cfg.towers[t.id] = {
       cost: adminNumVal('at_' + t.id + '_cost', t.cost),
@@ -2104,6 +2279,7 @@ function applyAdminConfig(cfg) {
   if (cfg.difficulty) Object.assign(DIFFICULTY, cfg.difficulty);
   if (cfg.towers) for (const t of TOWER_TYPES) if (cfg.towers[t.id]) Object.assign(t, cfg.towers[t.id]);
   if (cfg.enemies) for (const e of ENEMY_DEFS) if (cfg.enemies[e.id]) Object.assign(e, cfg.enemies[e.id]);
+  if (cfg.walls) for (const w of WALL_TYPES) if (cfg.walls[w.id]) Object.assign(w, cfg.walls[w.id]);
   if (typeof buildTowerBar === 'function' && game) buildTowerBar();
   if (typeof updateUI === 'function' && game) updateUI();
 }
@@ -2156,9 +2332,10 @@ function importAdminConfig(evt) {
 function resetAdminDefaults() {
   if (!confirm('Reset every value back to the shipped defaults? This clears your saved config.')) return;
   localStorage.removeItem(ADMIN_STORAGE_KEY);
-  const cfg = { difficulty: DEFAULT_DIFFICULTY, towers: {}, enemies: {} };
+  const cfg = { difficulty: DEFAULT_DIFFICULTY, towers: {}, enemies: {}, walls: {} };
   for (const t of DEFAULT_TOWERS) cfg.towers[t.id] = t;
   for (const e of DEFAULT_ENEMIES) cfg.enemies[e.id] = e;
+  for (const w of DEFAULT_WALLS) cfg.walls[w.id] = w;
   applyAdminConfig(cfg);
   buildAdminForm();
   setAdminStatus('✓ Reset to defaults and applied');
@@ -2264,7 +2441,10 @@ function initGame() {
   return {
     hp: DIFFICULTY.startHp, gold: DIFFICULTY.startGold, wave: 1, world: 1, kills: 0, xp: 0, upgradesSpent: 0, annihilatorUnlocked: false, triBeamEquipped: false,
     towers: [], enemies: [], projectiles: [], particles: [],
+    walls: [],
     selectedTower: 0,
+    selectedWall: 0,
+    buildMode: 'tower',   // 'tower' | 'wall'
     waveEnemies: [],
     waveTimer: 0,
     waveSpawnIdx: 0,
@@ -2307,6 +2487,7 @@ function startGame(resume) {
     game.activePaths = getActivePaths(game.wave);
     pathSet = buildPathSet(game.wave);
     game.towers = (saved.towers || []).map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, cooldown: 0, angle: 0 }));
+    game.walls = (saved.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp }));
   } else {
     clearGameState();
   }
@@ -2332,7 +2513,7 @@ function startGame(resume) {
   document.getElementById('speed-btn').style.display = 'block';
   document.getElementById('pause-toggle-btn').style.display = 'flex';
   updateSpeedBtn();
-  if (game.annihilatorUnlocked) buildTowerBar();
+  buildTowerBar();
   startMusic();
   updateUI();
   // Render the board so player can see the map and place towers
@@ -2547,6 +2728,9 @@ const SFX = {
   lib: {
     ui_click()  { sfxTone('triangle', 640, 860, 0.05, 0.16); },
     place()     { sfxNoise(0.09, 0.28, 520); sfxTone('triangle', 190, 120, 0.13, 0.4); },
+    wall_place(){ sfxTone('triangle', 150, 90, 0.2, 0.45); sfxNoise(0.16, 0.3, 380); },
+    wall_hit()  { sfxNoise(0.07, 0.22, 700); sfxTone('square', 120, 80, 0.06, 0.14); },
+    wall_break(){ sfxNoise(0.45, 0.5, 300); sfxTone('sawtooth', 130, 45, 0.35, 0.35); },
     sell()      { sfxTone('square', 500, 240, 0.14, 0.16); sfxTone('sine', 1180, 0, 0.06, 0.2, 0.1); },
     upgrade()   { sfxTone('triangle', 380, 900, 0.2, 0.3); sfxTone('sine', 1400, 1900, 0.14, 0.18, 0.12); },
     error()     { sfxTone('square', 150, 0, 0.09, 0.16); sfxTone('square', 118, 0, 0.12, 0.16, 0.1); },
@@ -3318,6 +3502,39 @@ function drawCastle() {
       ctx.beginPath();
       ctx.arc(sx, sy, 5 + phase * 9, 0, Math.PI * 2);
       ctx.fill();
+    }
+  }
+}
+
+function drawWalls() {
+  if (!game.walls || !game.walls.length) return;
+  const frameDt = 1 / 60;
+  for (const w of game.walls) {
+    const def = WALL_TYPES[w.type];
+    const dmg = 1 - Math.max(w.hp, 0) / w.maxHp;
+    ctx.save();
+    ctx.translate(w.tx * TILE - 2, w.ty * TILE - 6);
+    ctx.scale((TILE + 4) / 48, (TILE + 4) / 48);
+    WALL_SPRITES[def.id](ctx, dmg);
+    ctx.restore();
+
+    // White flash on each hit
+    if (w.hitFlash > 0) {
+      w.hitFlash -= frameDt;
+      ctx.globalAlpha = Math.min(w.hitFlash / 0.08, 1) * 0.55;
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(w.tx * TILE + 1, w.ty * TILE + 1, TILE - 2, TILE - 2);
+      ctx.globalAlpha = 1;
+    }
+
+    // Condition bar, only once it has taken a knock
+    if (dmg > 0.001) {
+      const barW = TILE - 10, bx = w.tx * TILE + 5, by = w.ty * TILE + TILE - 5;
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(bx, by, barW, 3);
+      const pct = Math.max(w.hp, 0) / w.maxHp;
+      ctx.fillStyle = pct > 0.5 ? '#9fd68f' : (pct > 0.25 ? '#e8b64c' : '#cc4444');
+      ctx.fillRect(bx, by, barW * pct, 3);
     }
   }
 }
@@ -4346,6 +4563,7 @@ function drawParticles() {
 
 function drawPlacement() {
   if (!game || game.gameOver) return;
+  if (game.buildMode === 'wall') { drawWallPlacement(); return; }
   const def = TOWER_TYPES[game.selectedTower];
   if (!mouse.tx || mouse.tx < 0 || mouse.tx >= COLS || mouse.ty < 0 || mouse.ty >= ROWS) return;
   if (isPath(mouse.tx, mouse.ty) || isCastle(mouse.tx, mouse.ty)) return;
@@ -4366,6 +4584,28 @@ function drawPlacement() {
   ctx.globalAlpha = 0.5;
   ctx.fillStyle = def.color;
   ctx.fillRect(mouse.tx*TILE+6, mouse.ty*TILE+6, TILE-12, TILE-12);
+  ctx.globalAlpha = 1;
+}
+
+function drawWallPlacement() {
+  if (game.trashMode) return;
+  const tx = mouse.tx, ty = mouse.ty;
+  if (tx < 0 || tx >= COLS || ty < 0 || ty >= ROWS) return;
+  const def = WALL_TYPES[game.selectedWall];
+  const ok = !canPlaceWall(tx, ty) && game.gold >= def.cost;
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  if (ok) {
+    ctx.translate(tx * TILE - 2, ty * TILE - 6);
+    ctx.scale((TILE + 4) / 48, (TILE + 4) / 48);
+    WALL_SPRITES[def.id](ctx, 0);
+  } else {
+    ctx.fillStyle = 'rgba(255,50,50,0.28)';
+    ctx.fillRect(tx * TILE + 2, ty * TILE + 2, TILE - 4, TILE - 4);
+    ctx.strokeStyle = 'rgba(255,80,80,0.8)'; ctx.lineWidth = 2;
+    ctx.strokeRect(tx * TILE + 2, ty * TILE + 2, TILE - 4, TILE - 4);
+  }
+  ctx.restore();
   ctx.globalAlpha = 1;
 }
 
@@ -4574,6 +4814,27 @@ function update(dt) {
       updateUI();
       if (game.hp <= 0) endGame();
       continue;
+    }
+
+    // A wall on the next tile stops the march. Flyers ignore them entirely,
+    // and a burrowed boss tunnels straight under.
+    if (!def.flying && !(e.untargetable > 0)) {
+      const blocker = wallAt(Math.floor(target.x / TILE), Math.floor(target.y / TILE));
+      if (blocker) {
+        e.attacking = true;
+        damageWall(blocker, wallDps(e) * dt);
+        e.wallFxT = (e.wallFxT || 0) - dt;
+        if (e.wallFxT <= 0) {
+          e.wallFxT = 0.35;
+          SFX.play('wall_hit');
+          spawnParticles(
+            blocker.tx * TILE + TILE / 2 + (Math.random() - 0.5) * TILE * 0.6,
+            blocker.ty * TILE + TILE / 2 + (Math.random() - 0.5) * TILE * 0.6,
+            WALL_TYPES[blocker.type].wood, 2);
+        }
+        continue; // held at the barricade
+      }
+      e.attacking = false;
     }
 
     const dx = target.x - e.x;
@@ -5312,6 +5573,7 @@ function render() {
   drawGround();
   drawPlacement();
   drawTowers();
+  drawWalls();
   drawEnemies();
   drawProjectiles();
   drawParticles();
@@ -5685,6 +5947,64 @@ function endGame() {
   achEarned.forEach((name, i) => { if (chipEls[i]) chipEls[i].textContent = name; });
 }
 
+// ===== WALL BUILDING =====
+// Walls go ON the lane — that is the entire point — so they use their own
+// placement rules rather than the tower ones.
+function spawnTileSet() {
+  const set = new Set();
+  for (const p of (game ? game.activePaths : getActivePaths(1))) {
+    const [x, y] = p.tiles[0];
+    set.add(x + ',' + y);
+  }
+  return set;
+}
+
+function canPlaceWall(tx, ty) {
+  if (!isPath(tx, ty)) return 'Walls can only be built on the path — that is what makes them useful';
+  if (isCastle(tx, ty)) return 'Not on the castle';
+  if (spawnTileSet().has(tx + ',' + ty)) return 'Too close to the gate they march out of';
+  if (wallAt(tx, ty)) return 'There is already a wall here';
+  if (game.towers.some(t => t.tx === tx && t.ty === ty)) return 'A tower is standing there';
+  // Don't trap an enemy inside a freshly built wall
+  const occupied = game.enemies.some(e => !e.dead &&
+    Math.floor(e.x / TILE) === tx && Math.floor(e.y / TILE) === ty);
+  if (occupied) return 'Something is standing there right now';
+  return null;
+}
+
+function placeWall(tx, ty) {
+  const def = WALL_TYPES[game.selectedWall];
+  const why = canPlaceWall(tx, ty);
+  if (why) { SFX.play('error'); showFlash(why); return; }
+  if (game.gold < def.cost) {
+    SFX.play('error');
+    showFlash(`Not enough gold! Need ${def.cost} (have ${Math.floor(game.gold)})`);
+    return;
+  }
+  game.gold -= def.cost;
+  game.walls.push({ tx, ty, type: game.selectedWall, hp: def.hp, maxHp: def.hp });
+  SFX.play('wall_place');
+  spawnParticles(tx * TILE + TILE / 2, ty * TILE + TILE / 2, '#a89878', 12);
+  updateUI();
+}
+
+function damageWall(w, dmg) {
+  if (w.destroyed) return; // already finished off earlier this frame
+  w.hp -= dmg;
+  w.hitFlash = 0.08;
+  if (w.hp <= 0) {
+    w.destroyed = true;
+    const i = game.walls.indexOf(w);
+    if (i === -1) return;
+    game.walls.splice(i, 1);
+    const cx = w.tx * TILE + TILE / 2, cy = w.ty * TILE + TILE / 2;
+    SFX.play('wall_break');
+    spawnParticles(cx, cy, WALL_TYPES[w.type].wood, 22);
+    triggerShake(4, 0.2);
+    showFlash(`${WALL_TYPES[w.type].name} destroyed!`);
+  }
+}
+
 // --- INPUT ---
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
 const mouse = { x: 0, y: 0, tx: -1, ty: -1 };
@@ -5727,8 +6047,21 @@ C.addEventListener('click', e => {
   }
 
   if (game.trashMode) {
+    // Walls sell too — refund scales with how much of it is still standing
+    const wIdx = (game.walls || []).findIndex(w => w.tx === tx && w.ty === ty);
+    if (wIdx !== -1) {
+      const w = game.walls[wIdx];
+      const refund = Math.floor(WALL_TYPES[w.type].cost * DIFFICULTY.sellRefundRate * (w.hp / w.maxHp));
+      game.walls.splice(wIdx, 1);
+      game.gold += refund;
+      SFX.play('sell');
+      spawnParticles(tx * TILE + TILE/2, ty * TILE + TILE/2, '#e8b64c', 12);
+      showFlash(`Wall dismantled for ${refund} gold`);
+      updateUI();
+      return;
+    }
     const idx = game.towers.findIndex(t => t.tx === tx && t.ty === ty);
-    if (idx === -1) { showFlash('No tower there to sell'); return; }
+    if (idx === -1) { showFlash('Nothing there to sell'); return; }
     const sold = game.towers[idx];
     const refund = Math.floor(TOWER_TYPES[sold.type].cost * DIFFICULTY.sellRefundRate);
     game.towers.splice(idx, 1);
@@ -5739,6 +6072,8 @@ C.addEventListener('click', e => {
     updateUI();
     return;
   }
+
+  if (game.buildMode === 'wall') { placeWall(tx, ty); return; }
 
   if (isPath(tx, ty) || isCastle(tx, ty)) return;
 
@@ -5866,7 +6201,8 @@ document.addEventListener('keydown', e => {
     const annIdx = TOWER_TYPES.findIndex(t => t.id === 'annihilator');
     game.selectedTower = annIdx;
     game.trashMode = false;
-    updateTowerBar();
+    game.buildMode = 'tower';
+    buildTowerBar();
     return;
   }
   if (game) game.cheatArmed = false; // any other key breaks the sequence
@@ -5875,11 +6211,20 @@ document.addEventListener('keydown', e => {
     updateTowerBar();
     return;
   }
+  // Q/W/E/R select a wall and flip the bar into wall mode
+  const wallIdx = WALL_TYPES.findIndex(w => w.key === e.key.toUpperCase());
+  if (wallIdx !== -1 && game && !game.gameOver) {
+    game.selectedWall = wallIdx;
+    game.buildMode = 'wall';
+    game.trashMode = false;
+    buildTowerBar();
+    return;
+  }
   const idx = parseInt(e.key) - 1;
   if (idx >= 0 && idx < TOWER_TYPES.length) {
     if (TOWER_TYPES[idx].secret && !(game && game.annihilatorUnlocked)) return;
-    if (game) { game.selectedTower = idx; game.trashMode = false; }
-    updateTowerBar();
+    if (game) { game.selectedTower = idx; game.trashMode = false; game.buildMode = 'tower'; }
+    buildTowerBar();
     tutorialEvent('select');
   }
 });
@@ -5927,7 +6272,71 @@ function showWaveBanner(waveNum, sub) { showBannerText('WAVE ' + waveNum, sub, 2
 function showWorldBanner(worldNum, sub) { showBannerText('WORLD ' + worldNum, sub, 2600); }
 
 // --- TOWER BAR ---
+function setBuildMode(mode) {
+  if (!game) return;
+  game.buildMode = mode;
+  game.trashMode = false;
+  game.pendingTile = null;
+  buildTowerBar();
+}
+
+function updateBuildTabs() {
+  const wrap = document.getElementById('build-tabs');
+  if (!wrap) return;
+  const on = !!(game && game.running && !game.gameOver);
+  wrap.classList.toggle('show', on);
+  if (!on) return;
+  document.getElementById('tab-towers').classList.toggle('on', game.buildMode !== 'wall');
+  document.getElementById('tab-walls').classList.toggle('on', game.buildMode === 'wall');
+}
+
+function buildWallBar() {
+  const bar = document.getElementById('tower-bar');
+  bar.innerHTML = '';
+  WALL_TYPES.forEach((w, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'tower-btn' + (i === (game ? game.selectedWall : 0) ? ' selected' : '');
+    btn.innerHTML = `<canvas width="48" height="48"></canvas>
+      <div class="name">${w.name}</div><div class="cost">${w.cost}g</div>
+      <div class="hp-tag">${w.hp} HP</div><div class="key">[${w.key}]</div>
+      <div class="tb-tooltip"><div class="tt-name">${w.name}</div>
+        <div class="tt-row">Toughness <b>${w.hp} HP</b></div>
+        <div class="tt-row">Cost <b>${w.cost} gold</b></div>
+        <div class="tt-special">★ Built on the path. Enemies stop and smash through it — flyers pass over.</div>
+      </div>`;
+    btn.dataset.wall = i;
+    const c = btn.querySelector('canvas').getContext('2d');
+    WALL_SPRITES[w.id](c, 0);
+    btn.addEventListener('click', () => {
+      if (game) { game.selectedWall = i; game.trashMode = false; }
+      updateTowerBar();
+    });
+    bar.appendChild(btn);
+  });
+  appendSellButton(bar);
+  updateBuildTabs();
+}
+
+function appendSellButton(bar) {
+  const trashBtn = document.createElement('div');
+  trashBtn.className = 'tower-btn danger-card';
+  trashBtn.id = 'trash-btn';
+  trashBtn.innerHTML = `<canvas width="48" height="48"></canvas><div class="name">Sell</div><div class="cost">${Math.round(DIFFICULTY.sellRefundRate*100)}% back</div><div class="key">[X]</div>`;
+  const sc = trashBtn.querySelector('canvas').getContext('2d');
+  sc.strokeStyle = '#b3362e'; sc.lineWidth = 3;
+  sc.strokeRect(14,16,20,24);
+  sc.beginPath(); sc.moveTo(10,16); sc.lineTo(38,16); sc.stroke();
+  sc.fillStyle = '#b3362e'; sc.fillRect(20,10,8,4);
+  sc.beginPath(); sc.moveTo(19,22); sc.lineTo(19,34); sc.moveTo(24,22); sc.lineTo(24,34); sc.moveTo(29,22); sc.lineTo(29,34); sc.stroke();
+  trashBtn.addEventListener('click', () => {
+    if (game) game.trashMode = !game.trashMode;
+    updateTowerBar();
+  });
+  bar.appendChild(trashBtn);
+}
+
 function buildTowerBar() {
+  if (game && game.buildMode === 'wall') { buildWallBar(); return; }
   const bar = document.getElementById('tower-bar');
   bar.innerHTML = '';
   TOWER_TYPES.forEach((t, i) => {
@@ -5956,21 +6365,8 @@ function buildTowerBar() {
     bar.appendChild(btn);
   });
 
-  const trashBtn = document.createElement('div');
-  trashBtn.className = 'tower-btn danger-card';
-  trashBtn.id = 'trash-btn';
-  trashBtn.innerHTML = `<canvas width="48" height="48"></canvas><div class="name">Sell</div><div class="cost">${Math.round(DIFFICULTY.sellRefundRate*100)}% back</div><div class="key">[X]</div>`;
-  const sc = trashBtn.querySelector('canvas').getContext('2d');
-  sc.strokeStyle = '#b3362e'; sc.lineWidth = 3;
-  sc.strokeRect(14,16,20,24);
-  sc.beginPath(); sc.moveTo(10,16); sc.lineTo(38,16); sc.stroke();
-  sc.fillStyle = '#b3362e'; sc.fillRect(20,10,8,4);
-  sc.beginPath(); sc.moveTo(19,22); sc.lineTo(19,34); sc.moveTo(24,22); sc.lineTo(24,34); sc.moveTo(29,22); sc.lineTo(29,34); sc.stroke();
-  trashBtn.addEventListener('click', () => {
-    if (game) game.trashMode = !game.trashMode;
-    updateTowerBar();
-  });
-  bar.appendChild(trashBtn);
+  appendSellButton(bar);
+  updateBuildTabs();
 }
 
 function updateTowerBar() {
@@ -5980,11 +6376,18 @@ function updateTowerBar() {
       b.classList.toggle('selected', !!(game && game.trashMode));
       return;
     }
+    if (b.dataset.wall !== undefined) {
+      const wi = parseInt(b.dataset.wall);
+      b.classList.toggle('selected', game && wi === game.selectedWall && !game.trashMode);
+      b.classList.toggle('broke', !(game && game.gold >= WALL_TYPES[wi].cost));
+      return;
+    }
     const i = parseInt(b.dataset.idx);
     b.classList.toggle('selected', game && i === game.selectedTower && !game.trashMode);
     const canAfford = game && game.gold >= TOWER_TYPES[i].cost;
     b.classList.toggle('broke', !canAfford);
   });
+  updateBuildTabs();
 }
 
 buildTowerBar();
