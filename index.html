@@ -785,6 +785,10 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
       <div class="admin-dcol">
         <div class="admin-dfield"><label>XP per upgrade point</label><input type="number" id="ad_xpPerUpgradePoint"></div>
         <div class="admin-dfield"><label>Sell refund rate (0–1)</label><input type="number" step="0.05" id="ad_sellRefundRate"></div>
+        <div class="admin-dfield"><label>Wall cost scale / world</label><input type="number" step="0.05" id="ad_wallCostScale"><span class="hint">% cost increase per world</span></div>
+        <div class="admin-dfield"><label>Gold mine rate (g/s)</label><input type="number" step="0.5" id="ad_goldMineRate"></div>
+        <div class="admin-dfield"><label>Supply crate min gold</label><input type="number" id="ad_supplyCrateMin"></div>
+        <div class="admin-dfield"><label>Supply crate max gold</label><input type="number" id="ad_supplyCrateMax"></div>
         <div class="admin-dfield"><label>Tower dmg gain / level</label><input type="number" step="0.01" id="ad_towerUpgradeDmgPerLevel"></div>
         <div class="admin-dfield"><label>Tower range gain / level</label><input type="number" step="0.01" id="ad_towerUpgradeRangePerLevel"></div>
         <div class="admin-dfield"><label>Tower rate multiplier / level</label><input type="number" step="0.01" id="ad_towerUpgradeRateMult"><span class="hint">lower = faster fire rate per level</span></div>
@@ -943,6 +947,10 @@ const DIFFICULTY = {
   worldExtraEnemies: 4,      // bonus enemies spawned per world beyond 1
   xpPerUpgradePoint: 10,
   sellRefundRate: 0.5,
+  wallCostScale: 0.15,
+  goldMineRate: 2,
+  supplyCrateMin: 25,
+  supplyCrateMax: 55,
   towerUpgradeDmgPerLevel: 0.15,
   towerUpgradeRangePerLevel: 0.08,
   towerUpgradeRateMult: 0.93,
@@ -959,6 +967,7 @@ const TOWER_TYPES = [
   { id:'flame',  name:'Flame',   cost:50,  range:70,  rate:0.15,dmg:3,   color:'#ffaa22', projColor:'#ffcc44', projSpeed:0, cone:true, key:'6', ammo:30, reload:2 },
   { id:'mortar', name:'Mortar',  cost:50,  range:180, rate:4.0, dmg:50,  color:'#aa8844', projColor:'#ccaa66', projSpeed:3, splash:60, key:'7', ammo:2, reload:5 },
   { id:'poison', name:'Poison',  cost:50,  range:100, rate:2.0, dmg:4,   color:'#44cc66', projColor:'#66ff88', projSpeed:5, dot:8, dotDur:4, key:'8', ammo:5, reload:3 },
+  { id:'goldmine', name:'Gold Mine', cost:80, range:0, rate:1, dmg:0, color:'#e8b64c', projColor:'#ffe6a0', projSpeed:0, key:'0', ammo:9999, reload:0.1, income:true },
   { id:'annihilator', name:'Annihilator', cost:25, range:12*40, rate:0.05, dmg:125, pctDmg:0.25, color:'#ffffff', projColor:'#ffffff', projSpeed:0, chain:99, key:'9', ammo:9999, reload:0.1, secret:true },
 ];
 
@@ -974,6 +983,12 @@ const WALL_TYPES = [
   { id:'bulwark',  name:'Bulwark',  cost:350, hp:2200, key:'R', wood:'#3d4148', trim:'#5c626b' },
 ];
 const DEFAULT_WALLS = WALL_TYPES.map(w => ({ id: w.id, cost: w.cost, hp: w.hp }));
+
+function getWallCost(typeIdx) {
+  const base = WALL_TYPES[typeIdx].cost;
+  const world = (game ? game.world : 1);
+  return Math.floor(base * (1 + (world - 1) * DIFFICULTY.wallCostScale));
+}
 
 function wallAt(tx, ty) {
   if (!game || !game.walls) return null;
@@ -1173,6 +1188,17 @@ const TOWER_SPRITES = {
     c.beginPath(); c.arc(20,15+bob,2,0,7); c.arc(27,13-bob,1.5,0,7); c.arc(24,10+bob*0.5,1.2,0,7); c.fill();
     c.fillStyle='#7ec96a'; c.beginPath(); c.arc(24,25,3,0,7); c.fill();
   },
+  goldmine(c, t=0){
+    spriteBase(c);
+    c.fillStyle=SPRITE_P.wood; c.fillRect(17,10,14,22); c.strokeStyle=SPRITE_P.outline; c.lineWidth=2; c.strokeRect(17,10,14,22);
+    c.fillStyle=SPRITE_P.woodDark; c.fillRect(19,12,10,4); c.fillRect(19,18,10,4);
+    c.fillStyle=SPRITE_P.gold;
+    const bob = Math.sin(t*3)*1.5;
+    c.beginPath(); c.arc(21,8+bob,3,0,7); c.fill();
+    c.beginPath(); c.arc(27,6-bob,2.5,0,7); c.fill();
+    c.beginPath(); c.arc(24,10+bob*0.5,2,0,7); c.fill();
+    c.fillStyle='#ffd700'; c.font='bold 10px sans-serif'; c.textAlign='center'; c.fillText('G',24,38);
+  },
   annihilator(c, t=0){
     spriteBase(c);
     c.fillStyle='#181420'; c.beginPath(); c.moveTo(24,2); c.lineTo(33,14); c.lineTo(30,32); c.lineTo(18,32); c.lineTo(15,14); c.closePath(); c.fill();
@@ -1194,6 +1220,7 @@ const TOWER_INFO = {
   flame:  { rate:'V. fast',range:'Short',  spec:'Lv.2: Ignition — the cone sets enemies on fire' },
   mortar: { rate:'V. slow',range:'Long',   spec:'Lv.2: Cluster Bombs — impact scatters bomblets' },
   poison: { rate:'Slow',   range:'Medium', spec:'Lv.2: Infectious — poison spreads between enemies' },
+  goldmine: { rate:'—', range:'—', spec:'Generates gold over time. Lv.2: +50% income. Does not attack.' },
   annihilator: { rate:'Insane', range:'12 blocks', spec:'☢️ 4 zaps kill anything. You cheated for this.' },
 };
 
@@ -1365,6 +1392,8 @@ const ACHIEVEMENT_DEFS = [
   { name: 'Rapid Fire', secret: true },
   { name: 'Thunderstruck', secret: true },
   { name: 'GG Easy Money', secret: true },
+  { name: 'Gold Rush', desc: 'Place 3 Gold Mines in a single run' },
+  { name: 'Crate Hoarder', desc: 'Collect 20 supply crates in a single run' },
 ];
 
 // Skin colors are trophies: each palette color has a lifetime unlock condition.
@@ -2442,6 +2471,9 @@ function initGame() {
     hp: DIFFICULTY.startHp, gold: DIFFICULTY.startGold, wave: 1, world: 1, kills: 0, xp: 0, upgradesSpent: 0, annihilatorUnlocked: false, triBeamEquipped: false,
     towers: [], enemies: [], projectiles: [], particles: [],
     walls: [],
+    supplyCrates: [],
+    goldMinesPlaced: 0,
+    cratesCollected: 0,
     selectedTower: 0,
     selectedWall: 0,
     buildMode: 'tower',   // 'tower' | 'wall'
@@ -2851,6 +2883,7 @@ function sendWave() {
   if (!game || !game.prepPhase || game.gameOver) return;
   game.prepPhase = false;
   game.newPathUnlocked = null;
+  game.supplyCrates = [];
   game.waveStartHp = game.hp; // for the Flawless bonus
   game.bossAnnounced = false;
   SFX.play('horn');
@@ -3546,8 +3579,8 @@ function drawTowers() {
     const cx = t.tx * TILE + TILE/2;
     const cy = t.ty * TILE + TILE/2;
 
-    // Range circle on hover
-    if (t.hover) {
+    // Range circle on hover (skip for income towers)
+    if (t.hover && def.range > 0) {
       ctx.beginPath();
       ctx.arc(cx, cy, def.range, 0, Math.PI*2);
       ctx.strokeStyle = 'rgba(255,255,255,0.12)';
@@ -4572,13 +4605,15 @@ function drawPlacement() {
   const cx = mouse.tx * TILE + TILE/2;
   const cy = mouse.ty * TILE + TILE/2;
 
-  // Range preview
-  ctx.beginPath();
-  ctx.arc(cx, cy, def.range, 0, Math.PI*2);
-  ctx.strokeStyle = game.gold >= def.cost ? 'rgba(240,192,64,0.25)' : 'rgba(255,50,50,0.25)';
-  ctx.stroke();
-  ctx.fillStyle = game.gold >= def.cost ? 'rgba(240,192,64,0.08)' : 'rgba(255,50,50,0.08)';
-  ctx.fill();
+  // Range preview (skip for income towers with no range)
+  if (def.range > 0) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, def.range, 0, Math.PI*2);
+    ctx.strokeStyle = game.gold >= def.cost ? 'rgba(240,192,64,0.25)' : 'rgba(255,50,50,0.25)';
+    ctx.stroke();
+    ctx.fillStyle = game.gold >= def.cost ? 'rgba(240,192,64,0.08)' : 'rgba(255,50,50,0.08)';
+    ctx.fill();
+  }
 
   // Ghost tower
   ctx.globalAlpha = 0.5;
@@ -4592,7 +4627,7 @@ function drawWallPlacement() {
   const tx = mouse.tx, ty = mouse.ty;
   if (tx < 0 || tx >= COLS || ty < 0 || ty >= ROWS) return;
   const def = WALL_TYPES[game.selectedWall];
-  const ok = !canPlaceWall(tx, ty) && game.gold >= def.cost;
+  const ok = !canPlaceWall(tx, ty) && game.gold >= getWallCost(game.selectedWall);
   ctx.save();
   ctx.globalAlpha = 0.55;
   if (ok) {
@@ -4928,6 +4963,22 @@ function update(dt) {
     else if (t.maxAmmo !== def.ammo) { t.ammo += (def.ammo - t.maxAmmo); t.maxAmmo = def.ammo; }
     // Knocked offline by a boss shockwave / frost nova
     if (t.stunned > 0) { t.stunned -= dt; continue; }
+
+    // Gold Mine: generate passive income instead of attacking
+    if (base.income) {
+      t.incomeTimer = (t.incomeTimer || 0) + dt;
+      const rate = DIFFICULTY.goldMineRate * (1 + (lvl || 0) * 0.5);
+      const earned = rate * dt;
+      game.gold += earned;
+      if (t.incomeTimer >= 1) {
+        t.incomeTimer -= 1;
+        const cx = t.tx * TILE + TILE/2, cy = t.ty * TILE + TILE/2;
+        spawnDamageNum(cx, cy - 20, '+' + Math.round(rate), 'gold');
+        spawnParticles(cx, cy - 10, '#ffd700', 3);
+      }
+      continue;
+    }
+
     t.cooldown = (t.cooldown || 0) - dt;
     if (t.cooldown > 0) continue;
 
@@ -5237,6 +5288,7 @@ function update(dt) {
       document.body.style.background = getWorldTheme().bgBase;
       game.gold += 100 * (game.world - 1); // world-clear bonus
       unlockAchievement(`World ${game.world - 1} Cleared`, `Onward to World ${game.world} — it only gets harder from here`);
+      if (game.buildMode === 'wall') buildWallBar();
     }
 
     // Check for new path unlocks
@@ -5250,6 +5302,7 @@ function update(dt) {
     }
 
     game.prepPhase = true;
+    spawnSupplyCrates();
     document.getElementById('send-wave-btn').style.display = 'block';
     if (game.autoWave) game.autoWaveTimer = worldedUp ? 6 : 4;
     if (game.annihilatorUnlocked && !game.triBeamEquipped) showMerchant();
@@ -5572,6 +5625,7 @@ function render() {
   }
   drawGround();
   drawPlacement();
+  drawSupplyCrates();
   drawTowers();
   drawWalls();
   drawEnemies();
@@ -5974,15 +6028,16 @@ function canPlaceWall(tx, ty) {
 
 function placeWall(tx, ty) {
   const def = WALL_TYPES[game.selectedWall];
+  const cost = getWallCost(game.selectedWall);
   const why = canPlaceWall(tx, ty);
   if (why) { SFX.play('error'); showFlash(why); return; }
-  if (game.gold < def.cost) {
+  if (game.gold < cost) {
     SFX.play('error');
-    showFlash(`Not enough gold! Need ${def.cost} (have ${Math.floor(game.gold)})`);
+    showFlash(`Not enough gold! Need ${cost} (have ${Math.floor(game.gold)})`);
     return;
   }
-  game.gold -= def.cost;
-  game.walls.push({ tx, ty, type: game.selectedWall, hp: def.hp, maxHp: def.hp });
+  game.gold -= cost;
+  game.walls.push({ tx, ty, type: game.selectedWall, hp: def.hp, maxHp: def.hp, buyCost: cost });
   SFX.play('wall_place');
   spawnParticles(tx * TILE + TILE / 2, ty * TILE + TILE / 2, '#a89878', 12);
   updateUI();
@@ -6004,6 +6059,86 @@ function damageWall(w, dmg) {
     showFlash(`${WALL_TYPES[w.type].name} destroyed!`);
   }
 }
+
+// ===== SUPPLY CRATES =====
+function spawnSupplyCrates() {
+  if (!game) return;
+  game.supplyCrates = [];
+  const count = 1 + Math.floor(Math.random() * 2) + (game.world > 3 ? 1 : 0);
+  const occupied = new Set();
+  for (const t of game.towers) occupied.add(`${t.tx},${t.ty}`);
+  for (const w of game.walls) occupied.add(`${w.tx},${w.ty}`);
+  const candidates = [];
+  for (let x = 0; x < COLS; x++) {
+    for (let y = 0; y < ROWS; y++) {
+      if (!isPath(x, y) && !isCastle(x, y) && !occupied.has(`${x},${y}`)) candidates.push({x, y});
+    }
+  }
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  }
+  const min = DIFFICULTY.supplyCrateMin;
+  const max = DIFFICULTY.supplyCrateMax;
+  for (let i = 0; i < Math.min(count, candidates.length); i++) {
+    const c = candidates[i];
+    const gold = min + Math.floor(Math.random() * (max - min + 1)) + game.world * 5;
+    game.supplyCrates.push({ tx: c.x, ty: c.y, gold, spawnT: Date.now(), collected: false });
+  }
+}
+
+function collectCrate(tx, ty) {
+  if (!game || !game.supplyCrates) return false;
+  const idx = game.supplyCrates.findIndex(c => c.tx === tx && c.ty === ty && !c.collected);
+  if (idx === -1) return false;
+  const crate = game.supplyCrates[idx];
+  crate.collected = true;
+  game.gold += crate.gold;
+  game.cratesCollected = (game.cratesCollected || 0) + 1;
+  if (game.cratesCollected >= 20) unlockAchievement('Crate Hoarder', 'Collected 20 supply crates in a single run');
+  SFX.play('coin');
+  spawnDamageNum(tx * TILE + TILE/2, ty * TILE, '+' + crate.gold, 'gold');
+  spawnParticles(tx * TILE + TILE/2, ty * TILE + TILE/2, '#e8b64c', 15);
+  game.supplyCrates.splice(idx, 1);
+  updateUI();
+  return true;
+}
+
+function drawSupplyCrates() {
+  if (!game || !game.supplyCrates) return;
+  const now = Date.now();
+  for (const c of game.supplyCrates) {
+    if (c.collected) continue;
+    const age = (now - c.spawnT) / 1000;
+    const bob = Math.sin(age * 2.5) * 2;
+    const px = c.tx * TILE + TILE/2, py = c.ty * TILE + TILE/2 + bob;
+    ctx.save();
+    // Crate body
+    ctx.fillStyle = '#8b6914';
+    ctx.strokeStyle = '#5c4310';
+    ctx.lineWidth = 2;
+    ctx.fillRect(px - 12, py - 10, 24, 20);
+    ctx.strokeRect(px - 12, py - 10, 24, 20);
+    // Cross planks
+    ctx.strokeStyle = '#a07818';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px, py - 10); ctx.lineTo(px, py + 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(px - 12, py); ctx.lineTo(px + 12, py); ctx.stroke();
+    // Gold coin icon
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath(); ctx.arc(px, py - 1, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#b8960f';
+    ctx.font = 'bold 7px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('G', px, py);
+    // Shimmer
+    ctx.globalAlpha = 0.4 + Math.sin(age * 4) * 0.3;
+    ctx.strokeStyle = '#ffe680';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(px - 13, py - 11, 26, 22);
+    ctx.restore();
+  }
+}
+
 
 // --- INPUT ---
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
@@ -6046,12 +6181,15 @@ C.addEventListener('click', e => {
     game.pendingTile = null;
   }
 
+  // Supply crate collection
+  if (collectCrate(tx, ty)) return;
+
   if (game.trashMode) {
     // Walls sell too — refund scales with how much of it is still standing
     const wIdx = (game.walls || []).findIndex(w => w.tx === tx && w.ty === ty);
     if (wIdx !== -1) {
       const w = game.walls[wIdx];
-      const refund = Math.floor(WALL_TYPES[w.type].cost * DIFFICULTY.sellRefundRate * (w.hp / w.maxHp));
+      const refund = Math.floor((w.buyCost || WALL_TYPES[w.type].cost) * DIFFICULTY.sellRefundRate * (w.hp / w.maxHp));
       game.walls.splice(wIdx, 1);
       game.gold += refund;
       SFX.play('sell');
@@ -6092,7 +6230,8 @@ C.addEventListener('click', e => {
     const newAttackNames = {
       arrow: 'Multishot volley', cannon: 'Napalm shells', ice: 'Freeze nova',
       sniper: 'Piercing rounds', tesla: 'Arc explosion', flame: 'Ignition cone',
-      mortar: 'Cluster bombs', poison: 'Infectious spores'
+      mortar: 'Cluster bombs', poison: 'Infectious spores',
+      goldmine: '+50% income boost'
     };
     const towerId = TOWER_TYPES[existing.type].id;
     const label = existing.level === 1 && newAttackNames[towerId]
@@ -6112,6 +6251,10 @@ C.addEventListener('click', e => {
 
   game.gold -= def.cost;
   game.towers.push({ tx, ty, type: game.selectedTower, cooldown: 0, angle: 0 });
+  if (def.income) {
+    game.goldMinesPlaced = (game.goldMinesPlaced || 0) + 1;
+    if (game.goldMinesPlaced >= 3) unlockAchievement('Gold Rush', 'Placed 3 Gold Mines in a single run');
+  }
   SFX.play('place');
   tutorialEvent('place');
   spawnParticles(tx * TILE + TILE/2, ty * TILE + TILE/2, '#a89878', 10);
@@ -6220,10 +6363,10 @@ document.addEventListener('keydown', e => {
     buildTowerBar();
     return;
   }
-  const idx = parseInt(e.key) - 1;
-  if (idx >= 0 && idx < TOWER_TYPES.length) {
-    if (TOWER_TYPES[idx].secret && !(game && game.annihilatorUnlocked)) return;
-    if (game) { game.selectedTower = idx; game.trashMode = false; game.buildMode = 'tower'; }
+  const towerIdx = TOWER_TYPES.findIndex(t => t.key === e.key);
+  if (towerIdx !== -1) {
+    if (TOWER_TYPES[towerIdx].secret && !(game && game.annihilatorUnlocked)) return;
+    if (game) { game.selectedTower = towerIdx; game.trashMode = false; game.buildMode = 'tower'; }
     buildTowerBar();
     tutorialEvent('select');
   }
@@ -6294,14 +6437,15 @@ function buildWallBar() {
   const bar = document.getElementById('tower-bar');
   bar.innerHTML = '';
   WALL_TYPES.forEach((w, i) => {
+    const cost = getWallCost(i);
     const btn = document.createElement('div');
     btn.className = 'tower-btn' + (i === (game ? game.selectedWall : 0) ? ' selected' : '');
     btn.innerHTML = `<canvas width="48" height="48"></canvas>
-      <div class="name">${w.name}</div><div class="cost">${w.cost}g</div>
+      <div class="name">${w.name}</div><div class="cost">${cost}g</div>
       <div class="hp-tag">${w.hp} HP</div><div class="key">[${w.key}]</div>
       <div class="tb-tooltip"><div class="tt-name">${w.name}</div>
         <div class="tt-row">Toughness <b>${w.hp} HP</b></div>
-        <div class="tt-row">Cost <b>${w.cost} gold</b></div>
+        <div class="tt-row">Cost <b>${cost} gold</b></div>
         <div class="tt-special">★ Built on the path. Enemies stop and smash through it — flyers pass over.</div>
       </div>`;
     btn.dataset.wall = i;
@@ -6344,12 +6488,15 @@ function buildTowerBar() {
     const btn = document.createElement('div');
     btn.className = 'tower-btn' + (i === 0 ? ' selected' : '') + (t.secret ? ' secret-tower' : '');
     const info = TOWER_INFO[t.id] || {};
+    const tooltipRows = t.income
+      ? `<div class="tt-row">Income <b>${DIFFICULTY.goldMineRate} gold/s</b></div>`
+      : `<div class="tt-row">Damage <b>${t.pctDmg ? Math.round(t.pctDmg*100)+'% max HP' : t.dmg}</b></div>
+        <div class="tt-row">Speed <b>${info.rate || '—'}</b></div>
+        <div class="tt-row">Range <b>${info.range || '—'}</b></div>`;
     btn.innerHTML = `<canvas width="48" height="48"></canvas>
       <div class="name">${t.name}</div><div class="cost">${t.cost}g</div><div class="key">[${t.key}]</div>
       <div class="tb-tooltip"><div class="tt-name">${t.name}</div>
-        <div class="tt-row">Damage <b>${t.pctDmg ? Math.round(t.pctDmg*100)+'% max HP' : t.dmg}</b></div>
-        <div class="tt-row">Speed <b>${info.rate || '—'}</b></div>
-        <div class="tt-row">Range <b>${info.range || '—'}</b></div>
+        ${tooltipRows}
         ${info.spec ? `<div class="tt-special">★ ${info.spec}</div>` : ''}
       </div>`;
     btn.dataset.idx = i;
@@ -6379,7 +6526,7 @@ function updateTowerBar() {
     if (b.dataset.wall !== undefined) {
       const wi = parseInt(b.dataset.wall);
       b.classList.toggle('selected', game && wi === game.selectedWall && !game.trashMode);
-      b.classList.toggle('broke', !(game && game.gold >= WALL_TYPES[wi].cost));
+      b.classList.toggle('broke', !(game && game.gold >= getWallCost(wi)));
       return;
     }
     const i = parseInt(b.dataset.idx);

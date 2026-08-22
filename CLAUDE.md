@@ -87,8 +87,15 @@ Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build s
 - Per-tower firing sounds (`shot_<towerId>`), kill/coin/hurt/place/sell/upgrade/error/horn/clear/flawless/unlock effects, soft UI click on every button.
 - Music (ambient drone + melody) has its own context; the 🔊 button mutes both music and SFX.
 
+## Resource economy
+- **Wall cost scaling**: `DIFFICULTY.wallCostScale` (default 0.15 = 15% per world). `getWallCost(typeIdx)` returns `Math.floor(baseCost * (1 + (world-1) * wallCostScale))`. Walls store `buyCost` at placement time so sell refunds are accurate even if world changes.
+- **Gold Mine tower**: income tower (key `0`). Generates `DIFFICULTY.goldMineRate` gold/sec (default 2), scaling +50% per upgrade level. No targeting, no projectiles — the update loop `continue`s past combat for `base.income` towers. Shows a floating +gold number every second.
+- **Supply Crates**: `spawnSupplyCrates()` runs at the start of every prep phase. 1-3 crates (more in later worlds) on random empty non-path tiles. Click to collect (`collectCrate(tx, ty)` → bonus gold + coin SFX + particles). Crates clear when the wave starts.
+- Achievements: "Gold Rush" (place 3 Gold Mines), "Crate Hoarder" (collect 20 crates in a run). Tracked via `game.goldMinesPlaced` / `game.cratesCollected`.
+- All new economy values are tunable in the admin panel under "Upgrades & economy".
+
 ## Features
-- 8 towers (+1 secret Annihilator via B→N key combo) with level-2 upgrades
+- 9 towers (+1 secret Annihilator via B→N key combo) with level-2 upgrades, including the Gold Mine (income tower)
 - 4 wall types built on the path — enemies stop and smash through them, flyers pass over
 - 9 enemy types across escalating worlds, plus 8 named bosses (one per world, final wave)
 - 8 distinct world themes (Medieval, Frozen, Desert, Deep Space, Ocean, Volcanic, Enchanted Grove, Shadow Realm)
