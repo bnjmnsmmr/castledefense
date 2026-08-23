@@ -61,7 +61,14 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 #ui .stat { display: flex; align-items: center; gap: 8px; }
 #ui .stat svg { width: 17px; height: 17px; flex-shrink: 0; }
 #ui .stat .val { color: #fff; font-weight: 800; font-size: 16px; min-width: 24px; }
-#gold { color: var(--gold-bright) !important; font-size: 18px !important; }
+#gold { color: var(--gold-bright) !important; font-size: 18px !important; min-width: 48px; }
+.gold-stat {
+  background: linear-gradient(180deg, rgba(232,182,76,0.18), rgba(232,182,76,0.06));
+  border: 1px solid rgba(232,182,76,0.35); border-radius: 20px; padding: 4px 14px 4px 10px !important;
+}
+.gold-stat .gold-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); font-weight: 700; margin-right: 2px; }
+.gold-income { font-size: 10px; color: #9fd68f; font-weight: 700; margin-left: 4px; white-space: nowrap; }
+.gold-income::before { content: '+'; }
 .hud-wave-block { text-align: center; line-height: 1; }
 .hud-wave-block .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--parchment-dim); font-weight: 600; margin-bottom: 2px; }
 .hud-wave-block #wave { font-family: var(--font-display); font-weight: 900; font-size: 26px; color: var(--gold); }
@@ -753,9 +760,11 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
     <svg viewBox="0 0 24 24" fill="var(--blood)"><path d="M12 21s-7.5-4.9-10-9.2C.4 8.6 2 4.5 5.8 4c2.2-.3 4.3.8 5.4 2.6h1.6C13.9 4.8 16 3.7 18.2 4 22 4.5 23.6 8.6 22 11.8 19.5 16.1 12 21 12 21z"/></svg>
     <div class="hp-pips" id="hp-pips"></div>
   </div>
-  <div class="stat">
+  <div class="stat gold-stat">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="var(--gold-bright)" stroke-width="1.5" fill="var(--gold)"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="#5c4310">G</text></svg>
+    <span class="gold-label">GOLD</span>
     <span class="val" id="gold">1000</span>
+    <span class="gold-income" id="gold-income" style="display:none">0/s</span>
   </div>
   <div class="hud-wave-block">
     <div class="lbl">World <span id="world" style="color:var(--arcane)">1</span> · Wave</div>
@@ -1070,7 +1079,7 @@ const TOWER_TYPES = [
   { id:'flame',  name:'Flame',   cost:50,  range:70,  rate:0.15,dmg:3,   color:'#ffaa22', projColor:'#ffcc44', projSpeed:0, cone:true, key:'6', ammo:30, reload:2 },
   { id:'mortar', name:'Mortar',  cost:50,  range:180, rate:4.0, dmg:50,  color:'#aa8844', projColor:'#ccaa66', projSpeed:3, splash:60, key:'7', ammo:2, reload:5 },
   { id:'poison', name:'Poison',  cost:50,  range:100, rate:2.0, dmg:4,   color:'#44cc66', projColor:'#66ff88', projSpeed:5, dot:8, dotDur:4, key:'8', ammo:5, reload:3 },
-  { id:'goldmine', name:'Gold Mine', cost:80, range:0, rate:1, dmg:0, color:'#e8b64c', projColor:'#ffe6a0', projSpeed:0, key:'0', ammo:9999, reload:0.1, income:true },
+  { id:'goldmine', name:'Gold Mine', cost:80, range:0, rate:1, dmg:0, color:'#e8b64c', projColor:'#ffe6a0', projSpeed:0, key:'0', ammo:9999, reload:0.1, income:true, incomeDesc:'Earns gold to fund your towers' },
   { id:'annihilator', name:'Annihilator', cost:25, range:12*40, rate:0.05, dmg:125, pctDmg:0.25, color:'#ffffff', projColor:'#ffffff', projSpeed:0, chain:99, key:'9', ammo:9999, reload:0.1, secret:true },
 ];
 
@@ -1323,7 +1332,7 @@ const TOWER_INFO = {
   flame:  { rate:'V. fast',range:'Short',  spec:'Lv.2: Ignition — the cone sets enemies on fire' },
   mortar: { rate:'V. slow',range:'Long',   spec:'Lv.2: Cluster Bombs — impact scatters bomblets' },
   poison: { rate:'Slow',   range:'Medium', spec:'Lv.2: Infectious — poison spreads between enemies' },
-  goldmine: { rate:'—', range:'—', spec:'Generates gold over time. Lv.2: +50% income. Does not attack.' },
+  goldmine: { rate:'—', range:'—', spec:'💰 Earns gold to buy more towers! Lv.2: +50% income. Does not attack.' },
   annihilator: { rate:'Insane', range:'12 blocks', spec:'☢️ 4 zaps kill anything. You cheated for this.' },
 };
 
@@ -6256,6 +6265,16 @@ function updateUI() {
     goldEl.classList.remove('gold-pop');
     void goldEl.offsetWidth;
     goldEl.classList.add('gold-pop');
+  }
+  // Show gold income rate from Gold Mines
+  const incomeEl = document.getElementById('gold-income');
+  const mines = game.towers.filter(t => TOWER_TYPES[t.type].income);
+  if (mines.length > 0) {
+    const totalRate = mines.reduce((s, t) => s + DIFFICULTY.goldMineRate * (1 + (t.level || 0) * 0.5), 0);
+    incomeEl.textContent = Math.round(totalRate) + '/s';
+    incomeEl.style.display = '';
+  } else {
+    incomeEl.style.display = 'none';
   }
 
   document.getElementById('wave').textContent = game.wave;
