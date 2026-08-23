@@ -547,12 +547,12 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 .cust-skin-row { display: flex; gap: 12px; flex-wrap: wrap; }
 .cust-skin-opt {
   display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer;
-  padding: 8px; border-radius: var(--radius); border: 2px solid transparent; background: var(--bg-panel-raised);
-  transition: border-color 0.15s, transform 0.15s;
+  padding: 10px 12px; border-radius: 16px; border: 2px solid transparent; background: transparent;
+  transition: border-color 0.15s, transform 0.15s, background 0.15s;
 }
-.cust-skin-opt:hover { transform: translateY(-2px); }
-.cust-skin-opt.selected { border-color: var(--gold); box-shadow: 0 0 12px rgba(232,182,76,0.4); }
-.cust-skin-opt canvas { width: 72px; height: 72px; }
+.cust-skin-opt:hover { transform: translateY(-2px); background: rgba(255,255,255,0.04); }
+.cust-skin-opt.selected { border-color: var(--gold); box-shadow: 0 0 16px rgba(232,182,76,0.35); background: rgba(232,182,76,0.06); }
+.cust-skin-opt canvas { width: 96px; height: 96px; background: transparent; image-rendering: pixelated; }
 .cust-skin-label { font-size: 10.5px; color: var(--parchment-dim); font-weight: 600; }
 .cust-skin-opt.selected .cust-skin-label { color: var(--gold-bright); }
 
@@ -2394,17 +2394,21 @@ function buildCustomizeForm() {
       box.className = 'cust-skin-opt' + (opt.id === curSel ? ' selected' : '') + (unlocked ? '' : ' locked');
       const label = unlocked ? opt.name : `${ACH_LOCK_SVG.replace('width="14" height="14"', 'width="9" height="9"')} ${opt.name}`;
       const swatchColor = opt.color || 'var(--border-brass)';
-      box.style.cssText = `border-left: 4px solid ${swatchColor}; min-width: 96px;` + (opt.id === curSel ? ` box-shadow: 0 0 14px ${swatchColor}66;` : '');
-      box.innerHTML = `<canvas width="72" height="72"></canvas><div class="cust-skin-label">${label}</div><div class="cust-skin-desc" style="font-size:9.5px;color:var(--parchment-dim);opacity:0.8;text-align:center;">${opt.id === 'default' ? 'original colors' : 'tinted skin'}</div>`;
+      box.style.cssText = `border-left: 4px solid ${swatchColor}; min-width: 110px;` + (opt.id === curSel ? ` box-shadow: 0 0 18px ${swatchColor}44;` : '');
+      box.innerHTML = `<canvas width="96" height="96"></canvas><div class="cust-skin-label">${label}</div><div class="cust-skin-desc" style="font-size:9.5px;color:var(--parchment-dim);opacity:0.8;text-align:center;">${opt.id === 'default' ? 'original colors' : 'tinted skin'}</div>`;
       if (!unlocked && SKIN_UNLOCKS[opt.id]) box.title = 'Locked — ' + SKIN_UNLOCKS[opt.id].desc;
-      const cv = box.querySelector('canvas').getContext('2d');
+      const cvEl = box.querySelector('canvas');
+      const cv = cvEl.getContext('2d');
+      cv.save();
+      cv.translate(24, 20);
       if (drawFn) drawFn(cv, 0.8 * 1.5);
+      cv.restore();
       if (opt.id !== 'default') {
         cv.save();
         cv.globalCompositeOperation = 'source-atop';
         cv.globalAlpha = 0.5;
         cv.fillStyle = opt.color;
-        cv.fillRect(0, 0, 72, 72);
+        cv.fillRect(0, 0, 96, 96);
         cv.restore();
       }
       box.addEventListener('click', () => {
