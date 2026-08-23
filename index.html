@@ -454,9 +454,9 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 #start-buttons button { width: 100%; }
 
 /* Full-screen title menu: three big primary actions, small secondary links below */
-.home-main-btns { display: flex; flex-direction: column; gap: 16px; align-items: stretch; width: 400px; max-width: 92vw; margin: 8px 0 20px; }
-.home-main-btns button { width: 100%; }
-.home-main-btns .home-btn-main { padding: 22px 34px !important; font-size: 19px !important; letter-spacing: 1.6px !important; }
+.home-main-btns { display: flex; flex-direction: row; gap: 20px; justify-content: center; align-items: stretch; max-width: 92vw; margin: 8px 0 28px; }
+.home-main-btns button { width: auto; min-width: 200px; }
+.home-main-btns .home-btn-main { padding: 28px 38px !important; font-size: 18px !important; letter-spacing: 1.6px !important; flex: 1; max-width: 280px; }
 .home-main-btns .mi { display: inline-flex; width: 17px; height: 17px; flex-shrink: 0; }
 .home-main-btns .mi svg { width: 100%; height: 100%; }
 .home-secondary-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 4px; }
@@ -533,8 +533,8 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 .cust-wrap h1 { font-family: var(--font-display); color: var(--gold); font-size: 26px; letter-spacing: 1.5px; margin: 0 0 4px; }
 .cust-wrap .sub { color: var(--parchment-dim); font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
 .cust-tower-card {
-  background: var(--bg-panel); border: 1px solid var(--border-brass); border-radius: var(--radius-lg);
-  padding: 14px 16px; margin-bottom: 14px;
+  background: linear-gradient(135deg, var(--bg-panel), var(--bg-panel-raised)); border: 1px solid var(--border-brass); border-radius: var(--radius-lg);
+  padding: 18px 20px; margin-bottom: 16px;
 }
 .cust-tower-name { font-weight: 800; color: var(--gold-bright); font-size: 15px; margin-bottom: 10px; }
 .cust-skin-row { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -545,7 +545,7 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 }
 .cust-skin-opt:hover { transform: translateY(-2px); }
 .cust-skin-opt.selected { border-color: var(--gold); box-shadow: 0 0 12px rgba(232,182,76,0.4); }
-.cust-skin-opt canvas { width: 48px; height: 48px; }
+.cust-skin-opt canvas { width: 72px; height: 72px; }
 .cust-skin-label { font-size: 10.5px; color: var(--parchment-dim); font-weight: 600; }
 .cust-skin-opt.selected .cust-skin-label { color: var(--gold-bright); }
 
@@ -711,7 +711,8 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
   .home-sub { font-size: 13px; margin-bottom: 20px; }
   .home-sub-lg { font-size: 14px; margin-bottom: 10px; }
   #start-buttons { width: 280px; gap: 10px; }
-  .home-main-btns { width: 300px; gap: 10px; }
+  .home-main-btns { flex-direction: column; width: 300px; gap: 10px; }
+  .home-main-btns button { width: 100%; min-width: 0; }
   .home-main-btns .home-btn-main { padding: 15px 24px !important; font-size: 15px !important; }
   .home-link-btn { font-size: 10.5px; padding: 7px 13px; }
   #overlay button, #pause-overlay button { padding: 12px 30px; font-size: 14px; }
@@ -2017,6 +2018,7 @@ function startLevelFromPayload(payload) {
   document.getElementById('pause-toggle-btn').style.display = 'flex';
   updateSpeedBtn();
   buildTowerBar();
+  stopHomeMusic();
   startMusic();
   updateUI();
   resize();
@@ -2151,6 +2153,7 @@ function renderHomeScreen() {
     </div>
   `;
   refreshStartScreenButtons();
+  startHomeMusic();
 }
 
 // ===== FIRST-RUN TUTORIAL (interactive coach marks) =====
@@ -2342,6 +2345,7 @@ function startDailyChallenge() {
   document.getElementById('pause-toggle-btn').style.display = 'flex';
   updateSpeedBtn();
   buildTowerBar();
+  stopHomeMusic();
   startMusic();
   updateUI();
   resize();
@@ -2368,7 +2372,10 @@ function buildCustomizeForm() {
     const curSel = skinSelections[t.id] || 'default';
     const card = document.createElement('div');
     card.className = 'cust-tower-card';
-    card.innerHTML = `<div class="cust-tower-name">${t.name}</div><div class="cust-skin-row"></div>`;
+    const statsLine = t.income
+      ? `Cost ${t.cost}g &middot; income tower`
+      : `Cost ${t.cost}g &middot; Dmg ${t.dmg} &middot; Range ${t.range} &middot; Rate ${t.rate}s`;
+    card.innerHTML = `<div class="cust-tower-name">${t.name}</div><div class="cust-tower-stats" style="font-size:11px;color:var(--parchment-dim);margin:-6px 0 10px;">${statsLine}</div><div class="cust-skin-row"></div>`;
     wrap.appendChild(card);
     const row = card.querySelector('.cust-skin-row');
     const drawFn = TOWER_SPRITES[t.id];
@@ -2377,16 +2384,18 @@ function buildCustomizeForm() {
       const box = document.createElement('div');
       box.className = 'cust-skin-opt' + (opt.id === curSel ? ' selected' : '') + (unlocked ? '' : ' locked');
       const label = unlocked ? opt.name : `${ACH_LOCK_SVG.replace('width="14" height="14"', 'width="9" height="9"')} ${opt.name}`;
-      box.innerHTML = `<canvas width="48" height="48"></canvas><div class="cust-skin-label">${label}</div>`;
+      const swatchColor = opt.color || 'var(--border-brass)';
+      box.style.cssText = `border-left: 4px solid ${swatchColor}; min-width: 96px;` + (opt.id === curSel ? ` box-shadow: 0 0 14px ${swatchColor}66;` : '');
+      box.innerHTML = `<canvas width="72" height="72"></canvas><div class="cust-skin-label">${label}</div><div class="cust-skin-desc" style="font-size:9.5px;color:var(--parchment-dim);opacity:0.8;text-align:center;">${opt.id === 'default' ? 'original colors' : 'tinted skin'}</div>`;
       if (!unlocked && SKIN_UNLOCKS[opt.id]) box.title = 'Locked — ' + SKIN_UNLOCKS[opt.id].desc;
       const cv = box.querySelector('canvas').getContext('2d');
-      if (drawFn) drawFn(cv, 0.8);
+      if (drawFn) drawFn(cv, 0.8 * 1.5);
       if (opt.id !== 'default') {
         cv.save();
         cv.globalCompositeOperation = 'source-atop';
         cv.globalAlpha = 0.5;
         cv.fillStyle = opt.color;
-        cv.fillRect(0, 0, 48, 48);
+        cv.fillRect(0, 0, 72, 72);
         cv.restore();
       }
       box.addEventListener('click', () => {
@@ -2862,6 +2871,7 @@ function initGame() {
 
 function startGame(resume) {
   game = initGame();
+  try { if (localStorage.getItem('castleDefenseInfiniteGold') === 'true') game.infiniteGold = true; } catch (e) {}
   const saved = resume ? loadGameState() : null;
   if (saved) {
     game.hp = saved.hp; game.gold = saved.gold; game.wave = saved.wave; game.world = saved.world;
@@ -2900,6 +2910,7 @@ function startGame(resume) {
   document.getElementById('pause-toggle-btn').style.display = 'flex';
   updateSpeedBtn();
   buildTowerBar();
+  stopHomeMusic();
   startMusic();
   updateUI();
   // Render the board so player can see the map and place towers
@@ -2947,6 +2958,44 @@ function unlockAchievement(name, sub) {
 // schedulers re-read getWorldMusic() every cycle, so the score shifts automatically
 // when the player crosses into a new world.
 let musicCtx = null, musicGain = null, musicMuted = false, musicRunning = false;
+let homeMusicRunning = false;
+function startHomeMusic() {
+  if (musicMuted || homeMusicRunning || musicRunning) return;
+  if (!musicCtx) {
+    try {
+      musicCtx = new (window.AudioContext || window.webkitAudioContext)();
+      musicGain = musicCtx.createGain();
+      musicGain.gain.value = 0.12;
+      musicGain.connect(musicCtx.destination);
+    } catch (e) { return; }
+  }
+  homeMusicRunning = true;
+  // Gentle ambient drone for the menu
+  function homeDrone() {
+    if (!homeMusicRunning || musicMuted) { homeMusicRunning = false; return; }
+    const t0 = musicCtx.currentTime;
+    // Low pad chord
+    [110, 165, 220].forEach((freq, i) => {
+      const osc = musicCtx.createOscillator();
+      const g = musicCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(0.06, t0 + 1.5);
+      g.gain.linearRampToValueAtTime(0, t0 + 6);
+      osc.connect(g);
+      g.connect(musicGain);
+      osc.start(t0 + i * 0.3);
+      osc.stop(t0 + 6.5);
+    });
+    setTimeout(homeDrone, 5500);
+  }
+  homeDrone();
+}
+
+function stopHomeMusic() {
+  homeMusicRunning = false;
+}
 const MUSIC_VOLUME = 0.05; // deliberately quiet
 
 const WORLD_MUSIC = [
@@ -5025,6 +5074,7 @@ function drawWaveNotice() {
 let lastTime = 0;
 function loop(ts) {
   if (!game || !game.running) return;
+  if (game.infiniteGold) game.gold = Math.max(game.gold, 99999);
   const dt = Math.min((ts - lastTime) / 1000, 0.05);
   lastTime = ts;
   const gdt = dt * (game.speed || 1); // game-time delta (speed toggle)
@@ -5080,6 +5130,7 @@ function quitToMenu() {
 }
 
 function update(dt) {
+  if (game && game.infiniteGold) game.gold = Math.max(game.gold, 99999);
   // Between waves — now handled by sendWave button
   if (game.betweenWaves) return;
 
@@ -6619,6 +6670,7 @@ C.addEventListener('click', e => {
 // --- MORE SECRETS: GG (bonus gold), ASDF (rapid fire), ZAP (lightning strike) ---
 // Each is a rolling-buffer combo, works once per game, and unlocks an achievement the first time.
 let secretKeyBuffer = '';
+let goldCheatBuffer = '';
 function activateRapidFireSecret() {
   game.rapidFireTimer = 30;
   showFlash('⚡ RAPID FIRE! All towers fire 2x faster for 30 seconds!');
@@ -6650,6 +6702,24 @@ document.addEventListener('keydown', e => {
     return;
   }
   const typingNow = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+  if (!typingNow && (!game || game.gameOver) && e.key.length === 1) {
+    goldCheatBuffer = (goldCheatBuffer + e.key.toUpperCase()).slice(-10);
+    if (goldCheatBuffer.endsWith('GOLD')) {
+      goldCheatBuffer = '';
+      try {
+        const cur = localStorage.getItem('castleDefenseInfiniteGold');
+        const ov = document.getElementById('overlay');
+        if (cur === 'true') {
+          localStorage.removeItem('castleDefenseInfiniteGold');
+          if (ov) { const d = document.createElement('div'); d.style.cssText = 'color:#e0766f;font-size:14px;font-weight:800;margin-top:8px;'; d.textContent = 'INFINITE GOLD: OFF'; ov.appendChild(d); setTimeout(() => d.remove(), 2000); }
+        } else {
+          localStorage.setItem('castleDefenseInfiniteGold', 'true');
+          if (ov) { const d = document.createElement('div'); d.style.cssText = 'color:#ffd87a;font-size:14px;font-weight:800;margin-top:8px;'; d.textContent = '✨ INFINITE GOLD: ON ✨'; ov.appendChild(d); setTimeout(() => d.remove(), 2000); }
+        }
+      } catch (e) {}
+      return;
+    }
+  }
   if (!typingNow && (e.key === 'p' || e.key === 'P') && game && game.running && !game.gameOver) {
     togglePause();
     return;
