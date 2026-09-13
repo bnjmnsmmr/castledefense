@@ -928,6 +928,7 @@ function drawTowers() {
         ctx.closePath(); ctx.fill(); ctx.stroke();
       }
     }
+    drawBranchBadge(t, cx, cy);
 
     // Ammo bar (bottom of tower)
     const maxAmmo = t.maxAmmo || def.ammo;

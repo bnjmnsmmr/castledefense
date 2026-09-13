@@ -56,7 +56,7 @@ function startGame(resume) {
     game.speed = saved.speed || 1;
     game.activePaths = getActivePaths(game.wave);
     pathSet = buildPathSet(game.wave);
-    game.towers = (saved.towers || []).map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, cooldown: 0, angle: 0 }));
+    game.towers = (saved.towers || []).map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, branch: t.branch || null, cooldown: 0, angle: 0 }));
     game.walls = (saved.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp }));
   } else {
     clearGameState();
@@ -424,6 +424,7 @@ function update(dt) {
       if (base.id === 'poison') { def.infect = lvl; } // poison spreads to nearby enemies
       if (base.id === 'tesla')  { def.arcSplash = 20 + lvl * 8; } // each chain jump also arcs to nearby enemies
     }
+    if (t.branch) def = branchModifyDef(t, def, base); // level-3 specialization stat changes
     if (t.ammo === undefined) { t.ammo = def.ammo; t.maxAmmo = def.ammo; }
     else if (t.maxAmmo !== def.ammo) { t.ammo += (def.ammo - t.maxAmmo); t.maxAmmo = def.ammo; }
     // Knocked offline by a boss shockwave / frost nova
@@ -432,7 +433,8 @@ function update(dt) {
     // Gold Mine: generate passive income instead of attacking
     if (base.income) {
       t.incomeTimer = (t.incomeTimer || 0) + dt;
-      const rate = DIFFICULTY.goldMineRate * (1 + (lvl || 0) * 0.5);
+      let rate = DIFFICULTY.goldMineRate * (1 + (lvl || 0) * 0.5);
+      if (t.branch === 'deepvein') rate *= 1.5; // Deep Vein: +50% income
       const earned = rate * dt;
       game.gold += earned;
       if (t.incomeTimer >= 1) {
@@ -473,6 +475,7 @@ function update(dt) {
       t.ammo--;
       t.angle = Math.atan2(best.y - cy, best.x - cx);
       SFX.play('shot_' + base.id);
+      if (t.branch === 'frostnova') branchFrostNovaPulse(t, def, cx, cy);
 
       // Tesla: chain lightning (instant, no projectile)
       if (def.chain) {
@@ -548,7 +551,7 @@ function update(dt) {
           while (diff < -Math.PI) diff += Math.PI*2;
           if (Math.abs(diff) < 0.5) { // ~57 degree cone
             damageEnemy(e, def.dmg);
-            if (def.dot) { e.dotTimer = def.dotDur; e.dotDmg = def.dot; e.dotTickTimer = 0; }
+            if (def.dot) { e.dotTimer = def.dotDur; e.dotDmg = def.dot; e.dotTickTimer = 0; if (t.branch) e.branch = t.branch; }
           }
         }
         // Flame visual
@@ -562,7 +565,7 @@ function update(dt) {
 
       // Arrow upgrade: multishot volley (new attack — hits several enemies at once instead of one)
       if (base.id === 'arrow' && lvl >= 1) {
-        const shots = Math.min(1 + lvl, 6);
+        const shots = Math.min(1 + lvl + (t.branch === 'multishot' ? 2 : 0), 8);
         const targets = game.enemies
           .filter(e => !e.dead && Math.hypot(e.x - cx, e.y - cy) <= def.range)
           .sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy))
@@ -572,7 +575,8 @@ function update(dt) {
           game.projectiles.push({
             x: cx, y: cy,
             vx: (pdx / pd) * def.projSpeed * TILE, vy: (pdy / pd) * def.projSpeed * TILE,
-            dmg: def.dmg, color: def.projColor, life: 2
+            dmg: def.dmg, color: def.projColor, life: 2,
+            pierceLeft: t.branch === 'piercing' ? 3 : 0, hitList: []
           });
         }
         continue;
@@ -580,12 +584,13 @@ function update(dt) {
 
       // Sniper upgrade: piercing round (new attack — one shot punches through several enemies in a line)
       if (base.id === 'sniper' && lvl >= 1) {
+        const headshotCrit = (t.branch === 'headshot' && Math.random() < 0.25) ? 3 : 1;
         const pdx = best.x - cx, pdy = best.y - cy, pd = Math.hypot(pdx, pdy) || 1;
         game.projectiles.push({
           x: cx, y: cy,
           vx: (pdx / pd) * def.projSpeed * TILE, vy: (pdy / pd) * def.projSpeed * TILE,
-          dmg: def.dmg, color: def.projColor, life: 2,
-          pierceLeft: lvl, hitList: []
+          dmg: def.dmg * headshotCrit, color: def.projColor, life: 2,
+          pierceLeft: lvl, hitList: [], crit: headshotCrit > 1
         });
         continue;
       }
@@ -611,7 +616,7 @@ function update(dt) {
         splash: def.splash || 0, slow: def.slow || 0, slowDur: def.slowDur || 0,
         cluster: def.cluster || 0, infect: def.infect || 0,
         dot: def.dot || 0, dotDur: def.dotDur || 0,
-        life: 2
+        life: 2, branch: t.branch || null
       });
     }
   }
@@ -627,10 +632,12 @@ function update(dt) {
       spawnParticles(e.x, e.y, '#44cc66', 2);
       // Upgraded Poison: infection spreads to nearby healthy enemies
       if (e.infect) {
+        const plague = e.branch === 'plague';
+        const spreadRadius = plague ? 60 : 40, spreadChance = plague ? 0.45 : 0.25;
         for (const e2 of game.enemies) {
           if (e2.dead || e2 === e || e2.dotTimer > 0) continue;
-          if (Math.hypot(e2.x - e.x, e2.y - e.y) < 40 && Math.random() < 0.25) {
-            e2.dotTimer = e.dotTimer; e2.dotDmg = e.dotDmg; e2.dotTickTimer = 0; e2.infect = e.infect;
+          if (Math.hypot(e2.x - e.x, e2.y - e.y) < spreadRadius && Math.random() < spreadChance) {
+            e2.dotTimer = e.dotTimer; e2.dotDmg = e.dotDmg; e2.dotTickTimer = 0; e2.infect = e.infect; e2.branch = e.branch;
             spawnParticles(e2.x, e2.y, '#44cc66', 4);
           }
         }
@@ -660,9 +667,9 @@ function update(dt) {
             if (e2.dead) continue;
             const d2 = Math.hypot(e2.x - p.x, e2.y - p.y);
             if (d2 < p.splash) {
-              damageEnemy(e2, p.dmg * (1 - d2/p.splash * 0.5));
+              damageEnemy(e2, branchProjectileDmg(p, e2, p.dmg * (1 - d2/p.splash * 0.5)));
               if (p.slow) e2.slowed = p.slowDur;
-              if (p.dot) { e2.dotTimer = p.dotDur; e2.dotDmg = p.dot; e2.dotTickTimer = 0; }
+              if (p.dot) { e2.dotTimer = p.dotDur; e2.dotDmg = p.dot; e2.dotTickTimer = 0; if (p.branch) e2.branch = p.branch; }
             }
           }
           spawnParticles(p.x, p.y, p.color, 10);
@@ -679,12 +686,13 @@ function update(dt) {
             }
           }
         } else {
-          damageEnemy(e, p.dmg);
+          damageEnemy(e, branchProjectileDmg(p, e, p.dmg));
           if (p.slow) e.slowed = p.slowDur;
           // Poison DoT
           if (p.dot) {
             e.dotTimer = p.dotDur; e.dotDmg = p.dot; e.dotTickTimer = 0;
             if (p.infect) e.infect = p.infect; // marks this enemy's poison as contagious
+            if (p.branch) e.branch = p.branch;
           }
           spawnParticles(p.x, p.y, p.color, 4);
         }
@@ -731,6 +739,7 @@ function update(dt) {
       SFX.play('clear');
     }
     game.gold += waveBonus; // Wave bonus
+    applyBankInterest(); // Gold Mine / Bank branch: interest on current gold
 
     // Lifetime stats + skin unlock checks
     profile.stats.wavesCleared = (profile.stats.wavesCleared || 0) + 1;

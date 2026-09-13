@@ -129,3 +129,12 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - `showFlash(msg)` for in-game notifications
 - `unlockAchievement(name, sub)` for achievement toasts
 - `spawnParticles(x, y, color, count)` for particle effects
+
+## Tower specialization branches
+- `js/feat-branches.js` (loaded between `js/game.js` and `js/screens.js`). `TOWER_BRANCHES[towerId]` is a `[{id, name, desc, apply(t,def)}, {...}]` pair per tower (arrow/cannon/ice/sniper/tesla/flame/mortar/poison/goldmine).
+- At level 3, the upgrade click in `js/input.js` opens `#branch-chooser` (built/injected by the feat file, `game.paused=true` while open) instead of applying the level-up; picking a card (click, or keys `1`/`2`) spends the point, sets `t.branch`, and resumes. `Esc` defers — level stays at 2, nothing is spent, try again later.
+- Stat-only branches mutate `def` via `branchModifyDef(t, def, base)`, hooked once per tower per frame in `update()` right after the level-based `def` is built. Non-stat branches have dedicated hooks: `branchFrostNovaPulse` (ice, every 4th shot), `branchProjectileDmg` (mortar Bunker Buster vs size≥14), a `damageEnemy` wrap for Wildfire (flame) death-spread, and `applyBankInterest()` called on wave-clear for Gold Mine's Bank branch. Poison's Plague widens the existing infection spread (radius/chance) by checking `e.branch`.
+- `t.branch` persists in `saveGameState`/`startGame(resume)` (`js/core.js`, `js/game.js`) and in community level codes (`js/screens.js`, revalidated against `TOWER_BRANCHES` on load since level codes are untrusted).
+- `drawBranchBadge(t, cx, cy)` hook in `drawTowers()` (`js/render-world.js`) draws a small star/diamond glyph for branch index 0/1.
+- Achievement "Specialist": branch 5 towers in one run (`game.branchesChosen`).
+- Known gap: Cannon's "Siege" desc says "rate ×0.7" but the codebase treats `rate` as cooldown seconds (lower = faster), so it's implemented as `rate /= 0.7` (≈1.43×, genuinely slower) to match the intended glass-cannon feel; on-canvas tower tooltips don't exist yet so the branch name isn't shown there (only in the level-up flash and the badge).
