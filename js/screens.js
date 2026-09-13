@@ -141,6 +141,7 @@ function loadLevelFromInput() {
 function startLevelFromPayload(payload) {
   closeCommunityScreen();
   const world = Math.max(1, Math.min(WORLD_THEMES.length, Math.floor(Number(payload.world)) || 1));
+  clearRunModifiers(); // community levels never carry run modifiers
   game = initGame();
   game.world = world;
   applyWorldMap(world);
@@ -288,6 +289,7 @@ function refreshStartScreenButtons() {
   secHtml += `<button class="home-link-btn" onclick="openAchievementsScreen()">HALL OF FAME${hofTop ? ` &middot; best ${hofTop.score} waves` : (achCount ? ` &middot; ${achCount}/${ACHIEVEMENT_DEFS.length}` : '')}</button>`;
   if (saved) secHtml += `<button class="home-link-btn" onclick="startGame(false)">NEW GAME</button>`;
   wrapSec.innerHTML = secHtml;
+  renderModifiersHomeUI(wrapMain, wrapSec);
 }
 
 
@@ -517,6 +519,7 @@ function restoreConfigAfterDaily() {
 // Does NOT touch the normal "continue" save (unlike startGame) — the Daily Challenge is a separate mode.
 function startDailyChallenge() {
   applyDefaultConfigForDaily();
+  clearRunModifiers(); // the Daily Challenge never carries run modifiers
   game = initGame();
   game.dailyChallenge = true;
   const seed = getDailySeed();
@@ -668,6 +671,7 @@ function buildHallOfFame() {
         ${r.mode === 'daily' ? '<span class="hof-tag">Daily</span>' : ''}
       </div>
       <div class="hof-date">${r.date || ''}</div>`;
+    renderModifierChips(row, r);
     body.appendChild(row);
   });
 }

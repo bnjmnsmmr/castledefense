@@ -88,6 +88,7 @@ function saveGameState() {
       mana: game.mana || 0, powerCooldowns: game.powerCooldowns || {}, powersCast: game.powersCast || 0,
       towers: game.towers.map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, targetMode: t.targetMode || null, branch: t.branch || null })),
       runSeed: game.runSeed,
+      modifiers: game.modifiers || [], scoreMult: game.scoreMult || 1,
       walls: (game.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp })),
       relics: game.relics || [],
     };
@@ -284,6 +285,7 @@ async function submitScoreToLeaderboard(entry) {
         score: entry.score, world: entry.world, wave: entry.wave,
         kills: entry.kills, bosses: entry.bosses || 0,
         durationMs: entry.durationMs || 0, mode: entry.mode === 'daily' ? 'daily' : 'run',
+        modifiers: entry.modifiers || [], // not yet validated server-side — see CLAUDE.md
       }),
     });
     if (!res.ok) return null;

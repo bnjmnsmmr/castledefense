@@ -69,6 +69,7 @@ function drawParticles() {
 
 
 function drawWaveNotice() {
+  if (modActive('fog_of_war')) return;
   if (game.prepPhase) {
     let msg = game.newPathUnlocked
       ? `NEW ROUTE: ${game.newPathUnlocked}! Place towers for Wave ${game.wave}`

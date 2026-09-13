@@ -124,6 +124,7 @@ function updateBuildTabs() {
   const on = !!(game && game.running && !game.gameOver);
   wrap.classList.toggle('show', on);
   if (!on) return;
+  document.getElementById('tab-walls').style.display = modActive('no_walls') ? 'none' : '';
   document.getElementById('tab-towers').classList.toggle('on', game.buildMode !== 'wall');
   document.getElementById('tab-walls').classList.toggle('on', game.buildMode === 'wall');
 }
@@ -175,6 +176,7 @@ function appendSellButton(bar) {
 }
 
 function buildTowerBar() {
+  if (game && game.buildMode === 'wall' && modActive('no_walls')) game.buildMode = 'tower';
   if (game && game.buildMode === 'wall') { buildWallBar(); return; }
   const bar = document.getElementById('tower-bar');
   bar.innerHTML = '';
@@ -189,7 +191,7 @@ function buildTowerBar() {
         <div class="tt-row">Speed <b>${info.rate || '—'}</b></div>
         <div class="tt-row">Range <b>${info.range || '—'}</b></div>`;
     btn.innerHTML = `<canvas width="48" height="48"></canvas>
-      <div class="name">${t.name}</div><div class="cost">${t.cost}g</div><div class="key">[${t.key}]</div>
+      <div class="name">${t.name}</div><div class="cost">${modTowerCost(t.cost)}g</div><div class="key">[${t.key}]</div>
       <div class="tb-tooltip"><div class="tt-name">${t.name}</div>
         ${tooltipRows}
         ${info.spec ? `<div class="tt-special">★ ${info.spec}</div>` : ''}
@@ -227,7 +229,7 @@ function updateTowerBar() {
     }
     const i = parseInt(b.dataset.idx);
     b.classList.toggle('selected', game && i === game.selectedTower && !game.trashMode);
-    const canAfford = game && game.gold >= TOWER_TYPES[i].cost;
+    const canAfford = game && game.gold >= modTowerCost(TOWER_TYPES[i].cost);
     b.classList.toggle('broke', !canAfford);
   });
   updateBuildTabs();

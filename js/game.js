@@ -6,7 +6,8 @@ function initGame() {
   applyWorldMap(1);
   pathSet = buildPathSet(1);
   return {
-    hp: DIFFICULTY.startHp, gold: DIFFICULTY.startGold, wave: 1, world: 1, kills: 0, xp: 0, upgradesSpent: 0, annihilatorUnlocked: false, triBeamEquipped: false,
+    hp: modActive('iron_castle') ? 5 : DIFFICULTY.startHp, gold: DIFFICULTY.startGold * modGoldMult(), wave: 1, world: 1, kills: 0, xp: 0, upgradesSpent: 0, annihilatorUnlocked: false, triBeamEquipped: false,
+    modifiers: (ACTIVE_RUN_MODIFIERS || []).slice(), scoreMult: modifiersMultiplier(ACTIVE_RUN_MODIFIERS || []),
     towers: [], enemies: [], projectiles: [], particles: [],
     walls: [],
     relics: [],
@@ -49,6 +50,7 @@ function initGame() {
 }
 
 function startGame(resume) {
+  beginRunModifiers(resume); // modifiers apply only to a genuine new run, read by initGame() below
   game = initGame();
   try { if (localStorage.getItem('castleDefenseInfiniteGold') === 'true') game.infiniteGold = true; } catch (e) {}
   const saved = resume ? loadGameState() : null;
@@ -67,6 +69,7 @@ function startGame(resume) {
     game.towers = (saved.towers || []).map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, cooldown: 0, angle: 0, targetMode: t.targetMode || null, branch: t.branch || null }));
     game.walls = (saved.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp }));
     game.relics = saved.relics || [];
+    restoreRunModifiers(saved); // a resumed run keeps whatever modifiers it was saved with
   } else {
     clearGameState();
   }
@@ -453,7 +456,7 @@ function update(dt) {
       let rate = DIFFICULTY.goldMineRate * (1 + (lvl || 0) * 0.5) * relicMult('goldMine');
       if (t.branch === 'deepvein') rate *= 1.5; // Deep Vein: +50% income
       const earned = rate * dt;
-      game.gold += earned;
+      game.gold += earned * modGoldMult();
       if (t.incomeTimer >= 1) {
         t.incomeTimer -= 1;
         const cx = t.tx * TILE + TILE/2, cy = t.ty * TILE + TILE/2;
@@ -753,7 +756,7 @@ function update(dt) {
     } else {
       SFX.play('clear');
     }
-    game.gold += waveBonus; // Wave bonus
+    game.gold += waveBonus * modGoldMult(); // Wave bonus
     applyBankInterest(); // Gold Mine / Bank branch: interest on current gold
 
     // Lifetime stats + skin unlock checks
@@ -777,8 +780,9 @@ function update(dt) {
       refundMisplacedBuildables();
       groundCache = null; // force terrain rebuild with new theme
       document.body.style.background = getWorldTheme().bgBase;
-      game.gold += 100 * (game.world - 1); // world-clear bonus
+      game.gold += 100 * (game.world - 1) * modGoldMult(); // world-clear bonus
       unlockAchievement(`World ${game.world - 1} Cleared`, `Onward to World ${game.world} — it only gets harder from here`);
+      if (game.world === 2) checkHandicappedHero(); // just finished World 1
       if (game.buildMode === 'wall') buildWallBar();
     }
 
@@ -978,7 +982,7 @@ function damageEnemy(e, dmg, source) {
     if (e.boss) {
       // Boss kill: big payout, a banner, and a permanent trophy
       const bounty = 250 + game.world * 120;
-      game.gold += Math.round(bounty * relicMult('gold'));
+      game.gold += Math.round(bounty * relicMult('gold') * modGoldMult());
       game.activeBoss = null;
       triggerShake(12, 0.7);
       SFX.play('boss_die');
@@ -989,7 +993,7 @@ function damageEnemy(e, dmg, source) {
       game.bossesSlain = (game.bossesSlain || 0) + 1;
       saveProfile();
     }
-    game.gold += def.reward * relicMult('gold') * stormGoldMult();
+    game.gold += def.reward * relicMult('gold') * stormGoldMult() * modGoldMult();
     game.kills++;
     gainMana(e.boss ? 25 : DIFFICULTY.manaPerKill);
     affixOnDeath(e);
@@ -1142,6 +1146,7 @@ function endGame() {
     towers: game.towers.length, bosses: game.bossesSlain || 0,
     durationMs: game.startedAt ? Date.now() - game.startedAt : 0,
     date: todayStr(), mode: game.dailyChallenge ? 'daily' : 'run',
+    modifiers: game.modifiers || [], scoreMult: game.scoreMult || 1,
   };
   const hofRank = recordHallOfFame(runEntry);
   // Fire-and-forget: the results screen never waits on the network
@@ -1205,6 +1210,7 @@ function endGame() {
   renderComboStat(ov.querySelector('.go-grid')); // feat-combos.js: COMBOS stat card
   renderMvpCard(ov.querySelector('.go-grid')); // js/feat-targeting.js
   renderStormStat(ov.querySelector('.go-grid'));
+  renderModifierResult(ov);
   // Achievement names go in via textContent (they can contain arbitrary strings)
   const chipEls = ov.querySelectorAll('.go-ach span');
   achEarned.forEach((name, i) => { if (chipEls[i]) chipEls[i].textContent = name; });
@@ -1225,6 +1231,7 @@ function spawnTileSet() {
 }
 
 function canPlaceWall(tx, ty) {
+  if (modActive('no_walls')) return 'Walls are disabled — the No Walls modifier is active this run';
   if (!isPath(tx, ty)) return 'Walls can only be built on the path — that is what makes them useful';
   if (isCastle(tx, ty)) return 'Not on the castle';
   if (spawnTileSet().has(tx + ',' + ty)) return 'Too close to the gate they march out of';
@@ -1304,7 +1311,7 @@ function collectCrate(tx, ty) {
   if (idx === -1) return false;
   const crate = game.supplyCrates[idx];
   crate.collected = true;
-  game.gold += crate.gold * (hasRelic('magnet') ? 2 : 1);
+  game.gold += crate.gold * (hasRelic('magnet') ? 2 : 1) * modGoldMult();
   game.cratesCollected = (game.cratesCollected || 0) + 1;
   if (game.cratesCollected >= 20) unlockAchievement('Crate Hoarder', 'Collected 20 supply crates in a single run');
   SFX.play('coin');

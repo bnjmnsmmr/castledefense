@@ -77,7 +77,7 @@ function getWave(n) {
   }
   // HARD MODE scaling: enemies get tougher AND faster every wave — and every world raises the floor
   const hpMult = (1 + (n - 1) * DIFFICULTY.waveHpGrowth + upgrades * DIFFICULTY.upgradeHpGrowth) * (1 + (world - 1) * DIFFICULTY.worldHpGrowth);
-  const spdMult = Math.min((1 + (n - 1) * DIFFICULTY.waveSpeedGrowth) * (1 + (world - 1) * DIFFICULTY.worldSpeedGrowth), DIFFICULTY.maxSpeedMult);
+  const spdMult = Math.min((1 + (n - 1) * DIFFICULTY.waveSpeedGrowth) * (1 + (world - 1) * DIFFICULTY.worldSpeedGrowth), DIFFICULTY.maxSpeedMult) * (modActive('double_time') ? 1.5 : 1);
   return waves.map(w => ({ ...w, hpMult, spdMult }));
 }
 
@@ -123,7 +123,7 @@ function sendWave() {
     .sort((a,b) => b[1] - a[1]).slice(0, 3)
     .map(([type, n]) => `${n} ${ENEMY_NAMES[type] || 'FOES'}`);
   const routes = game.activePaths ? game.activePaths.length : 1;
-  showWaveBanner(game.wave, parts.join(' · ') + (routes > 1 ? ` — ${routes} ROUTES` : ''));
+  showWaveBanner(game.wave, modActive('fog_of_war') ? 'Incoming — enemy types unknown' : (parts.join(' · ') + (routes > 1 ? ` — ${routes} ROUTES` : '')));
   announceStormIfNew(); // overrides the banner above with a STORM banner when one just began
 }
 

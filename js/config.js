@@ -187,6 +187,7 @@ const ACHIEVEMENT_DEFS = [
   { name: 'Specialist', desc: 'Choose a specialization for 5 towers in a single run' },
   { name: 'Storm Chaser', desc: 'Survive 3 storms in a single endless run' },
   { name: 'Eye of the Storm', desc: 'Survive an Eclipse storm' },
+  { name: 'Handicapped Hero', desc: 'Clear World 1 with 3 or more run modifiers active' },
 ];
 
 // Skin colors are trophies: each palette color has a lifetime unlock condition.
