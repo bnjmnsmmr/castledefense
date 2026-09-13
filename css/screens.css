@@ -528,6 +528,7 @@
   .relic-emoji { font-size: 26px; }
   #relic-tray { top: 56px; max-width: 160px; }
   .relic-chip { width: 26px; height: 26px; font-size: 13px; }
+}
 /* ===== Feature: Tower specialization branches ===== */
 #branch-chooser {
   position: absolute; inset: 0; z-index: 80; display: none;

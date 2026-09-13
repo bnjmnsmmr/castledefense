@@ -62,6 +62,7 @@
   .power-row { flex-direction: row; gap: 6px; }
   .power-btn { width: 40px; height: 40px; min-width: 40px; min-height: 40px; }
   .power-emoji { font-size: 16px; }
+}
 /* ===== Feature: next-wave intel panel — responsive tweaks ===== */
 @media (max-width: 1000px) {
   #wave-intel { bottom: 160px; width: min(94vw, 320px); max-height: 34vh; }

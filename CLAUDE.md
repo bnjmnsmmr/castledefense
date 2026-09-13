@@ -4,7 +4,7 @@
 HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bundler, no server — `index.html` (markup only) loads plain CSS from `css/` and classic `<script>` files from `js/` in a fixed order. PWA sidecar files: `manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`. Deployed to GitHub Pages at https://bnjmnsmmr.github.io/castledefense/
 
 ## PWA
-- Installable: manifest (fullscreen, landscape) + `sw.js` (stale-while-revalidate shell cache, cache name — currently `castle-defense-v3`; bump it on meaningful releases). Registered from `js/main.js`, skipped on `file:`.
+- Installable: manifest (fullscreen, landscape) + `sw.js` (stale-while-revalidate shell cache, cache name — currently `castle-defense-v5`; bump it on meaningful releases). Registered from `js/main.js`, skipped on `file:`.
 - **`sw.js` ASSETS lists every css/js file.** If you add a new module, add it there too or installed players never receive it.
 - Icons drawn programmatically (canvas → PNG); regenerate by re-rendering if the brand changes.
 
@@ -147,7 +147,12 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - Persisted on the run (`game.modifiers`, `game.scoreMult`) and in the save (`saveGameState`); carried into the Hall of Fame entry and rendered as chips (`renderModifierChips`, reusing `.hof-tag`) and a results-screen stat card (`renderModifierResult`). Included in the payload to `submitScoreToLeaderboard` for a future server to read — the validated `score` field itself is untouched. "Handicapped Hero" achievement: clear World 1 with 3+ modifiers active.
 
 ## Features
-- 9 towers (+1 secret Annihilator via B→N key combo) with level-2 upgrades, including the Gold Mine (income tower)
+- 9 towers (+1 secret Annihilator via B→N key combo) with level-2 signature attacks and a level-3 specialization branch each, including the Gold Mine (income tower)
+- Per-tower targeting priority (First/Last/Strong/Weak/Near) with an inspect card, tower kill/damage stats and an MVP card on the results screen
+- Elemental combos between towers (Shatter, Ignite, Conduct, Brittle, Overgrowth)
+- Castle Powers: four mana-fuelled active spells (Fireball, Rally, Frost, Repair) on hotkeys F/G/V/H
+- Relic draft after every world clear (roguelite perks), enemy affixes/elites from wave 6, per-world lane layouts
+- Next-wave intel panel in the prep phase; run modifiers with score multipliers; structured endless storms after world 8
 - 4 wall types built on the path — enemies stop and smash through them, flyers pass over
 - 9 enemy types across escalating worlds, plus 8 named bosses (one per world, final wave)
 - 8 distinct world themes (Medieval, Frozen, Desert, Deep Space, Ocean, Volcanic, Enchanted Grove, Shadow Realm)

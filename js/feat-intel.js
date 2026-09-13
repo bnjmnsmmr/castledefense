@@ -85,7 +85,11 @@ function computeWaveIntel() {
     totalHp += hp;
   }
   const maxDelay = wave.length ? Math.max(...wave.map(w => w.delay)) : 0;
-  const waveDuration = maxDelay + 10; // rough: last spawn + time to walk in and die
+  // Window towers get to work: last spawn + the time an average enemy needs to walk the
+  // longest active lane (speed is in tiles/sec, see the enemy move loop in js/game.js).
+  const longest = curPaths.length ? Math.max(...curPaths.map(p => p.tiles.length)) : 50;
+  const avgSpeed = wave.length ? wave.reduce((s, w) => s + (ENEMY_DEFS[w.type] ? ENEMY_DEFS[w.type].speed : 1.2) * (w.spdMult || 1), 0) / wave.length : 1.2;
+  const waveDuration = maxDelay + longest / Math.max(0.3, avgSpeed);
 
   // Rough tower DPS (ignores splash/chain/dot bonuses and range/uptime — labeled as an estimate)
   let dps = 0;

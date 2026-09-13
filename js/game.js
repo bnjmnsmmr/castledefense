@@ -1113,6 +1113,7 @@ function updateUI() {
   $id('upgrade-pts').textContent = pts;
   upgradeStat.style.display = pts > 0 ? 'flex' : 'none';
   updateTowerBar();
+  if (game && game.prepPhase && typeof updateWaveIntel === 'function') updateWaveIntel(); // threat estimate follows tower changes
   requestSave();
 }
 
