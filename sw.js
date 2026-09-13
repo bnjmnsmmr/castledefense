@@ -18,6 +18,7 @@ const ASSETS = [
   'js/game.js',
   'js/feat-powers.js',
   'js/feat-affixes.js',
+  'js/feat-combos.js',
   'js/screens.js',
   'js/admin.js',
   'js/ui.js',

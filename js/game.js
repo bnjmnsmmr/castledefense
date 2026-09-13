@@ -11,6 +11,7 @@ function initGame() {
     supplyCrates: [],
     goldMinesPlaced: 0,
     cratesCollected: 0,
+    combos: 0,
     selectedTower: 0,
     selectedWall: 0,
     buildMode: 'tower',   // 'tower' | 'wall'
@@ -519,12 +520,12 @@ function update(dt) {
           for (const tgt of targets) {
             globalHit.add(tgt);
             const hitDmg = def.pctDmg ? tgt.maxHp * def.pctDmg : def.dmg;
-            damageEnemy(tgt, hitDmg);
+            damageEnemy(tgt, hitDmg, base.id);
             if (def.arcSplash) {
               for (const e2 of game.enemies) {
                 if (e2.dead || e2 === tgt || targets.includes(e2)) continue;
                 if (Math.hypot(e2.x - tgt.x, e2.y - tgt.y) < def.arcSplash) {
-                  damageEnemy(e2, def.dmg * 0.4);
+                  damageEnemy(e2, def.dmg * 0.4, base.id);
                   spawnParticles(e2.x, e2.y, '#ccff88', 3);
                 }
               }
@@ -552,8 +553,8 @@ function update(dt) {
           while (diff > Math.PI) diff -= Math.PI*2;
           while (diff < -Math.PI) diff += Math.PI*2;
           if (Math.abs(diff) < 0.5) { // ~57 degree cone
-            damageEnemy(e, def.dmg);
-            if (def.dot) { e.dotTimer = def.dotDur; e.dotDmg = def.dot; e.dotTickTimer = 0; }
+            damageEnemy(e, def.dmg, base.id);
+            if (def.dot) { e.dotTimer = def.dotDur; e.dotDmg = def.dot; e.dotTickTimer = 0; e.dotSrc = base.id; }
           }
         }
         // Flame visual
@@ -577,7 +578,7 @@ function update(dt) {
           game.projectiles.push({
             x: cx, y: cy,
             vx: (pdx / pd) * def.projSpeed * TILE, vy: (pdy / pd) * def.projSpeed * TILE,
-            dmg: def.dmg, color: def.projColor, life: 2, towerId: base.id
+            dmg: def.dmg, color: def.projColor, life: 2, src: base.id
           });
         }
         continue;
@@ -590,7 +591,7 @@ function update(dt) {
           x: cx, y: cy,
           vx: (pdx / pd) * def.projSpeed * TILE, vy: (pdy / pd) * def.projSpeed * TILE,
           dmg: def.dmg, color: def.projColor, life: 2,
-          pierceLeft: lvl, hitList: [], towerId: base.id
+          pierceLeft: lvl, hitList: [], src: base.id
         });
         continue;
       }
@@ -616,7 +617,7 @@ function update(dt) {
         splash: def.splash || 0, slow: def.slow || 0, slowDur: def.slowDur || 0,
         cluster: def.cluster || 0, infect: def.infect || 0,
         dot: def.dot || 0, dotDur: def.dotDur || 0,
-        life: 2, towerId: base.id
+        life: 2, src: base.id
       });
     }
   }
@@ -640,8 +641,9 @@ function update(dt) {
           }
         }
       }
+      overgrowthSpread(e); // feat-combos.js: Enchanted Grove poison spread
     }
-    if (e.dotTimer <= 0) { e.dotTimer = 0; e.dotDmg = 0; e.infect = 0; }
+    if (e.dotTimer <= 0) { e.dotTimer = 0; e.dotDmg = 0; e.infect = 0; e.dotSrc = null; }
   }
 
   // Move projectiles
@@ -665,9 +667,9 @@ function update(dt) {
             if (e2.dead) continue;
             const d2 = Math.hypot(e2.x - p.x, e2.y - p.y);
             if (d2 < p.splash) {
-              damageEnemy(e2, p.dmg * (1 - d2/p.splash * 0.5));
+              damageEnemy(e2, p.dmg * (1 - d2/p.splash * 0.5), p.src);
               if (p.slow) e2.slowed = p.slowDur;
-              if (p.dot) { e2.dotTimer = p.dotDur; e2.dotDmg = p.dot; e2.dotTickTimer = 0; }
+              if (p.dot) { e2.dotTimer = p.dotDur; e2.dotDmg = p.dot; e2.dotTickTimer = 0; e2.dotSrc = p.src; }
             }
           }
           spawnParticles(p.x, p.y, p.color, 10);
@@ -678,17 +680,17 @@ function update(dt) {
               const bx = p.x + Math.cos(ang) * dist, by = p.y + Math.sin(ang) * dist;
               for (const e3 of game.enemies) {
                 if (e3.dead) continue;
-                if (Math.hypot(e3.x - bx, e3.y - by) < 30) damageEnemy(e3, p.dmg * 0.35);
+                if (Math.hypot(e3.x - bx, e3.y - by) < 30) damageEnemy(e3, p.dmg * 0.35, p.src);
               }
               spawnParticles(bx, by, '#ccaa66', 5);
             }
           }
         } else {
-          damageEnemy(e, p.dmg, p.towerId);
+          damageEnemy(e, p.dmg, p.src);
           if (p.slow) e.slowed = p.slowDur;
           // Poison DoT
           if (p.dot) {
-            e.dotTimer = p.dotDur; e.dotDmg = p.dot; e.dotTickTimer = 0;
+            e.dotTimer = p.dotDur; e.dotDmg = p.dot; e.dotTickTimer = 0; e.dotSrc = p.src;
             if (p.infect) e.infect = p.infect; // marks this enemy's poison as contagious
           }
           spawnParticles(p.x, p.y, p.color, 4);
@@ -926,6 +928,7 @@ function damageEnemy(e, dmg, source) {
   // Burrowed / phased out: immune on every path (direct, splash, chain, cone, ZAP)
   if (e.untargetable > 0) return;
   dmg = affixModifyDamage(e, dmg, source);
+  dmg = comboOnHit(e, dmg, source); // feat-combos.js: elemental combo hook
   // Shield absorbs damage first
   if (e.shieldHp > 0) {
     const absorbed = Math.min(dmg, e.shieldHp);
@@ -1170,6 +1173,7 @@ function endGame() {
       </div>
     `;
   }
+  renderComboStat(ov.querySelector('.go-grid')); // feat-combos.js: COMBOS stat card
   // Achievement names go in via textContent (they can contain arbitrary strings)
   const chipEls = ov.querySelectorAll('.go-ach span');
   achEarned.forEach((name, i) => { if (chipEls[i]) chipEls[i].textContent = name; });

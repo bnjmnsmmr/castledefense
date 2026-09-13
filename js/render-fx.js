@@ -165,9 +165,9 @@ function updateDrawDamageNums(dt) {
     d.life -= dt;
     if (d.life <= 0) { game.dmgNums.splice(i, 1); continue; }
     ctx.globalAlpha = Math.min(d.life / 0.3, 1);
-    const size = d.kind === 'crit' ? 19 : (d.kind === 'dot' ? 11 : (d.kind === 'gold' ? 12 : 14));
+    const size = d.kind === 'combo' ? 20 : (d.kind === 'crit' ? 19 : (d.kind === 'dot' ? 11 : (d.kind === 'gold' ? 12 : 14)));
     ctx.font = `800 ${size}px Inter, sans-serif`;
-    ctx.fillStyle = d.kind === 'crit' ? '#e8b64c' : (d.kind === 'dot' ? '#5fae4c' : (d.kind === 'shield' ? '#6fa8d6' : (d.kind === 'gold' ? '#ffd87a' : (d.kind === 'heal' ? '#66ff99' : '#f5f2ea'))));
+    ctx.fillStyle = d.kind === 'combo' ? '#ff6ad5' : (d.kind === 'crit' ? '#e8b64c' : (d.kind === 'dot' ? '#5fae4c' : (d.kind === 'shield' ? '#6fa8d6' : (d.kind === 'gold' ? '#ffd87a' : (d.kind === 'heal' ? '#66ff99' : '#f5f2ea')))));
     ctx.strokeStyle = '#1a1512';
     ctx.lineWidth = 3;
     ctx.textAlign = 'center';

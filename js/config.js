@@ -120,13 +120,13 @@ const DEFAULT_WALLS = WALL_TYPES.map(w => ({ id: w.id, cost: w.cost, hp: w.hp })
 // Tooltip metadata per tower id
 const TOWER_INFO = {
   arrow:  { rate:'Fast',   range:'Long',   spec:'Lv.2: Multishot — fires a volley of bolts' },
-  cannon: { rate:'Slow',   range:'Medium', spec:'Lv.2: Napalm — splash sets enemies burning' },
-  ice:    { rate:'Medium', range:'Medium', spec:'Lv.2: Freeze Nova — slows everything nearby' },
-  sniper: { rate:'V. slow',range:'V. long',spec:'Lv.2: Piercing — one shot hits enemies in a line' },
-  tesla:  { rate:'Fast',   range:'Short',  spec:'Lv.2: Arc Explosion — chain jumps splash nearby foes' },
-  flame:  { rate:'V. fast',range:'Short',  spec:'Lv.2: Ignition — the cone sets enemies on fire' },
-  mortar: { rate:'V. slow',range:'Long',   spec:'Lv.2: Cluster Bombs — impact scatters bomblets' },
-  poison: { rate:'Slow',   range:'Medium', spec:'Lv.2: Infectious — poison spreads between enemies' },
+  cannon: { rate:'Slow',   range:'Medium', spec:'Lv.2: Napalm — splash sets enemies burning', combo:'SHATTER on slowed foes · IGNITE on poisoned foes' },
+  ice:    { rate:'Medium', range:'Medium', spec:'Lv.2: Freeze Nova — slows everything nearby', combo:'Sets up SHATTER / CONDUCT' },
+  sniper: { rate:'V. slow',range:'V. long',spec:'Lv.2: Piercing — one shot hits enemies in a line', combo:'BRITTLE on burning foes (×2 dmg)' },
+  tesla:  { rate:'Fast',   range:'Short',  spec:'Lv.2: Arc Explosion — chain jumps splash nearby foes', combo:'CONDUCT on slowed foes' },
+  flame:  { rate:'V. fast',range:'Short',  spec:'Lv.2: Ignition — the cone sets enemies on fire', combo:'IGNITE on poisoned foes · sets up BRITTLE' },
+  mortar: { rate:'V. slow',range:'Long',   spec:'Lv.2: Cluster Bombs — impact scatters bomblets', combo:'SHATTER on slowed foes (×1.5 dmg)' },
+  poison: { rate:'Slow',   range:'Medium', spec:'Lv.2: Infectious — poison spreads between enemies', combo:'Sets up IGNITE' },
   goldmine: { rate:'—', range:'—', spec:'💰 Earns gold to buy more towers! Lv.2: +50% income. Does not attack.' },
   annihilator: { rate:'Insane', range:'12 blocks', spec:'☢️ 4 zaps kill anything. You cheated for this.' },
 };
@@ -177,6 +177,8 @@ const ACHIEVEMENT_DEFS = [
   { name: 'Crate Hoarder', desc: 'Collect 20 supply crates in a single run' },
   { name: 'Archmage', desc: 'Cast 25 castle powers in a single run' },
   { name: 'Elite Hunter', desc: 'Kill 50 affixed elite enemies in a single run' },
+  { name: 'Alchemist', desc: 'Trigger 50 elemental combos in a single run' },
+  { name: 'Chain Reaction', desc: 'Land an IGNITE that hits 5 or more enemies' },
 ];
 
 // Skin colors are trophies: each palette color has a lifetime unlock condition.

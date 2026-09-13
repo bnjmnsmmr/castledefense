@@ -103,6 +103,13 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - Per-tower firing sounds (`shot_<towerId>`), kill/coin/hurt/place/sell/upgrade/error/horn/clear/flawless/unlock effects, soft UI click on every button.
 - Music (ambient drone + melody) has its own context; the 🔊 button mutes both music and SFX.
 
+## Elemental combos
+- `js/feat-combos.js` — bonus damage when one tower's status effect (slow / poison / burn) is capitalized on by a different tower's hit. Hooked with one line at the top of `damageEnemy(e, dmg, source)` in `js/game.js`: `dmg = comboOnHit(e, dmg, source);`. `source` is the firing tower's `TOWER_TYPES` id, passed at each attack call site (tesla chain, flame cone) or tagged onto the projectile as `p.src` at creation and read back at impact.
+- Status is read from existing fields: `e.slowed > 0` (ice), and `e.dotTimer > 0` + `e.dotSrc` (which tower applied the current burn/poison tick — `'poison'` / `'flame'` / `'cannon'`; `e.dotSrc` is a new field set alongside every existing `e.dotTimer` assignment).
+- `COMBO_DEFS` in the feat file holds the tunable multipliers. SHATTER (Cannon/Mortar vs slowed, ×1.5, clears the slow), IGNITE (Flame/Cannon vs poisoned, consumes the DoT into a 3× instant AoE burst), CONDUCT (Tesla vs slowed, extra 50% dmg to the 2 nearest other enemies within 90px), BRITTLE (Sniper vs burning, ×2). Each enemy has a 0.5s internal cooldown (`e._comboCdUntil`) so Flame's fast ticks can't re-proc every frame.
+- OVERGROWTH: in the Enchanted Grove world only (`getWorldTheme().name` contains "Grove"), an active poison tick always spreads to the nearest un-poisoned neighbor — hooked with one line (`overgrowthSpread(e);`) from the poison DoT tick loop.
+- `game.combos` counts combos triggered this run; achievements "Alchemist" (50 in a run) and "Chain Reaction" (an IGNITE hitting 5+ enemies). Popup text via `spawnDamageNum(..., 'combo')` (pink, added to the size/color maps in `js/render-fx.js`), a bright `sfxTone` chime, and a "COMBOS" stat card on the results screen (`renderComboStat()`, one line from `endGame()`). Tower tooltips show a one-line `⚡` combo hint from `TOWER_INFO[id].combo`.
+
 ## Resource economy
 - **Wall cost scaling**: `DIFFICULTY.wallCostScale` (default 0.15 = 15% per world). `getWallCost(typeIdx)` returns `Math.floor(baseCost * (1 + (world-1) * wallCostScale))`. Walls store `buyCost` at placement time so sell refunds are accurate even if world changes.
 - **Gold Mine tower**: income tower (key `0`). Generates `DIFFICULTY.goldMineRate` gold/sec (default 2), scaling +50% per upgrade level. No targeting, no projectiles — the update loop `continue`s past combat for `base.income` towers. Shows a floating +gold number every second.
