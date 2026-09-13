@@ -104,6 +104,13 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - Achievements: "Gold Rush" (place 3 Gold Mines), "Crate Hoarder" (collect 20 crates in a run). Tracked via `game.goldMinesPlaced` / `game.cratesCollected`.
 - All new economy values are tunable in the admin panel under "Upgrades & economy".
 
+## Structured endless & storm mutators
+- `game.wave` is the per-world wave counter and only resets to 1 at `DIFFICULTY.wavesPerWorld` — with the default (15) it never exceeds 30, so this system only engages once a world is configured long enough (admin panel: raise "Waves per World" past ~35) to actually reach it.
+- `js/feat-storms.js`: past wave 30, `getWave(n)` calls `endlessWave(n, ...)`, which groups waves into deterministic 5-wave **storms** — a themed enemy mix (`STORM_THEMES`: Swarm/Iron/Night/Siege) plus a run-wide **mutator** (`STORM_MUTATORS`: Fog, Blood Moon, Plague, Quake, Frenzy, Gold Rush, Eclipse). Storm 1 is always Swarm Storm + Fog; later storms are picked by `stormFor(n)` from a `mulberry32` stream seeded off `game.runSeed` (or `game.dailySeed` in Daily Challenge) — fully deterministic per seed, never `Math.random()`.
+- Mutators apply as pure multiplier/query helpers at their existing call sites: `stormRangeMult()` (tower targeting range), `stormHpMult()`/`stormSpeedMult()` (enemy spawn), `stormGoldMult()` (kill gold), `stormWallDmgMult()` (`wallDps`), `stormCrateMult()` (`spawnSupplyCrates`), `stormTowerOffline(id)` (Eclipse — skipped in the tower loop).
+- The final (5th) wave of each storm gets a mini-boss via `addStormMiniBoss()`, hooked into `spawnWave()`'s existing final-world-boss branch as the `else` case — it reuses `getBossForWorld`/`BOSS_DEFS` at reduced HP, so it never collides with the real world-ending boss fight.
+- `sendWave()` calls `announceStormIfNew()` (banner + `#storm-chip` HUD pill); `render()` calls `drawStormOverlay()` for a faint per-mutator screen tint. Surviving a storm's last wave (`checkStormComplete`, hooked where `game.wave` is about to increment) raises `game.stormMult` (a display-only bonus, `stormScoreBonus()`) shown as a "STORM BONUS" card on the results screen — it never changes the `(world-1)*wavesPerWorld+wave` score the leaderboard validates. Achievements: "Storm Chaser" (3 storms), "Eye of the Storm" (survive an Eclipse storm).
+
 ## Features
 - 9 towers (+1 secret Annihilator via B→N key combo) with level-2 upgrades, including the Gold Mine (income tower)
 - 4 wall types built on the path — enemies stop and smash through them, flyers pass over

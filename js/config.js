@@ -85,6 +85,8 @@ const DIFFICULTY = {
   towerUpgradeRateMult: 0.93,
   towerUpgradeAmmoPerLevel: 1,
   towerUpgradeReloadMult: 0.94,
+  stormWaveLength: 5,          // waves per storm past wave 30 (endless mode — see js/feat-storms.js)
+  stormScoreBonusPerStorm: 0.25, // score-bonus multiplier added per storm survived
 };
 
 const TOWER_TYPES = [
@@ -172,6 +174,8 @@ const ACHIEVEMENT_DEFS = [
   { name: 'GG Easy Money', secret: true },
   { name: 'Gold Rush', desc: 'Place 3 Gold Mines in a single run' },
   { name: 'Crate Hoarder', desc: 'Collect 20 supply crates in a single run' },
+  { name: 'Storm Chaser', desc: 'Survive 3 storms in a single endless run' },
+  { name: 'Eye of the Storm', desc: 'Survive an Eclipse storm' },
 ];
 
 // Skin colors are trophies: each palette color has a lifetime unlock condition.
