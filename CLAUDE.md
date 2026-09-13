@@ -121,6 +121,13 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - Global leaderboard (optional, off until a Worker URL is configured) with anonymous codenames, Today/Week/All-time boards, and your rank on the results screen
 - OG/Twitter Card meta tags with branded og-image.png
 
+## Castle Powers (active spells)
+- `js/feat-powers.js` (loaded after `js/game.js`, before `js/screens.js`). Four active spells on a shared `game.mana` (0-100) bar: 🔥 Fireball (F, 35 mana, 12s cd, 90px blast), ⚡ Rally (G, 25 mana, 20s cd, reloads every tower + 30% fire rate for 5s via `game.rallyTimer`), ❄️ Frost (V, 30 mana, 18s cd, sets `e.slowed` on every enemy — reuses the Ice tower's fixed 50% slow, not a separate magnitude), 🔨 Repair (H, 40 mana, 25s cd, full-heals `game.walls` + 1 heart).
+- Mana charges from kills (`DIFFICULTY.manaPerKill`, default 4; bosses +25, via a hook in `damageEnemy`) and `DIFFICULTY.manaRegen`/s (default 2) while a wave is active — not during prep, when only Repair is usable.
+- `#powers-bar` (vertical stack, right edge; horizontal above the tower bar under ~1000px/620px) is built once by `buildPowersBar()` and refreshed each frame by `updatePowersBar(dt)` (called from `loop()`), which only touches the DOM when the rounded mana value or a cooldown's ceiling second changes.
+- Fireball is a targeted power: `castPower('fireball')` arms `game.powerTargeting = 'fireball'`, drawn as a range ring by `drawPowerTargeting()` (hooked into `render()`); the next canvas click is consumed by `powerHandleCanvasClick()`, hooked at the top of the click handler in `js/input.js`. Escape cancels.
+- State (`mana`, `powerCooldowns`, `powersCast`) persists in the run save (`saveGameState()`/`startGame(resume)`) with backward-compatible `|| 0` / `|| {}` defaults. "Archmage" achievement fires at 25 casts in a run.
+
 ## Conventions
 - No build tools — edit index.html directly
 - Use CSS variables from `:root` for colors

@@ -1,7 +1,7 @@
 // Castle Defense service worker — offline-first shell cache.
 // Bump the version string whenever the shell (index.html, css/, js/) ships meaningful changes.
 // Every file listed in ASSETS is precached; add new js/css files here when you create them.
-const CACHE = 'castle-defense-v3';
+const CACHE = 'castle-defense-v4';
 const ASSETS = [
   '.',
   'index.html',
@@ -16,6 +16,7 @@ const ASSETS = [
   'js/render-fx.js',
   'js/waves.js',
   'js/game.js',
+  'js/feat-powers.js',
   'js/screens.js',
   'js/admin.js',
   'js/ui.js',

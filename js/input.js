@@ -31,6 +31,7 @@ C.addEventListener('click', e => {
   mouse.ty = Math.floor(mouse.y / TILE);
   const tx = mouse.tx, ty = mouse.ty;
   if (tx < 0 || tx >= COLS || ty < 0 || ty >= ROWS) return;
+  if (powerHandleCanvasClick(tx, ty, mouse.x, mouse.y)) return;
 
   // Touch flow: first tap arms the tile (ghost + range preview), second tap on the same tile confirms
   if (IS_TOUCH) {

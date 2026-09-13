@@ -305,6 +305,7 @@ function setGameChromeVisible(show) {
   document.getElementById('ui').style.display = show ? 'flex' : 'none';
   document.getElementById('tower-bar').style.display = show ? 'flex' : 'none';
   document.getElementById('build-tabs').classList.toggle('show', show);
+  document.getElementById('powers-bar').classList.toggle('show', show);
 }
 
 function renderHomeScreen() {
