@@ -1,39 +1,49 @@
 # Castle Defense - Project Notes
 
 ## About
-Single-file HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no server — one `index.html` file with all CSS/JS inline, plus PWA sidecar files (`manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`). Deployed to GitHub Pages at https://bnjmnsmmr.github.io/castledefense/
+HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bundler, no server — `index.html` (markup only) loads plain CSS from `css/` and classic `<script>` files from `js/` in a fixed order. PWA sidecar files: `manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`. Deployed to GitHub Pages at https://bnjmnsmmr.github.io/castledefense/
 
 ## PWA
-- Installable: manifest (fullscreen, landscape) + `sw.js` (stale-while-revalidate shell cache, cache name — currently `castle-defense-v2`; bump it on meaningful releases). Registered from index.html, skipped on `file:`.
+- Installable: manifest (fullscreen, landscape) + `sw.js` (stale-while-revalidate shell cache, cache name — currently `castle-defense-v3`; bump it on meaningful releases). Registered from `js/main.js`, skipped on `file:`.
+- **`sw.js` ASSETS lists every css/js file.** If you add a new module, add it there too or installed players never receive it.
 - Icons drawn programmatically (canvas → PNG); regenerate by re-rendering if the brand changes.
 
 ## Architecture
-- **Single file**: `/index.html` (~4500 lines) — CSS variables in `:root`, all JS in one `<script>` block
-- **Rendering**: HTML5 Canvas (`#c`), tile-based grid (COLS x ROWS, TILE=40px)
-- **Game state**: `game` object initialized by `initGame()`, started by `startGame(resume)`
-- **Persistence**: `localStorage` for saves (`castleDefenseSave`), admin config (`castleDefenseConfig`), skins (`castleDefenseSkins`), daily best (`castleDefenseDailyBest`), lifetime profile (`castleDefenseProfile`), local board (`castleDefenseHallOfFame`), leaderboard identity (`castleDefenseIdentity`)
-- **Optional backend**: `server/` (Cloudflare Worker + D1) powers the global leaderboard; the game runs fully standalone without it
-- **Deployment**: GitHub Actions workflow (`.github/workflows/deploy-pages.yml`) — pushes to main auto-deploy
+- **Shared global scope, no modules.** Every file is a classic script; top-level `const`/`let`/`function` declarations are visible to every later file and to inline `onclick` handlers in index.html. There is no `import`/`export` and no namespace object — do not introduce ES modules (they would break inline handlers and change scoping).
+- **Load order matters only at load time.** Functions may reference anything in any file because they run after all scripts load. Top-level *statements* (anything executed while a file loads) may only reference files above it. All boot-time calls live in `js/main.js`, which is last. Keep new load-time work there.
+- **Rendering**: HTML5 Canvas (`#c`), tile-based grid (COLS x ROWS, TILE=40px).
+- **Game state**: `game` object initialized by `initGame()`, started by `startGame(resume)`.
+- **Persistence**: `localStorage` for saves (`castleDefenseSave`), admin config (`castleDefenseConfig`), skins (`castleDefenseSkins`), daily best (`castleDefenseDailyBest`), lifetime profile (`castleDefenseProfile`), local board (`castleDefenseHallOfFame`), leaderboard identity (`castleDefenseIdentity`), saved level codes (`castleDefenseLevels`).
+- **Optional backend**: `server/` (Cloudflare Worker + D1) powers the global leaderboard; the game runs fully standalone without it.
+- **Deployment**: GitHub Actions workflow (`.github/workflows/deploy-pages.yml`) — pushes to main auto-deploy the whole repo.
 
-## Key sections (approximate line ranges)
-- CSS variables & styles: 1-380
-- HUD / overlay HTML: 380-510
-- Tower definitions (`TOWER_TYPES`): ~577
-- Tower sprites (`TOWER_SPRITES`): ~603
-- Skin system (`SKIN_PALETTE`, `TOWER_SKIN_OPTIONS`): ~743
-- Enemy definitions (`ENEMY_DEFS`): ~810
-- World themes (`WORLD_THEMES`): ~860
-- Save/load system: ~998
-- Home screen / daily challenge / customize: ~1027-1200
-- Wave generation: ~1350
-- `initGame()` / `startGame()`: ~1436
-- Achievements: ~1510
-- Terrain rendering (`buildGroundCache`): ~1740
-- Castle drawing (`drawCastle`): ~1770
-- Enemy sprites: ~2400
-- Game loop (`loop`, `update`, `render`): ~3350
-- Secret keyboard combos: ~4360
-- Tower bar UI (`buildTowerBar`): ~4500
+## Module map (load order = this order)
+| File | Owns |
+|---|---|
+| `css/base.css` | `:root` design tokens, HUD, tower bar, buttons, toasts, banners |
+| `css/screens.css` | Every overlay/panel: start/results, pause, admin, merchant, guardian, home, community, customize, achievements, Hall of Fame, leaderboard, tutorial coach marks |
+| `css/responsive.css` | Mobile / short-screen / coarse-pointer media queries |
+| `js/config.js` | **Pure data.** `TILE/COLS/ROWS`, `ALL_PATHS`, `DIFFICULTY`, `TOWER_TYPES`, `WALL_TYPES`, `TOWER_INFO`, `SKIN_PALETTE`, `ADJECTIVES/NOUNS`, `ACHIEVEMENT_DEFS`, `SKIN_UNLOCKS`, `ENEMY_DEFS`, `BOSS_DEFS`, `BOSS_ABILITIES`, `WORLD_THEMES`, `ENEMY_NAMES`. New tunables go here. |
+| `js/core.js` | Canvas `C`/`ctx`, `game`, `$id()` DOM cache, lane helpers (`isPath`, `wallAt`…), admin overrides (`loadConfigOverrides`), run save (`saveGameState`/`requestSave`/`loadGameState`), `profile`, skins runtime, Hall of Fame, leaderboard client |
+| `js/audio.js` | Music (`WORLD_MUSIC`, `startMusic`), SFX engine (`SFX`, `sfxTone`, `sfxNoise`), UI click sound |
+| `js/render-world.js` | `WALL_SPRITES`, `TOWER_SPRITES`, `resize`, ground cache, `drawCastle`, `drawWalls`, `drawTowers`, placement ghosts |
+| `js/render-enemies.js` | Offscreen buffer compositing, `ENEMY_DRAWERS`, one `drawX()` per enemy type |
+| `js/render-fx.js` | Projectiles, particles, shockwaves, boss bar, damage numbers, shake, hero, nugget, crates, wave notice |
+| `js/waves.js` | `getWave(n)` composition table + endless generator, `pathToPixels`, `sendWave`, `spawnWave`, auto-wave |
+| `js/game.js` | `initGame`/`startGame`, `loop`/`update`/`render`, speed/pause, boss abilities, `damageEnemy`, `updateUI`, `endGame`, wall placement, crates |
+| `js/screens.js` | Home, tutorial, daily challenge, customize, achievements gallery, leaderboard UI, community levels, save-layout flow, share |
+| `js/admin.js` | Admin tuning panel |
+| `js/ui.js` | Guardian merchant, `notify`/`showFlash`, `showBannerText`, build tabs + `buildTowerBar` |
+| `js/input.js` | Canvas mouse/touch, keyboard, secret combos |
+| `js/main.js` | Boot only: `loadConfigOverrides()`, `applySkinSelections()`, `buildTowerBar()`, `renderHomeScreen()`, SW registration |
+
+## Performance conventions
+- Per-frame code uses `$id('x')` (cached) instead of `document.getElementById`. Only for elements in the static markup; anything rebuilt via `innerHTML` must be looked up fresh.
+- `updateUI()` calls `requestSave()`; the loop flushes to localStorage at most once per second via `flushSaveIfDue`. Call `saveGameState()` directly only where the save must land immediately (pause, quit, `beforeunload`).
+- Ground is pre-rendered to an offscreen canvas (`buildGroundCache`) and only rebuilt when the active lane set or theme changes. Enemy sprites composite through shared offscreen buffers.
+
+## Smoke test
+`python3 -m http.server 8123` then drive `http://localhost:8123/index.html` with Playwright (Chromium is preinstalled in the remote env): load, `startGame(false)`, dispatch two clicks on a grass tile to place a tower, `sendWave()`, wait, assert no `pageerror`. A `net::ERR_CONNECTION_RESET` for fonts.googleapis.com is the sandbox, not the game.
 
 ## Walls (barricades)
 - `WALL_TYPES` (Palisade / Rampart / Stone / Bulwark) — built **on the path**, which is the opposite of towers. `game.walls` holds `{tx, ty, type, hp, maxHp}`; persisted in the save.
