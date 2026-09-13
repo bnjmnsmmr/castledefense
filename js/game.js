@@ -69,6 +69,7 @@ function startGame(resume) {
     clearGameState();
   }
   game.prepPhase = true;
+  updateWaveIntel();
   game.betweenWaves = false;
   game.waveActive = false;
   document.getElementById('overlay').style.display = 'none';
@@ -788,6 +789,7 @@ function update(dt) {
     }
 
     game.prepPhase = true;
+    updateWaveIntel();
     spawnSupplyCrates();
     document.getElementById('send-wave-btn').style.display = 'block';
     if (game.autoWave) game.autoWaveTimer = worldedUp ? 6 : 4;
@@ -1012,6 +1014,7 @@ function render() {
     ctx.translate((Math.random()-0.5)*s*2, (Math.random()-0.5)*s*2);
   }
   drawGround();
+  drawIntelMapHints();
   drawPlacement();
   drawSupplyCrates();
   drawTowers();

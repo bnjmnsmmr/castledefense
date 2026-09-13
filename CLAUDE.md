@@ -90,6 +90,12 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - `ACHIEVEMENT_DEFS` is the canonical gallery list (secrets show as "???" until earned); `unlockAchievement()` records globally too. Gallery screen: `openAchievementsScreen()` (`#achievements-panel`).
 - Skins are trophies: `SKIN_UNLOCKS` maps palette ids to lifetime conditions (`isSkinUnlocked()`); locked skins are greyed in Customize; `checkSkinUnlockNotifications()` toasts new unlocks after waves/achievements.
 
+## Next-wave intel panel
+- `js/feat-intel.js` owns `#wave-intel`, docked just above the SEND WAVE button during `game.prepPhase`: an icon row (enemy sprites drawn once via `ENEMY_DRAWERS` into cached offscreen canvases, `×count`, hover title = name + trait), a lane chip strip (`ALL_PATHS`, pulses `.new-route` when `getActivePaths(wave)` grew), a boss warning on the final wave of a world (name + `BOSS_ABILITY_LABEL`d abilities), and a rough HP-vs-DPS "Comfortable/Tight/Danger" estimate — all computed by `computeWaveIntel()` from `getWave(game.wave)`.
+- Updated via `updateWaveIntel()` at every site `game.prepPhase` becomes `true` (`startGame`/`update()` in js/game.js, `startDailyChallenge()` in js/screens.js), hidden via `hideWaveIntel()` in `sendWave()` (js/waves.js) and `setGameChromeVisible(false)` (js/screens.js) — not polled per-frame.
+- `drawIntelMapHints()` is called from `render()` every frame during prep: a pulsing glow/arrow at a newly-unlocked lane's spawn tile plus a dashed preview of that lane.
+- Collapsible (`toggleWaveIntelCollapsed()`), remembered in `castleDefenseIntelCollapsed`. At `max-height:620px` only the icon row shows; at `max-width:1000px` it shrinks but never overlaps the tower bar or SEND WAVE.
+
 ## Mobile / touch
 - `IS_TOUCH` (pointer: coarse). Canvas taps use a two-tap confirm: first tap arms `game.pendingTile` + shows ghost/range, second tap on the same tile executes (build/upgrade/sell).
 - Canvas click handler computes tile coords from the event (never rely on mousemove).

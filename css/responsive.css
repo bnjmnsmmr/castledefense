@@ -62,4 +62,17 @@
   .power-row { flex-direction: row; gap: 6px; }
   .power-btn { width: 40px; height: 40px; min-width: 40px; min-height: 40px; }
   .power-emoji { font-size: 16px; }
+/* ===== Feature: next-wave intel panel — responsive tweaks ===== */
+@media (max-width: 1000px) {
+  #wave-intel { bottom: 160px; width: min(94vw, 320px); max-height: 34vh; }
+  #wi-header { font-size: 9.5px; padding: 6px 10px; }
+  #wi-body { padding: 7px 10px 9px; gap: 6px; }
+  .wi-icon-item canvas { width: 22px; height: 22px; }
+  .wi-lane { font-size: 8.5px; padding: 2px 6px; }
+  .wi-boss, .wi-hp-bar { font-size: 10px; }
+}
+@media (max-height: 620px) {
+  #wave-intel { bottom: 148px; max-height: none; }
+  #wi-lanes, #wi-boss, #wi-hp { display: none !important; }
+  #wi-body { padding: 6px 9px 7px; }
 }

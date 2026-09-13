@@ -313,6 +313,7 @@ function setGameChromeVisible(show) {
   document.getElementById('build-tabs').classList.toggle('show', show);
   document.getElementById('powers-bar').classList.toggle('show', show);
   if (!show) hideTowerCard(); // js/feat-targeting.js
+  if (!show) hideWaveIntel();
 }
 
 function renderHomeScreen() {
@@ -524,6 +525,7 @@ function startDailyChallenge() {
   game.gold = 100;
   game.forcedThemeIdx = seed % WORLD_THEMES.length;
   game.prepPhase = true;
+  updateWaveIntel();
   game.betweenWaves = false;
   game.waveActive = false;
   document.getElementById('overlay').style.display = 'none';

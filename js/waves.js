@@ -113,6 +113,7 @@ function toggleAutoWave() {
 function sendWave() {
   if (!game || !game.prepPhase || game.gameOver || game.relicDraftActive) return;
   game.prepPhase = false;
+  hideWaveIntel();
   game.newPathUnlocked = null;
   game.supplyCrates = [];
   game.waveStartHp = game.hp; // for the Flawless bonus

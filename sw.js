@@ -23,6 +23,7 @@ const ASSETS = [
   'js/feat-relics.js',
   'js/feat-targeting.js',
   'js/feat-branches.js',
+  'js/feat-intel.js',
   'js/screens.js',
   'js/admin.js',
   'js/ui.js',
