@@ -56,7 +56,7 @@ function startGame(resume) {
     game.speed = saved.speed || 1;
     game.activePaths = getActivePaths(game.wave);
     pathSet = buildPathSet(game.wave);
-    game.towers = (saved.towers || []).map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, cooldown: 0, angle: 0 }));
+    game.towers = (saved.towers || []).map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, cooldown: 0, angle: 0, targetMode: t.targetMode || null }));
     game.walls = (saved.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp }));
   } else {
     clearGameState();
@@ -460,13 +460,9 @@ function update(dt) {
     const cx = t.tx * TILE + TILE/2;
     const cy = t.ty * TILE + TILE/2;
 
-    // Find nearest enemy in range
-    let best = null, bestDist = Infinity;
-    for (const e of game.enemies) {
-      if (e.dead || e.untargetable > 0) continue;
-      const d = Math.hypot(e.x - cx, e.y - cy);
-      if (d <= def.range && d < bestDist) { best = e; bestDist = d; }
-    }
+    // Find target enemy in range per this tower's targeting mode (js/feat-targeting.js)
+    const best = pickTarget(t, def, cx, cy);
+    const bestDist = best ? Math.hypot(best.x - cx, best.y - cy) : Infinity;
 
     if (best) {
       t.cooldown = def.rate * (game.rapidFireTimer > 0 ? 0.5 : 1);
@@ -514,12 +510,12 @@ function update(dt) {
           for (const tgt of targets) {
             globalHit.add(tgt);
             const hitDmg = def.pctDmg ? tgt.maxHp * def.pctDmg : def.dmg;
-            damageEnemy(tgt, hitDmg);
+            damageEnemy(tgt, hitDmg, t);
             if (def.arcSplash) {
               for (const e2 of game.enemies) {
                 if (e2.dead || e2 === tgt || targets.includes(e2)) continue;
                 if (Math.hypot(e2.x - tgt.x, e2.y - tgt.y) < def.arcSplash) {
-                  damageEnemy(e2, def.dmg * 0.4);
+                  damageEnemy(e2, def.dmg * 0.4, t);
                   spawnParticles(e2.x, e2.y, '#ccff88', 3);
                 }
               }
@@ -547,8 +543,8 @@ function update(dt) {
           while (diff > Math.PI) diff -= Math.PI*2;
           while (diff < -Math.PI) diff += Math.PI*2;
           if (Math.abs(diff) < 0.5) { // ~57 degree cone
-            damageEnemy(e, def.dmg);
-            if (def.dot) { e.dotTimer = def.dotDur; e.dotDmg = def.dot; e.dotTickTimer = 0; }
+            damageEnemy(e, def.dmg, t);
+            if (def.dot) { e.dotTimer = def.dotDur; e.dotDmg = def.dot; e.dotTickTimer = 0; e.dotSource = t; }
           }
         }
         // Flame visual
@@ -572,7 +568,7 @@ function update(dt) {
           game.projectiles.push({
             x: cx, y: cy,
             vx: (pdx / pd) * def.projSpeed * TILE, vy: (pdy / pd) * def.projSpeed * TILE,
-            dmg: def.dmg, color: def.projColor, life: 2
+            dmg: def.dmg, color: def.projColor, life: 2, source: t
           });
         }
         continue;
@@ -585,7 +581,7 @@ function update(dt) {
           x: cx, y: cy,
           vx: (pdx / pd) * def.projSpeed * TILE, vy: (pdy / pd) * def.projSpeed * TILE,
           dmg: def.dmg, color: def.projColor, life: 2,
-          pierceLeft: lvl, hitList: []
+          pierceLeft: lvl, hitList: [], source: t
         });
         continue;
       }
@@ -611,7 +607,7 @@ function update(dt) {
         splash: def.splash || 0, slow: def.slow || 0, slowDur: def.slowDur || 0,
         cluster: def.cluster || 0, infect: def.infect || 0,
         dot: def.dot || 0, dotDur: def.dotDur || 0,
-        life: 2
+        life: 2, source: t
       });
     }
   }
@@ -623,14 +619,14 @@ function update(dt) {
     e.dotTickTimer = (e.dotTickTimer || 0) - dt;
     if (e.dotTickTimer <= 0) {
       e.dotTickTimer = 0.5;
-      damageEnemy(e, e.dotDmg || 4);
+      damageEnemy(e, e.dotDmg || 4, e.dotSource);
       spawnParticles(e.x, e.y, '#44cc66', 2);
       // Upgraded Poison: infection spreads to nearby healthy enemies
       if (e.infect) {
         for (const e2 of game.enemies) {
           if (e2.dead || e2 === e || e2.dotTimer > 0) continue;
           if (Math.hypot(e2.x - e.x, e2.y - e.y) < 40 && Math.random() < 0.25) {
-            e2.dotTimer = e.dotTimer; e2.dotDmg = e.dotDmg; e2.dotTickTimer = 0; e2.infect = e.infect;
+            e2.dotTimer = e.dotTimer; e2.dotDmg = e.dotDmg; e2.dotTickTimer = 0; e2.infect = e.infect; e2.dotSource = e.dotSource;
             spawnParticles(e2.x, e2.y, '#44cc66', 4);
           }
         }
@@ -660,9 +656,9 @@ function update(dt) {
             if (e2.dead) continue;
             const d2 = Math.hypot(e2.x - p.x, e2.y - p.y);
             if (d2 < p.splash) {
-              damageEnemy(e2, p.dmg * (1 - d2/p.splash * 0.5));
+              damageEnemy(e2, p.dmg * (1 - d2/p.splash * 0.5), p.source);
               if (p.slow) e2.slowed = p.slowDur;
-              if (p.dot) { e2.dotTimer = p.dotDur; e2.dotDmg = p.dot; e2.dotTickTimer = 0; }
+              if (p.dot) { e2.dotTimer = p.dotDur; e2.dotDmg = p.dot; e2.dotTickTimer = 0; e2.dotSource = p.source; }
             }
           }
           spawnParticles(p.x, p.y, p.color, 10);
@@ -673,17 +669,17 @@ function update(dt) {
               const bx = p.x + Math.cos(ang) * dist, by = p.y + Math.sin(ang) * dist;
               for (const e3 of game.enemies) {
                 if (e3.dead) continue;
-                if (Math.hypot(e3.x - bx, e3.y - by) < 30) damageEnemy(e3, p.dmg * 0.35);
+                if (Math.hypot(e3.x - bx, e3.y - by) < 30) damageEnemy(e3, p.dmg * 0.35, p.source);
               }
               spawnParticles(bx, by, '#ccaa66', 5);
             }
           }
         } else {
-          damageEnemy(e, p.dmg);
+          damageEnemy(e, p.dmg, p.source);
           if (p.slow) e.slowed = p.slowDur;
           // Poison DoT
           if (p.dot) {
-            e.dotTimer = p.dotDur; e.dotDmg = p.dot; e.dotTickTimer = 0;
+            e.dotTimer = p.dotDur; e.dotDmg = p.dot; e.dotTickTimer = 0; e.dotSource = p.source;
             if (p.infect) e.infect = p.infect; // marks this enemy's poison as contagious
           }
           spawnParticles(p.x, p.y, p.color, 4);
@@ -917,7 +913,7 @@ function fireBossAbility(b, a) {
 
 // Shockwave rings from boss slams
 
-function damageEnemy(e, dmg) {
+function damageEnemy(e, dmg, source) {
   // Burrowed / phased out: immune on every path (direct, splash, chain, cone, ZAP)
   if (e.untargetable > 0) return;
   // Shield absorbs damage first
@@ -930,6 +926,7 @@ function damageEnemy(e, dmg) {
     if (dmg <= 0) return;
   }
   e.hp -= dmg;
+  if (source) source.dmgDealt = (source.dmgDealt || 0) + dmg; // tower inspect card (js/feat-targeting.js)
   e.hitFlash = 0.06; // white flash
   const isCrit = dmg >= 60;
   spawnDamageNum(e.x + (Math.random()-0.5)*16, e.y - 14, Math.round(dmg), isCrit ? 'crit' : (dmg < 6 ? 'dot' : 'normal'));
@@ -957,6 +954,7 @@ function damageEnemy(e, dmg) {
     }
     game.gold += def.reward;
     game.kills++;
+    if (source) source.kills = (source.kills || 0) + 1; // tower inspect card (js/feat-targeting.js)
     profile.stats.totalKills = (profile.stats.totalKills || 0) + 1;
     gainXP(def.xp || 1);
     SFX.play('death');
@@ -1161,6 +1159,7 @@ function endGame() {
       </div>
     `;
   }
+  renderMvpCard(ov.querySelector('.go-grid')); // js/feat-targeting.js
   // Achievement names go in via textContent (they can contain arbitrary strings)
   const chipEls = ov.querySelectorAll('.go-ach span');
   achEarned.forEach((name, i) => { if (chipEls[i]) chipEls[i].textContent = name; });

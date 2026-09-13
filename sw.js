@@ -16,6 +16,7 @@ const ASSETS = [
   'js/render-fx.js',
   'js/waves.js',
   'js/game.js',
+  'js/feat-targeting.js',
   'js/screens.js',
   'js/admin.js',
   'js/ui.js',

@@ -18,6 +18,7 @@ C.addEventListener('mousemove', e => {
     for (const t of game.towers) {
       t.hover = (t.tx === mouse.tx && t.ty === mouse.ty);
     }
+    handleTowerHoverUpdate(); // js/feat-targeting.js — desktop inspect card
   }
 });
 
@@ -37,10 +38,14 @@ C.addEventListener('click', e => {
     for (const t of game.towers) t.hover = (t.tx === tx && t.ty === ty);
     if (!game.pendingTile || game.pendingTile.tx !== tx || game.pendingTile.ty !== ty) {
       game.pendingTile = { tx, ty };
+      const armedTower = game.towers.find(tw => tw.tx === tx && tw.ty === ty);
+      if (armedTower) showTowerCard(armedTower); else hideTowerCard(); // js/feat-targeting.js
       return;
     }
     game.pendingTile = null;
   }
+
+  if (!game.towers.some(tw => tw.tx === tx && tw.ty === ty)) hideTowerCard(); // js/feat-targeting.js
 
   // Supply crate collection
   if (collectCrate(tx, ty)) return;
@@ -78,6 +83,7 @@ C.addEventListener('click', e => {
 
   const existing = game.towers.find(t => t.tx === tx && t.ty === ty);
   if (existing) {
+    showTowerCard(existing); // js/feat-targeting.js — informational, doesn't change the upgrade flow below
     const pts = availableUpgradePoints();
     if (pts <= 0) {
       guardianPester();
@@ -100,6 +106,7 @@ C.addEventListener('click', e => {
       : ' — attack intensified!';
     showFlash(`⬆️ ${TOWER_TYPES[existing.type].name} Lv.${existing.level}${label}`);
     updateUI();
+    showTowerCard(existing); // refresh the card with the new level
     return;
   }
 
@@ -233,6 +240,10 @@ document.addEventListener('keydown', e => {
   if (e.key === 'x' || e.key === 'X') {
     if (game) game.trashMode = !game.trashMode;
     updateTowerBar();
+    return;
+  }
+  if (!typingNow && (e.key === 't' || e.key === 'T') && game && game.selectedTowerRef) {
+    cycleTargetMode(game.selectedTowerRef); // js/feat-targeting.js
     return;
   }
   // Q/W/E/R select a wall and flip the bar into wall mode
