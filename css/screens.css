@@ -471,3 +471,61 @@
 }
 #coach-skip:hover { color: var(--parchment); }
 #coach-wait { font-size: 11.5px; color: var(--gold); font-weight: 700; animation: xpshimmer 1.4s infinite; }
+
+/* ===== Feature: Relic Draft (roguelite perks between worlds) ===== */
+#relic-tray {
+  display: none; position: absolute; top: 66px; left: 16px; z-index: 10;
+  gap: 6px; flex-wrap: wrap; max-width: 220px;
+}
+.relic-chip {
+  width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; background: var(--bg-panel); border: 1px solid var(--gold);
+  box-shadow: 0 0 8px rgba(232,182,76,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+  cursor: default; user-select: none;
+}
+#relic-draft {
+  display: none; position: absolute; inset: 0; z-index: 250;
+  background: radial-gradient(ellipse at 50% 30%, rgba(60,45,30,0.7), rgba(14,10,8,0.94) 75%);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px; box-sizing: border-box; color: var(--parchment); text-align: center;
+}
+#relic-draft.show { display: flex; }
+.relic-draft-title { font-family: var(--font-display); font-weight: 900; font-size: 34px; color: var(--gold); letter-spacing: 3px; }
+.relic-draft-sub { font-size: 13px; color: var(--parchment-dim); margin: 8px 0 26px; }
+.relic-draft-cards { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; max-width: 780px; }
+.relic-card {
+  width: 210px; min-height: 40px; padding: 18px 16px;
+  background: linear-gradient(180deg, var(--bg-panel-raised), var(--bg-panel));
+  border: 1px solid var(--border-brass); border-radius: var(--radius-lg);
+  color: var(--parchment); font-family: var(--font-ui); cursor: pointer; position: relative;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+}
+.relic-card:hover, .relic-card:focus-visible {
+  transform: translateY(-4px); border-color: var(--gold);
+  box-shadow: 0 10px 26px rgba(232,182,76,0.25);
+}
+.relic-key {
+  position: absolute; top: 8px; left: 10px; width: 18px; height: 18px; border-radius: 4px;
+  background: rgba(255,255,255,0.08); border: 1px solid var(--border-brass);
+  font-size: 10px; font-weight: 800; color: var(--parchment-dim); display: flex; align-items: center; justify-content: center;
+}
+.relic-emoji { font-size: 32px; margin-bottom: 8px; }
+.relic-name { font-weight: 800; font-size: 15px; color: var(--gold-bright); margin-bottom: 6px; }
+.relic-desc { font-size: 12px; line-height: 1.45; color: var(--parchment-dim); }
+#go-relics:empty { display: none; }
+.go-relic-label { font-size: 10.5px; letter-spacing: 1.5px; color: var(--parchment-dim); font-weight: 700; margin: 14px 0 8px; }
+.go-relic-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 480px; margin: 0 auto 6px; }
+.go-relic-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 20px;
+  background: rgba(232,182,76,0.12); border: 1px solid rgba(232,182,76,0.4);
+  font-size: 11.5px; font-weight: 700; color: var(--gold-bright);
+}
+@media (max-width: 1000px) {
+  .relic-draft-title { font-size: 24px; }
+  .relic-card { width: 44%; min-width: 140px; padding: 14px 10px; }
+  .relic-emoji { font-size: 26px; }
+  #relic-tray { top: 56px; max-width: 160px; }
+  .relic-chip { width: 26px; height: 26px; font-size: 13px; }
+}

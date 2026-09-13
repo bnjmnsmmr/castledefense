@@ -51,7 +51,7 @@ C.addEventListener('click', e => {
     const wIdx = (game.walls || []).findIndex(w => w.tx === tx && w.ty === ty);
     if (wIdx !== -1) {
       const w = game.walls[wIdx];
-      const refund = Math.floor((w.buyCost || WALL_TYPES[w.type].cost) * DIFFICULTY.sellRefundRate * (w.hp / w.maxHp));
+      const refund = Math.floor((w.buyCost || WALL_TYPES[w.type].cost) * getSellRefundRate() * (w.hp / w.maxHp));
       game.walls.splice(wIdx, 1);
       game.gold += refund;
       SFX.play('sell');
@@ -63,7 +63,7 @@ C.addEventListener('click', e => {
     const idx = game.towers.findIndex(t => t.tx === tx && t.ty === ty);
     if (idx === -1) { showFlash('Nothing there to sell'); return; }
     const sold = game.towers[idx];
-    const refund = Math.floor(TOWER_TYPES[sold.type].cost * DIFFICULTY.sellRefundRate);
+    const refund = Math.floor(TOWER_TYPES[sold.type].cost * getSellRefundRate());
     game.towers.splice(idx, 1);
     game.gold += refund;
     SFX.play('sell');

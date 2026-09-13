@@ -37,7 +37,7 @@ function isCastle(tx, ty) { return tx >= 28 && ty >= 6 && ty <= 10; }
 function getWallCost(typeIdx) {
   const base = WALL_TYPES[typeIdx].cost;
   const world = (game ? game.world : 1);
-  return Math.floor(base * (1 + (world - 1) * DIFFICULTY.wallCostScale));
+  return Math.floor(base * (1 + (world - 1) * DIFFICULTY.wallCostScale) * relicMult('wallCost'));
 }
 
 function wallAt(tx, ty) {
@@ -88,6 +88,7 @@ function saveGameState() {
       mana: game.mana || 0, powerCooldowns: game.powerCooldowns || {}, powersCast: game.powersCast || 0,
       towers: game.towers.map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0 })),
       walls: (game.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp })),
+      relics: game.relics || [],
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
   } catch (e) { /* storage unavailable, ignore */ }

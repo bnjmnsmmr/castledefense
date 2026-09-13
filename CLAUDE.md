@@ -31,6 +31,7 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 | `js/render-fx.js` | Projectiles, particles, shockwaves, boss bar, damage numbers, shake, hero, nugget, crates, wave notice |
 | `js/waves.js` | `getWave(n)` composition table + endless generator, `pathToPixels`, `sendWave`, `spawnWave`, auto-wave |
 | `js/game.js` | `initGame`/`startGame`, `loop`/`update`/`render`, speed/pause, boss abilities, `damageEnemy`, `updateUI`, `endGame`, wall placement, crates |
+| `js/feat-relics.js` | Relic draft between worlds — `RELICS` pool, `openRelicDraft`/`pickRelic`, `hasRelic`/`relicMult`, `renderRelicTray`/`renderRelicChips` |
 | `js/screens.js` | Home, tutorial, daily challenge, customize, achievements gallery, leaderboard UI, community levels, save-layout flow, share |
 | `js/admin.js` | Admin tuning panel |
 | `js/ui.js` | Guardian merchant, `notify`/`showFlash`, `showBannerText`, build tabs + `buildTowerBar` |
@@ -140,6 +141,12 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - `#powers-bar` (vertical stack, right edge; horizontal above the tower bar under ~1000px/620px) is built once by `buildPowersBar()` and refreshed each frame by `updatePowersBar(dt)` (called from `loop()`), which only touches the DOM when the rounded mana value or a cooldown's ceiling second changes.
 - Fireball is a targeted power: `castPower('fireball')` arms `game.powerTargeting = 'fireball'`, drawn as a range ring by `drawPowerTargeting()` (hooked into `render()`); the next canvas click is consumed by `powerHandleCanvasClick()`, hooked at the top of the click handler in `js/input.js`. Escape cancels.
 - State (`mana`, `powerCooldowns`, `powersCast`) persists in the run save (`saveGameState()`/`startGame(resume)`) with backward-compatible `|| 0` / `|| {}` defaults. "Archmage" achievement fires at 25 casts in a run.
+## Relics (roguelite draft)
+- `js/feat-relics.js` — on every world clear (never in Daily Challenge) the prep phase pauses and `#relic-draft` offers 3 of the 15 `RELICS` (click or keys 1/2/3). Picks persist as `game.relics` (id array), saved/restored via `saveGameState()`/`startGame(resume)`, and render as icons in the top-left `#relic-tray` (native `title` tooltip) and as chips on the results screen (`renderRelicChips`).
+- Effects are read passively through `hasRelic(id)` / `relicMult(kind)` / `getSellRefundRate()`, wired into existing systems via tiny hooks: tower stats (`applyRelicTowerDef`), ice slow stacking (`applyIceSlow`/`slowSpeedMult`), gold-from-kills, Gold Mine income, wall cost, sell refund, crate gold. `updateRelics(dt)` (called once from `update()`) drives the two passive per-frame relics: Masons' wall regen and Quartermaster's bonus mid-wave crate.
+- `second_wind` is checked in `trySecondWind()` where hearts would hit 0 — survives at 1 heart, once per world (tracked by `game.secondWindUsedWorld`). "Collector" achievement unlocks at 5 held relics.
+- While the draft overlay is open, a keydown listener registered before `js/input.js`'s (load order matters) swallows every key via `stopImmediatePropagation` so game hotkeys can't fire underneath; `sendWave()` also no-ops on `game.relicDraftActive`.
+- Known gap: the HP HUD only ever renders 25 pips, so `fortify`'s +5 max hearts increases `game.hp` functionally (more hits absorbed) without extra pips showing.
 
 ## Conventions
 - No build tools — edit index.html directly

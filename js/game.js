@@ -8,6 +8,7 @@ function initGame() {
     hp: DIFFICULTY.startHp, gold: DIFFICULTY.startGold, wave: 1, world: 1, kills: 0, xp: 0, upgradesSpent: 0, annihilatorUnlocked: false, triBeamEquipped: false,
     towers: [], enemies: [], projectiles: [], particles: [],
     walls: [],
+    relics: [],
     supplyCrates: [],
     goldMinesPlaced: 0,
     cratesCollected: 0,
@@ -61,6 +62,7 @@ function startGame(resume) {
     pathSet = buildPathSet(game.wave);
     game.towers = (saved.towers || []).map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, cooldown: 0, angle: 0 }));
     game.walls = (saved.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp }));
+    game.relics = saved.relics || [];
   } else {
     clearGameState();
   }
@@ -90,6 +92,7 @@ function startGame(resume) {
   stopHomeMusic();
   startMusic();
   updateUI();
+  renderRelicTray();
   // Render the board so player can see the map and place towers
   resize();
   render();
@@ -197,6 +200,7 @@ function update(dt) {
   if (game && game.infiniteGold) game.gold = Math.max(game.gold, 99999);
   // Between waves — now handled by sendWave button
   if (game.betweenWaves) return;
+  updateRelics(dt);
 
   // === GIANT HERO (Big Stache) ===
   if (!game.heroTimer) game.heroTimer = 15 + Math.random() * 10;
@@ -230,7 +234,7 @@ function update(dt) {
           continue;
         }
         e.dead = true;
-        game.gold += ENEMY_DEFS[e.type].reward;
+        game.gold += ENEMY_DEFS[e.type].reward * relicMult('gold');
         game.kills++;
         profile.stats.totalKills = (profile.stats.totalKills || 0) + 1;
         gainXP(ENEMY_DEFS[e.type].xp || 1);
@@ -299,7 +303,7 @@ function update(dt) {
     const def = ENEMY_DEFS[e.type];
     let spd = e.speed * (e.rageMult || 1);
     if (e.untargetable > 0) { e.untargetable -= dt; spd *= 2.2; } // burrowed: fast and unhittable
-    if (e.slowed > 0) { spd *= 0.5; e.slowed -= dt; }
+    if (e.slowed > 0) { spd *= slowSpeedMult(e); e.slowed -= dt; }
 
     const target = e.path[e.pathIdx + 1];
     if (!target) {
@@ -318,7 +322,7 @@ function update(dt) {
       game.hurtT = 0.3;
       spawnParticles(e.x, e.y, '#ff4444', e.boss ? 24 : 6);
       updateUI();
-      if (game.hp <= 0) endGame();
+      if (game.hp <= 0 && !trySecondWind()) endGame();
       continue;
     }
 
@@ -430,6 +434,7 @@ function update(dt) {
       if (base.id === 'poison') { def.infect = lvl; } // poison spreads to nearby enemies
       if (base.id === 'tesla')  { def.arcSplash = 20 + lvl * 8; } // each chain jump also arcs to nearby enemies
     }
+    def = applyRelicTowerDef(base, def);
     if (t.ammo === undefined) { t.ammo = def.ammo; t.maxAmmo = def.ammo; }
     else if (t.maxAmmo !== def.ammo) { t.ammo += (def.ammo - t.maxAmmo); t.maxAmmo = def.ammo; }
     // Knocked offline by a boss shockwave / frost nova
@@ -438,7 +443,7 @@ function update(dt) {
     // Gold Mine: generate passive income instead of attacking
     if (base.income) {
       t.incomeTimer = (t.incomeTimer || 0) + dt;
-      const rate = DIFFICULTY.goldMineRate * (1 + (lvl || 0) * 0.5);
+      const rate = DIFFICULTY.goldMineRate * (1 + (lvl || 0) * 0.5) * relicMult('goldMine');
       const earned = rate * dt;
       game.gold += earned;
       if (t.incomeTimer >= 1) {
@@ -668,7 +673,7 @@ function update(dt) {
             const d2 = Math.hypot(e2.x - p.x, e2.y - p.y);
             if (d2 < p.splash) {
               damageEnemy(e2, p.dmg * (1 - d2/p.splash * 0.5), p.src);
-              if (p.slow) e2.slowed = p.slowDur;
+              if (p.slow) applyIceSlow(e2, p.slowDur);
               if (p.dot) { e2.dotTimer = p.dotDur; e2.dotDmg = p.dot; e2.dotTickTimer = 0; e2.dotSrc = p.src; }
             }
           }
@@ -687,7 +692,7 @@ function update(dt) {
           }
         } else {
           damageEnemy(e, p.dmg, p.src);
-          if (p.slow) e.slowed = p.slowDur;
+          if (p.slow) applyIceSlow(e, p.slowDur);
           // Poison DoT
           if (p.dot) {
             e.dotTimer = p.dotDur; e.dotDmg = p.dot; e.dotTickTimer = 0; e.dotSrc = p.src;
@@ -780,6 +785,7 @@ function update(dt) {
     if (game.annihilatorUnlocked && !game.triBeamEquipped) showMerchant();
     if (worldedUp) {
       setTimeout(() => showWorldBanner(game.world, 'Welcome to the ' + getWorldTheme().name), 400);
+      if (!game.dailyChallenge) setTimeout(openRelicDraft, 1200);
     } else {
       showBannerText('WAVE ' + clearedWave + ' CLEARED', `+${waveBonus} GOLD EARNED${flawless ? ' · FLAWLESS' : ''}`);
     }
@@ -953,7 +959,7 @@ function damageEnemy(e, dmg, source) {
     if (e.boss) {
       // Boss kill: big payout, a banner, and a permanent trophy
       const bounty = 250 + game.world * 120;
-      game.gold += bounty;
+      game.gold += Math.round(bounty * relicMult('gold'));
       game.activeBoss = null;
       triggerShake(12, 0.7);
       SFX.play('boss_die');
@@ -964,7 +970,7 @@ function damageEnemy(e, dmg, source) {
       game.bossesSlain = (game.bossesSlain || 0) + 1;
       saveProfile();
     }
-    game.gold += def.reward;
+    game.gold += def.reward * relicMult('gold');
     game.kills++;
     gainMana(e.boss ? 25 : DIFFICULTY.manaPerKill);
     affixOnDeath(e);
@@ -1058,7 +1064,7 @@ function updateUI() {
   const incomeEl = $id('gold-income');
   const mines = game.towers.filter(t => TOWER_TYPES[t.type].income);
   if (mines.length > 0) {
-    const totalRate = mines.reduce((s, t) => s + DIFFICULTY.goldMineRate * (1 + (t.level || 0) * 0.5), 0);
+    const totalRate = mines.reduce((s, t) => s + DIFFICULTY.goldMineRate * (1 + (t.level || 0) * 0.5) * relicMult('goldMine'), 0);
     incomeEl.textContent = Math.round(totalRate) + '/s';
     incomeEl.style.display = '';
   } else {
@@ -1166,6 +1172,7 @@ function endGame() {
         ${game.bossesSlain ? statCard(game.bossesSlain, game.bossesSlain > 1 ? 'Bosses slain' : 'Boss slain', '') : statCard(achEarned.length, 'Achievements', '')}
       </div>
       ${achChips}
+      <div id="go-relics"></div>
       <div id="start-buttons">
         <button onclick="startGame(false)">PLAY AGAIN</button>
         <button class="secondary-btn" id="share-btn" onclick="shareRun()">SHARE YOUR SCORE</button>
@@ -1177,6 +1184,7 @@ function endGame() {
   // Achievement names go in via textContent (they can contain arbitrary strings)
   const chipEls = ov.querySelectorAll('.go-ach span');
   achEarned.forEach((name, i) => { if (chipEls[i]) chipEls[i].textContent = name; });
+  renderRelicChips('go-relics');
 }
 
 
@@ -1272,7 +1280,7 @@ function collectCrate(tx, ty) {
   if (idx === -1) return false;
   const crate = game.supplyCrates[idx];
   crate.collected = true;
-  game.gold += crate.gold;
+  game.gold += crate.gold * (hasRelic('magnet') ? 2 : 1);
   game.cratesCollected = (game.cratesCollected || 0) + 1;
   if (game.cratesCollected >= 20) unlockAchievement('Crate Hoarder', 'Collected 20 supply crates in a single run');
   SFX.play('coin');

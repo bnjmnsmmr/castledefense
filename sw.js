@@ -19,6 +19,7 @@ const ASSETS = [
   'js/feat-powers.js',
   'js/feat-affixes.js',
   'js/feat-combos.js',
+  'js/feat-relics.js',
   'js/screens.js',
   'js/admin.js',
   'js/ui.js',
