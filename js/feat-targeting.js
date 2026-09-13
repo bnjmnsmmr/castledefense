@@ -74,7 +74,7 @@ function showTowerCard(t) {
   const mode = getTargetMode(t);
   const canTarget = !base.income; // Gold Mine never attacks, hide the mode control
   el.innerHTML = `
-    <div class="tc-name">${base.name} <span class="tc-lvl">Lv.${t.level || 0}</span></div>
+    <div class="tc-name">${base.name} <span class="tc-lvl">Lv.${t.level || 0}${(() => { const b = t.branch && typeof branchDefFor === 'function' ? branchDefFor(base.id, t.branch) : null; return b ? ' · ' + b.name : ''; })()}</span></div>
     <div class="tc-row"><span>Kills</span><b>${t.kills || 0}</b></div>
     <div class="tc-row"><span>Damage dealt</span><b>${Math.round(t.dmgDealt || 0)}</b></div>
     ${canTarget ? `<button type="button" class="tc-mode" id="tc-mode-btn">TARGET: ${TARGET_MODE_LABEL[mode]}</button>` : ''}

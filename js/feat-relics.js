@@ -71,7 +71,7 @@ function applyIceSlow(e, dur) {
 }
 function slowSpeedMult(e) {
   const stacks = hasRelic('frostbite') ? Math.max(1, e.iceStacks || 1) : 1;
-  const reduction = Math.min(0.5 + 0.15 * (stacks - 1), 0.8);
+  const reduction = Math.max(Math.min(0.5 + 0.15 * (stacks - 1), 0.8), e.slowStrength || 0);
   return 1 - reduction;
 }
 
@@ -91,7 +91,7 @@ function trySecondWind() {
 // One-time effects applied at the moment a relic is picked (everything else is
 // read passively through hasRelic()/relicMult() above).
 function applyRelicPickEffect(id) {
-  if (id === 'fortify') { game.hp += 5; updateUI(); }
+  if (id === 'fortify') { game.maxHp = (game.maxHp || DIFFICULTY.startHp) + 5; game.hp += 5; updateUI(); }
 }
 
 // Passive per-frame relic systems: wall regen (masons) and bonus mid-wave

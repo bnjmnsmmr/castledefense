@@ -9,7 +9,7 @@
 const POWERS = [
   { id: 'fireball', emoji: '🔥', key: 'F', name: 'Fireball', cost: 35, cooldown: 12, radius: 90 },
   { id: 'rally',     emoji: '⚡', key: 'G', name: 'Rally',    cost: 25, cooldown: 20 },
-  { id: 'frost',     emoji: '❄️', key: 'V', name: 'Frost',    cost: 30, cooldown: 18, dur: 4 },
+  { id: 'frost',     emoji: '❄️', key: 'V', name: 'Frost',    cost: 30, cooldown: 18, dur: 4, slow: 0.6 },
   { id: 'repair',    emoji: '🔨', key: 'H', name: 'Repair',   cost: 40, cooldown: 25 },
 ];
 
@@ -107,16 +107,17 @@ function fireFrost() {
   for (const e of game.enemies) {
     if (e.dead) continue;
     e.slowed = Math.max(e.slowed || 0, p.dur);
+    e.slowStrength = Math.max(e.slowStrength || 0, p.slow); // stronger than the Ice tower's 50%
   }
   spawnParticles(C.width / 2, C.height / 2, '#bbffff', 26);
   triggerShake(3, 0.2);
   SFX.play('shot_ice');
-  showFlash('❄️ Frost! Every enemy slowed for 4s');
+  showFlash('❄️ Frost! Every enemy slowed 60% for 4s');
 }
 
 function fireRepair() {
   for (const w of game.walls || []) w.hp = w.maxHp;
-  game.hp = Math.min(DIFFICULTY.startHp, game.hp + 1);
+  game.hp = Math.min(game.maxHp || DIFFICULTY.startHp, game.hp + 1);
   spawnParticles(C.width / 2, C.height / 2, '#e8b64c', 26);
   SFX.play('wall_place');
   showFlash('🔨 Repair! Walls restored, +1 heart');

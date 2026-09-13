@@ -256,6 +256,7 @@ document.addEventListener('keydown', e => {
   // Q/W/E/R select a wall and flip the bar into wall mode
   const wallIdx = WALL_TYPES.findIndex(w => w.key === e.key.toUpperCase());
   if (wallIdx !== -1 && game && !game.gameOver) {
+    if (typeof modActive === 'function' && modActive('no_walls')) { showFlash('Walls are disabled this run (No Walls modifier)'); return; }
     game.selectedWall = wallIdx;
     game.buildMode = 'wall';
     game.trashMode = false;

@@ -91,6 +91,7 @@ function saveGameState() {
       modifiers: game.modifiers || [], scoreMult: game.scoreMult || 1,
       walls: (game.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp })),
       relics: game.relics || [],
+      maxHp: game.maxHp || DIFFICULTY.startHp,
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
   } catch (e) { /* storage unavailable, ignore */ }

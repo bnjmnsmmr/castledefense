@@ -482,7 +482,7 @@ function drawGround() {
 // --- REALISTIC 3/4-VIEW CASTLE WITH DAMAGE STATES ---
 function drawCastle() {
   const t = Date.now() / 1000;
-  const hpPct = game ? Math.max(game.hp / (DIFFICULTY.startHp || 25), 0) : 1;
+  const hpPct = game ? Math.max(game.hp / (game.maxHp || DIFFICULTY.startHp || 25), 0) : 1;
   const cx0 = 28 * TILE, cy0 = 6 * TILE, cw = 2 * TILE, ch = 5 * TILE;
   const theme = getWorldTheme();
   const D = 13, DY = 7; // side-face depth offsets (pseudo-isometric)

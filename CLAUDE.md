@@ -129,7 +129,7 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - **Gold Mine tower**: income tower (key `0`). Generates `DIFFICULTY.goldMineRate` gold/sec (default 2), scaling +50% per upgrade level. No targeting, no projectiles — the update loop `continue`s past combat for `base.income` towers. Shows a floating +gold number every second.
 - **Supply Crates**: `spawnSupplyCrates()` runs at the start of every prep phase. 1-3 crates (more in later worlds) on random empty non-path tiles. Click to collect (`collectCrate(tx, ty)` → bonus gold + coin SFX + particles). Crates clear when the wave starts.
 - Achievements: "Gold Rush" (place 3 Gold Mines), "Crate Hoarder" (collect 20 crates in a run). Tracked via `game.goldMinesPlaced` / `game.cratesCollected`.
-- All new economy values are tunable in the admin panel under "Upgrades & economy".
+- All new economy values are tunable in the admin panel under "Upgrades & economy", along with `manaPerKill`/`manaRegen`, `affixChance`, `stormWaveLength`/`stormScoreBonusPerStorm`.
 
 ## Tower targeting & inspect card
 - `js/feat-targeting.js` owns per-tower targeting priority and the tower inspect card. `t.targetMode` is one of `'first'/'last'/'strong'/'weak'/'near'` (path progress furthest/least, HP highest/lowest, or nearest-in-range — the old default). `pickTarget(t, def, cx, cy)` replaces the inline nearest-enemy scan in `update()` (js/game.js); `getTargetMode(t)` lazily assigns a per-tower default the first time it's read (`DEFAULT_TARGET_MODE_BY_ID`: Sniper → `strong`, Ice → `first`, everything else → `near`) so old saves and community-level codes without the field still work. Persisted as one field in `saveGameState`/`startGame(resume)` (js/core.js, js/game.js) and in community level codes (`buildLevelPayload`/`startLevelFromPayload`, js/screens.js), validated against `TARGET_MODES` on load.
@@ -169,7 +169,7 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - OG/Twitter Card meta tags with branded og-image.png
 
 ## Castle Powers (active spells)
-- `js/feat-powers.js` (loaded after `js/game.js`, before `js/screens.js`). Four active spells on a shared `game.mana` (0-100) bar: 🔥 Fireball (F, 35 mana, 12s cd, 90px blast), ⚡ Rally (G, 25 mana, 20s cd, reloads every tower + 30% fire rate for 5s via `game.rallyTimer`), ❄️ Frost (V, 30 mana, 18s cd, sets `e.slowed` on every enemy — reuses the Ice tower's fixed 50% slow, not a separate magnitude), 🔨 Repair (H, 40 mana, 25s cd, full-heals `game.walls` + 1 heart).
+- `js/feat-powers.js` (loaded after `js/game.js`, before `js/screens.js`). Four active spells on a shared `game.mana` (0-100) bar: 🔥 Fireball (F, 35 mana, 12s cd, 90px blast), ⚡ Rally (G, 25 mana, 20s cd, reloads every tower + 30% fire rate for 5s via `game.rallyTimer`), ❄️ Frost (V, 30 mana, 18s cd, sets `e.slowed` + `e.slowStrength = 0.6` on every enemy — `slowSpeedMult()` takes the stronger of the ice slow and `slowStrength`, which clears when the slow expires), 🔨 Repair (H, 40 mana, 25s cd, full-heals `game.walls` + 1 heart).
 - Mana charges from kills (`DIFFICULTY.manaPerKill`, default 4; bosses +25, via a hook in `damageEnemy`) and `DIFFICULTY.manaRegen`/s (default 2) while a wave is active — not during prep, when only Repair is usable.
 - `#powers-bar` (vertical stack, right edge; horizontal above the tower bar under ~1000px/620px) is built once by `buildPowersBar()` and refreshed each frame by `updatePowersBar(dt)` (called from `loop()`), which only touches the DOM when the rounded mana value or a cooldown's ceiling second changes.
 - Fireball is a targeted power: `castPower('fireball')` arms `game.powerTargeting = 'fireball'`, drawn as a range ring by `drawPowerTargeting()` (hooked into `render()`); the next canvas click is consumed by `powerHandleCanvasClick()`, hooked at the top of the click handler in `js/input.js`. Escape cancels.
@@ -179,7 +179,7 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - Effects are read passively through `hasRelic(id)` / `relicMult(kind)` / `getSellRefundRate()`, wired into existing systems via tiny hooks: tower stats (`applyRelicTowerDef`), ice slow stacking (`applyIceSlow`/`slowSpeedMult`), gold-from-kills, Gold Mine income, wall cost, sell refund, crate gold. `updateRelics(dt)` (called once from `update()`) drives the two passive per-frame relics: Masons' wall regen and Quartermaster's bonus mid-wave crate.
 - `second_wind` is checked in `trySecondWind()` where hearts would hit 0 — survives at 1 heart, once per world (tracked by `game.secondWindUsedWorld`). "Collector" achievement unlocks at 5 held relics.
 - While the draft overlay is open, a keydown listener registered before `js/input.js`'s (load order matters) swallows every key via `stopImmediatePropagation` so game hotkeys can't fire underneath; `sendWave()` also no-ops on `game.relicDraftActive`.
-- Known gap: the HP HUD only ever renders 25 pips, so `fortify`'s +5 max hearts increases `game.hp` functionally (more hits absorbed) without extra pips showing.
+- `fortify` raises `game.maxHp` (persisted); `updateUI()` rebuilds the HP pips in groups of 5 whenever max hearts change, and Repair/castle damage states read `game.maxHp`.
 
 ## Conventions
 - No build tools — edit index.html directly
@@ -197,4 +197,4 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - `t.branch` persists in `saveGameState`/`startGame(resume)` (`js/core.js`, `js/game.js`) and in community level codes (`js/screens.js`, revalidated against `TOWER_BRANCHES` on load since level codes are untrusted).
 - `drawBranchBadge(t, cx, cy)` hook in `drawTowers()` (`js/render-world.js`) draws a small star/diamond glyph for branch index 0/1.
 - Achievement "Specialist": branch 5 towers in one run (`game.branchesChosen`).
-- Known gap: Cannon's "Siege" desc says "rate ×0.7" but the codebase treats `rate` as cooldown seconds (lower = faster), so it's implemented as `rate /= 0.7` (≈1.43×, genuinely slower) to match the intended glass-cannon feel; on-canvas tower tooltips don't exist yet so the branch name isn't shown there (only in the level-up flash and the badge).
+- Cannon's "Siege" is implemented as `rate /= 0.7` (≈1.43× slower) because `rate` is cooldown seconds; the inspect card shows the branch name next to the level.

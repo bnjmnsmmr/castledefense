@@ -6,7 +6,7 @@ function initGame() {
   applyWorldMap(1);
   pathSet = buildPathSet(1);
   return {
-    hp: modActive('iron_castle') ? 5 : DIFFICULTY.startHp, gold: DIFFICULTY.startGold * modGoldMult(), wave: 1, world: 1, kills: 0, xp: 0, upgradesSpent: 0, annihilatorUnlocked: false, triBeamEquipped: false,
+    hp: modActive('iron_castle') ? 5 : DIFFICULTY.startHp, maxHp: modActive('iron_castle') ? 5 : DIFFICULTY.startHp, gold: DIFFICULTY.startGold * modGoldMult(), wave: 1, world: 1, kills: 0, xp: 0, upgradesSpent: 0, annihilatorUnlocked: false, triBeamEquipped: false,
     modifiers: (ACTIVE_RUN_MODIFIERS || []).slice(), scoreMult: modifiersMultiplier(ACTIVE_RUN_MODIFIERS || []),
     towers: [], enemies: [], projectiles: [], particles: [],
     walls: [],
@@ -69,6 +69,7 @@ function startGame(resume) {
     game.towers = (saved.towers || []).map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, cooldown: 0, angle: 0, targetMode: t.targetMode || null, branch: t.branch || null }));
     game.walls = (saved.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp }));
     game.relics = saved.relics || [];
+    game.maxHp = saved.maxHp || Math.max(game.hp, DIFFICULTY.startHp);
     restoreRunModifiers(saved); // a resumed run keeps whatever modifiers it was saved with
   } else {
     clearGameState();
@@ -241,11 +242,9 @@ function update(dt) {
           }
           continue;
         }
-        e.dead = true;
-        game.gold += ENEMY_DEFS[e.type].reward * relicMult('gold');
-        game.kills++;
-        profile.stats.totalKills = (profile.stats.totalKills || 0) + 1;
-        gainXP(ENEMY_DEFS[e.type].xp || 1);
+        // Route the stomp through damageEnemy so gold multipliers, affix on-death
+        // effects, mana and tower stats all fire exactly as for a tower kill.
+        damageEnemy(e, e.hp + (e.shieldHp || 0) + 1);
         playFart();
         spawnParticles(e.x, e.y, '#ff4444', 10);
       }
@@ -311,7 +310,7 @@ function update(dt) {
     const def = ENEMY_DEFS[e.type];
     let spd = e.speed * (e.rageMult || 1);
     if (e.untargetable > 0) { e.untargetable -= dt; spd *= 2.2; } // burrowed: fast and unhittable
-    if (e.slowed > 0) { spd *= slowSpeedMult(e); e.slowed -= dt; }
+    if (e.slowed > 0) { spd *= slowSpeedMult(e); e.slowed -= dt; if (e.slowed <= 0) e.slowStrength = 0; }
 
     const target = e.path[e.pathIdx + 1];
     if (!target) {
@@ -1061,8 +1060,12 @@ function render() {
 function updateUI() {
   // HP pips (25 hp -> 5 groups of 5)
   const pipsEl = $id('hp-pips');
-  if (pipsEl.childElementCount === 0) {
-    for (let gI = 0; gI < 5; gI++) {
+  // One pip per heart, in groups of 5; rebuilt whenever max hearts change (Fortify relic, Iron Castle).
+  const maxHp = Math.max(game.maxHp || DIFFICULTY.startHp, game.hp);
+  const groups = Math.max(1, Math.ceil(maxHp / 5));
+  if (pipsEl.childElementCount !== groups) {
+    pipsEl.innerHTML = '';
+    for (let gI = 0; gI < groups; gI++) {
       const grp = document.createElement('div');
       grp.className = 'hp-group';
       for (let p = 0; p < 5; p++) { const pip = document.createElement('div'); pip.className = 'hp-pip'; grp.appendChild(pip); }
