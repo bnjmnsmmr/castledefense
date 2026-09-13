@@ -46,7 +46,7 @@ function wallAt(tx, ty) {
 }
 // How hard a given enemy hits masonry. Big bruisers smash, rats nibble, bosses wreck.
 function wallDps(e) {
-  return (5 + enemySize(e) * 0.8) * (e.boss ? 6 : 1);
+  return (5 + enemySize(e) * 0.8) * (e.boss ? 6 : 1) * affixWallDpsMult(e);
 }
 
 // Each wall draws into a 48x48 box, so the same art serves the board and the cards.
