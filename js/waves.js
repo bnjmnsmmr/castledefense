@@ -2,6 +2,7 @@
 // Wave composition per wave number, difficulty scaling, lane pixel paths, sending/spawning waves, auto-wave.
 
 function getWave(n) {
+  n = endlessWaveNumber(n); // past the 8-world campaign every wave lands in storm territory (js/feat-storms.js)
   const waves = [];
   const base = Math.floor(n * 1.3) + 3;
   const spawn = (type, delay) => waves.push({ type, delay });
@@ -49,17 +50,8 @@ function getWave(n) {
     for (let i = 0; i < 10; i++) spawn(3, 10.5 + i * 0.8);
     fill(15, 4, 0.1, 18.5);
   } else {
-    // Endless: random escalation past 30
-    const count = base + Math.floor(n * 0.8);
-    for (let i = 0; i < count; i++) {
-      const r = Math.random();
-      const t = r < 0.12 ? 8 : (r < 0.28 ? 3 : (r < 0.38 ? 2 : (r < 0.48 ? 5 : (r < 0.56 ? 6 : (r < 0.64 ? 7 : (r < 0.8 ? 1 : 0))))));
-      spawn(t, i * Math.max(0.1, 0.35 - n * 0.005));
-    }
-    if (n % 2 === 0) {
-      const bossCount = Math.floor(n / 3);
-      for (let i = 0; i < bossCount; i++) spawn(3, count * 0.2 + i * 0.8);
-    }
+    // Endless: structured into deterministic 5-wave storms — see js/feat-storms.js
+    endlessWave(n, base, spawn, fill, waves);
   }
   const upgrades = (typeof game !== 'undefined' && game && game.upgradesSpent) || 0;
   const world = (typeof game !== 'undefined' && game && game.world) || 1;
@@ -132,6 +124,7 @@ function sendWave() {
     .map(([type, n]) => `${n} ${ENEMY_NAMES[type] || 'FOES'}`);
   const routes = game.activePaths ? game.activePaths.length : 1;
   showWaveBanner(game.wave, parts.join(' · ') + (routes > 1 ? ` — ${routes} ROUTES` : ''));
+  announceStormIfNew(); // overrides the banner above with a STORM banner when one just began
 }
 
 function spawnWave() {
@@ -145,6 +138,8 @@ function spawnWave() {
       type: bd.type, delay: maxDelay + 2.5,
       hpMult: ref.hpMult, spdMult: ref.spdMult, bossId: bd.id,
     });
+  } else {
+    addStormMiniBoss(); // no-op unless game.wave has climbed into storm territory (>30)
   }
   game.waveSpawnIdx = 0;
   game.waveTimer = 0;

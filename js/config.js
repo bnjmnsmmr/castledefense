@@ -90,6 +90,8 @@ const DIFFICULTY = {
   manaPerKill: 4,
   manaRegen: 2,
   affixChance: 0.12,         // base odds a non-boss spawn (wave 6+) rolls an elite affix; +0.02/world, capped at 0.35
+  stormWaveLength: 5,          // waves per storm past wave 30 (endless mode — see js/feat-storms.js)
+  stormScoreBonusPerStorm: 0.25, // score-bonus multiplier added per storm survived
 };
 
 const TOWER_TYPES = [
@@ -183,6 +185,8 @@ const ACHIEVEMENT_DEFS = [
   { name: 'Chain Reaction', desc: 'Land an IGNITE that hits 5 or more enemies' },
   { name: 'Collector', desc: 'Hold 5 relics at once in a single run' },
   { name: 'Specialist', desc: 'Choose a specialization for 5 towers in a single run' },
+  { name: 'Storm Chaser', desc: 'Survive 3 storms in a single endless run' },
+  { name: 'Eye of the Storm', desc: 'Survive an Eclipse storm' },
 ];
 
 // Skin colors are trophies: each palette color has a lifetime unlock condition.

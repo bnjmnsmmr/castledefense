@@ -294,3 +294,12 @@ canvas#c { display: block; cursor: crosshair; touch-action: manipulation; }
 .wi-hp-bar.wi-comfortable { color: #9fd68f; background: rgba(95,174,76,0.12); border: 1px solid rgba(95,174,76,0.35); }
 .wi-hp-bar.wi-tight { color: var(--gold-bright); background: rgba(232,182,76,0.12); border: 1px solid rgba(232,182,76,0.35); }
 .wi-hp-bar.wi-danger { color: #e0766f; background: rgba(179,54,46,0.15); border: 1px solid rgba(179,54,46,0.4); }
+/* ===== Feature: Structured endless with storm mutators ===== */
+#storm-chip {
+  display: none; align-items: center;
+  background: rgba(179,54,46,0.16); border: 1px solid var(--blood); color: #ff9a92;
+  border-radius: 20px; padding: 3px 12px; font-size: 11px; font-weight: 800;
+  letter-spacing: 0.5px; white-space: nowrap;
+  animation: stormPulse 1.8s infinite;
+}
+@keyframes stormPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(179,54,46,0.45); } 50% { box-shadow: 0 0 0 6px rgba(179,54,46,0); } }

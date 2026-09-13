@@ -16,6 +16,7 @@ const ASSETS = [
   'js/render-enemies.js',
   'js/render-fx.js',
   'js/waves.js',
+  'js/feat-storms.js',
   'js/game.js',
   'js/feat-powers.js',
   'js/feat-affixes.js',

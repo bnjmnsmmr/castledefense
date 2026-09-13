@@ -39,7 +39,7 @@ function pickTarget(t, def, cx, cy) {
   for (const e of game.enemies) {
     if (e.dead || e.untargetable > 0) continue;
     const d = Math.hypot(e.x - cx, e.y - cy);
-    if (d > def.range) continue;
+    if (d > def.range * stormRangeMult()) continue; // Fog storm shrinks range (js/feat-storms.js)
     let score;
     switch (mode) {
       case 'first': score = enemyProgress(e); break;

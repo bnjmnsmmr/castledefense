@@ -46,7 +46,7 @@ function wallAt(tx, ty) {
 }
 // How hard a given enemy hits masonry. Big bruisers smash, rats nibble, bosses wreck.
 function wallDps(e) {
-  return (5 + enemySize(e) * 0.8) * (e.boss ? 6 : 1) * affixWallDpsMult(e);
+  return (5 + enemySize(e) * 0.8) * (e.boss ? 6 : 1) * affixWallDpsMult(e) * stormWallDmgMult();
 }
 
 // Each wall draws into a 48x48 box, so the same art serves the board and the cards.
@@ -87,6 +87,7 @@ function saveGameState() {
       achievements: game.achievements || {}, autoWave: !!game.autoWave, speed: game.speed || 1,
       mana: game.mana || 0, powerCooldowns: game.powerCooldowns || {}, powersCast: game.powersCast || 0,
       towers: game.towers.map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, targetMode: t.targetMode || null, branch: t.branch || null })),
+      runSeed: game.runSeed,
       walls: (game.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp })),
       relics: game.relics || [],
     };

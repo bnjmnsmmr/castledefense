@@ -38,6 +38,7 @@ function initGame() {
     dailyChallenge: false,
     forcedThemeIdx: null,
     startedAt: Date.now(),
+    runSeed: Date.now(), // seeds deterministic endless storms (js/feat-storms.js); persisted in the save
     // Lifetime totals at run start, so the results screen can show "+N this run" deltas
     profileStart: {
       kills: profile.stats.totalKills || 0,
@@ -60,6 +61,7 @@ function startGame(resume) {
     game.speed = saved.speed || 1;
     game.mana = saved.mana || 0; game.powerCooldowns = saved.powerCooldowns || {}; game.powersCast = saved.powersCast || 0;
     applyWorldMap(game.world);
+    game.runSeed = saved.runSeed || game.runSeed;
     game.activePaths = getActivePaths(game.wave);
     pathSet = buildPathSet(game.wave);
     game.towers = (saved.towers || []).map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, cooldown: 0, angle: 0, targetMode: t.targetMode || null, branch: t.branch || null }));
@@ -269,10 +271,10 @@ function update(dt) {
       const path = pathToPixels(pathDef.tiles);
       const start = path[0];
       const bd = next.bossId ? BOSS_DEFS.find(b => b.id === next.bossId) : null;
-      const hp = Math.round(def.hp * next.hpMult * (bd ? bd.hpMult : 1));
+      const hp = Math.round(def.hp * next.hpMult * (bd ? bd.hpMult : 1) * stormHpMult());
       const ent = {
         type: next.type, x: start.x, y: start.y,
-        hp, maxHp: hp, speed: def.speed * (next.spdMult || 1) * (bd ? bd.speedMult : 1),
+        hp, maxHp: hp, speed: def.speed * (next.spdMult || 1) * (bd ? bd.speedMult : 1) * stormSpeedMult(),
         path, pathIdx: 0, dead: false, slowed: 0,
         shieldHp: def.shield || 0,
         healTimer: 0, necroTimer: 0, spawnT: 0.25,
@@ -418,6 +420,7 @@ function update(dt) {
   // Tower shooting (with ammo/reload)
   for (const t of game.towers) {
     const base = TOWER_TYPES[t.type];
+    if (stormTowerOffline(base.id)) continue; // Eclipse storm: this tower type is dark
     const lvl = t.level || 0;
     let def = base;
     if (lvl > 0) {
@@ -737,6 +740,7 @@ function update(dt) {
     game.shockwaves = [];
     for (const t of game.towers) t.stunned = 0;
     const clearedWave = game.wave;
+    checkStormComplete(clearedWave);
     const flawless = game.waveStartHp !== undefined && game.hp === game.waveStartHp;
     game.wave++;
     let waveBonus = 30 + game.wave * 5;
@@ -985,7 +989,7 @@ function damageEnemy(e, dmg, source) {
       game.bossesSlain = (game.bossesSlain || 0) + 1;
       saveProfile();
     }
-    game.gold += def.reward * relicMult('gold');
+    game.gold += def.reward * relicMult('gold') * stormGoldMult();
     game.kills++;
     gainMana(e.boss ? 25 : DIFFICULTY.manaPerKill);
     affixOnDeath(e);
@@ -995,7 +999,7 @@ function damageEnemy(e, dmg, source) {
     SFX.play('death');
     SFX.play('coin');
     tutorialEvent('kill');
-    spawnDamageNum(e.x, e.y - 26, '+' + def.reward, 'gold');
+    spawnDamageNum(e.x, e.y - 26, '+' + Math.round(def.reward * stormGoldMult()), 'gold');
     spawnParticles(e.x, e.y, def.color, 8);
     updateUI();
   }
@@ -1029,6 +1033,7 @@ function render() {
   drawBossBar();
   drawPowerTargeting();
   ctx.restore();
+  drawStormOverlay();
   // Red vignette pulse when castle recently hit
   if (game && game.hurtT > 0) {
     game.hurtT -= 1/60;
@@ -1199,6 +1204,7 @@ function endGame() {
   }
   renderComboStat(ov.querySelector('.go-grid')); // feat-combos.js: COMBOS stat card
   renderMvpCard(ov.querySelector('.go-grid')); // js/feat-targeting.js
+  renderStormStat(ov.querySelector('.go-grid'));
   // Achievement names go in via textContent (they can contain arbitrary strings)
   const chipEls = ov.querySelectorAll('.go-ach span');
   achEarned.forEach((name, i) => { if (chipEls[i]) chipEls[i].textContent = name; });
@@ -1269,7 +1275,7 @@ function damageWall(w, dmg) {
 function spawnSupplyCrates() {
   if (!game) return;
   game.supplyCrates = [];
-  const count = 1 + Math.floor(Math.random() * 2) + (game.world > 3 ? 1 : 0);
+  const count = Math.round((1 + Math.floor(Math.random() * 2) + (game.world > 3 ? 1 : 0)) * stormCrateMult());
   const occupied = new Set();
   for (const t of game.towers) occupied.add(`${t.tx},${t.ty}`);
   for (const w of game.walls) occupied.add(`${w.tx},${w.ty}`);
