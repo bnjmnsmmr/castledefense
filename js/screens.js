@@ -143,6 +143,9 @@ function startLevelFromPayload(payload) {
   const world = Math.max(1, Math.min(WORLD_THEMES.length, Math.floor(Number(payload.world)) || 1));
   game = initGame();
   game.world = world;
+  applyWorldMap(world);
+  pathSet = buildPathSet(game.wave);
+  game.activePaths = getActivePaths(game.wave);
 
   let spent = 0;
   const seen = new Set();

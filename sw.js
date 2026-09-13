@@ -10,6 +10,7 @@ const ASSETS = [
   'css/responsive.css',
   'js/config.js',
   'js/core.js',
+  'js/feat-maps.js',
   'js/audio.js',
   'js/render-world.js',
   'js/render-enemies.js',

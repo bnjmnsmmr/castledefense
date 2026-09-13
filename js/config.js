@@ -9,8 +9,10 @@ const PATH_COLOR = '#2a2520';
 const GRASS_COLOR = '#1a2a1a';
 const CASTLE_COLOR = '#8b7355';
 
-// Path waypoints (tile coords) — multiple paths, unlock at different waves
-const ALL_PATHS = [
+// Path waypoints (tile coords) — multiple paths, unlock at different waves.
+// `let` because js/feat-maps.js (per-world lane layouts) reassigns this to
+// swap in each world's own map; see WORLD_MAPS / applyWorldMap() there.
+let ALL_PATHS = [
   { // Path 1: Original S-curve from west (wave 1+)
     unlockWave: 1, label: 'West gate', color: '#2a2520',
     tiles: [

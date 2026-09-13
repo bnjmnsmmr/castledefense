@@ -3,6 +3,7 @@
 
 // --- INIT ---
 function initGame() {
+  applyWorldMap(1);
   pathSet = buildPathSet(1);
   return {
     hp: DIFFICULTY.startHp, gold: DIFFICULTY.startGold, wave: 1, world: 1, kills: 0, xp: 0, upgradesSpent: 0, annihilatorUnlocked: false, triBeamEquipped: false,
@@ -58,6 +59,7 @@ function startGame(resume) {
     game.achievements = saved.achievements || {}; game.autoWave = saved.autoWave || false;
     game.speed = saved.speed || 1;
     game.mana = saved.mana || 0; game.powerCooldowns = saved.powerCooldowns || {}; game.powersCast = saved.powersCast || 0;
+    applyWorldMap(game.world);
     game.activePaths = getActivePaths(game.wave);
     pathSet = buildPathSet(game.wave);
     game.towers = (saved.towers || []).map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, cooldown: 0, angle: 0, targetMode: t.targetMode || null }));
@@ -757,6 +759,8 @@ function update(dt) {
       game.world++;
       game.wave = 1;
       worldedUp = true;
+      applyWorldMap(game.world);
+      refundMisplacedBuildables();
       groundCache = null; // force terrain rebuild with new theme
       document.body.style.background = getWorldTheme().bgBase;
       game.gold += 100 * (game.world - 1); // world-clear bonus
@@ -780,7 +784,7 @@ function update(dt) {
     if (game.autoWave) game.autoWaveTimer = worldedUp ? 6 : 4;
     if (game.annihilatorUnlocked && !game.triBeamEquipped) showMerchant();
     if (worldedUp) {
-      setTimeout(() => showWorldBanner(game.world, 'Welcome to the ' + getWorldTheme().name), 400);
+      setTimeout(() => showWorldBanner(game.world, 'Welcome to the ' + getWorldTheme().name + (game.mapName ? ' — ' + game.mapName : '')), 400);
       if (!game.dailyChallenge) setTimeout(openRelicDraft, 1200);
     } else {
       showBannerText('WAVE ' + clearedWave + ' CLEARED', `+${waveBonus} GOLD EARNED${flawless ? ' · FLAWLESS' : ''}`);
