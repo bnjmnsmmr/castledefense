@@ -54,3 +54,12 @@
   .home-hints { display: none; }
   .tower-btn:hover { transform: none; }
 }
+
+/* ===== Feature: Castle Powers (mobile) ===== */
+@media (max-width: 1000px), (max-height: 620px) {
+  #powers-bar { right: auto; left: 50%; transform: translateX(-50%); bottom: 134px; gap: 5px; }
+  .power-mana-track { width: 170px; }
+  .power-row { flex-direction: row; gap: 6px; }
+  .power-btn { width: 40px; height: 40px; min-width: 40px; min-height: 40px; }
+  .power-emoji { font-size: 16px; }
+}

@@ -27,6 +27,7 @@ function initGame() {
     paused: false,
     speed: 1,
     rapidFireTimer: 0,
+    mana: 0, powerCooldowns: {}, powersCast: 0, rallyTimer: 0, powerTargeting: null,
     zapFlashT: 0,
     usedGG: false,
     usedASDF: false,
@@ -54,6 +55,7 @@ function startGame(resume) {
     game.triBeamGranted = saved.triBeamGranted; game.merchantGone = saved.merchantGone;
     game.achievements = saved.achievements || {}; game.autoWave = saved.autoWave || false;
     game.speed = saved.speed || 1;
+    game.mana = saved.mana || 0; game.powerCooldowns = saved.powerCooldowns || {}; game.powersCast = saved.powersCast || 0;
     game.activePaths = getActivePaths(game.wave);
     pathSet = buildPathSet(game.wave);
     game.towers = (saved.towers || []).map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, cooldown: 0, angle: 0 }));
@@ -155,6 +157,7 @@ function loop(ts) {
     game.autoWaveTimer -= gdt;
     if (game.autoWaveTimer <= 0) { game.autoWaveTimer = undefined; sendWave(); }
   }
+  updatePowersBar(gdt);
   render();
   flushSaveIfDue(ts);
   requestAnimationFrame(loop);
@@ -469,7 +472,7 @@ function update(dt) {
     }
 
     if (best) {
-      t.cooldown = def.rate * (game.rapidFireTimer > 0 ? 0.5 : 1);
+      t.cooldown = def.rate * (game.rapidFireTimer > 0 ? 0.5 : 1) * (game.rallyTimer > 0 ? (1 / 1.3) : 1);
       t.ammo--;
       t.angle = Math.atan2(best.y - cy, best.x - cx);
       SFX.play('shot_' + base.id);
@@ -957,6 +960,7 @@ function damageEnemy(e, dmg) {
     }
     game.gold += def.reward;
     game.kills++;
+    gainMana(e.boss ? 25 : DIFFICULTY.manaPerKill);
     profile.stats.totalKills = (profile.stats.totalKills || 0) + 1;
     gainXP(def.xp || 1);
     SFX.play('death');
@@ -993,6 +997,7 @@ function render() {
   updateDrawDamageNums(1/60);
   drawWaveNotice();
   drawBossBar();
+  drawPowerTargeting();
   ctx.restore();
   // Red vignette pulse when castle recently hit
   if (game && game.hurtT > 0) {

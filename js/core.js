@@ -85,6 +85,7 @@ function saveGameState() {
       annihilatorUnlocked: !!game.annihilatorUnlocked, triBeamEquipped: !!game.triBeamEquipped,
       triBeamGranted: !!game.triBeamGranted, merchantGone: !!game.merchantGone,
       achievements: game.achievements || {}, autoWave: !!game.autoWave, speed: game.speed || 1,
+      mana: game.mana || 0, powerCooldowns: game.powerCooldowns || {}, powersCast: game.powersCast || 0,
       towers: game.towers.map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0 })),
       walls: (game.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp })),
     };
