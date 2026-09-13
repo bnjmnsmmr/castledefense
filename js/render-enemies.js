@@ -72,6 +72,8 @@ function drawEnemies() {
     ctx.ellipse(0, es + 2, es * 0.9, 3, 0, 0, Math.PI*2);
     ctx.fill();
 
+    drawAffixAura(e);
+
     // 3. Composite: outline underneath, character on top
     for (const [ox, oy] of [[-1.5, 0], [1.5, 0], [0, -1.5], [0, 1.5]]) {
       ctx.drawImage(enemyOutCv, -HALF + ox, -HALF + oy);
@@ -90,6 +92,8 @@ function drawEnemies() {
     }
 
     ctx.restore();
+
+    drawAffixTag(e);
 
     // HP bar (drawn in world space, not flipped) — bosses get a chunkier framed bar
     const isBoss = es >= 16;

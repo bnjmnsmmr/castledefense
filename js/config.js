@@ -85,6 +85,7 @@ const DIFFICULTY = {
   towerUpgradeRateMult: 0.93,
   towerUpgradeAmmoPerLevel: 1,
   towerUpgradeReloadMult: 0.94,
+  affixChance: 0.12,         // base odds a non-boss spawn (wave 6+) rolls an elite affix; +0.02/world, capped at 0.35
 };
 
 const TOWER_TYPES = [
@@ -172,6 +173,7 @@ const ACHIEVEMENT_DEFS = [
   { name: 'GG Easy Money', secret: true },
   { name: 'Gold Rush', desc: 'Place 3 Gold Mines in a single run' },
   { name: 'Crate Hoarder', desc: 'Collect 20 supply crates in a single run' },
+  { name: 'Elite Hunter', desc: 'Kill 50 affixed elite enemies in a single run' },
 ];
 
 // Skin colors are trophies: each palette color has a lifetime unlock condition.

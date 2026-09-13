@@ -91,6 +91,12 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - `drawEnemies()` paints each character into a shared offscreen buffer (`enemyBufCv`), builds an ink silhouette (`enemyOutCv`), and composites outline-under-sprite for a unified comic-style look. Drawer fns target the global `ctx` (declared `let` so it can be retargeted). `ENEMY_DRAWERS` maps type index → drawer.
 - Enemies pop in via `spawnT`; bosses (size ≥ 16) get a framed HP bar; first Dark Knight of each wave triggers a banner + horn + shake (`game.bossAnnounced`).
 
+## Enemy affixes / elites
+- `js/feat-affixes.js`. From wave 6 onward (counted continuously as `(world-1)*wavesPerWorld + wave`), each non-boss spawn has a `DIFFICULTY.affixChance` (0.12 base, +0.02/world, capped 0.35) chance to roll one affix from `AFFIX_DEFS`: `armored`, `hasty`, `splitter`, `thief`, `sapper`, `vampiric`, `shielded`. Rolled in `affixMaybeApply(ent)`, called right before the enemy is pushed in `update()`'s spawn block (js/game.js). Bosses (`ent.boss`) never roll.
+- Hooks: `damageEnemy(e, dmg, source)` now takes an optional `source` (a tower id, threaded through direct-hit projectiles via `p.towerId`) and calls `affixModifyDamage`/`affixOnDeath`; the castle-reach branch calls `affixOnReachCastle`; `wallDps(e)` (js/core.js) multiplies by `affixWallDpsMult(e)`; `drawEnemies()` (js/render-enemies.js) calls `drawAffixAura(e)` before compositing and `drawAffixTag(e)` after.
+- Rewards: affixed kills pay +50% gold and +1 xp (on top of the normal reward), tracked via `game.affixKills`; hitting 50 in a run unlocks "Elite Hunter" (`ACHIEVEMENT_DEFS`). First sighting of each affix in a run fires an `notify('epic', …)` toast (`game.affixesSeen`).
+- Rendering caps at 30 name tags on screen per frame (`AFFIX_TAG_LIMIT`) to avoid clutter with big waves.
+
 ## Sound
 - Music is themed per world: `WORLD_MUSIC` (mode/register/oscillator/pacing per theme), read by `getWorldMusic()` each drone/melody cycle so the score shifts automatically on world change.
 - Shared WebAudio engine (`sfxContext()`, `sfxTone()`, `sfxNoise()`, `SFX.play(name)`) — one AudioContext + master gain for all effects, per-sound throttling. All procedural, zero assets.

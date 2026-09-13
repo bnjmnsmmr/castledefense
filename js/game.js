@@ -276,6 +276,7 @@ function update(dt) {
         SFX.play('boss');
         triggerShake(8, 0.6);
       }
+      if (!ent.boss) affixMaybeApply(ent);
       game.enemies.push(ent);
       // Mini-boss entrance: announce the first Dark Knight of each wave
       if (next.type === 3 && !bd && !game.bossAnnounced) {
@@ -302,6 +303,7 @@ function update(dt) {
       e.dead = true;
       const dmg = e.boss ? 5 : 1;
       game.hp -= dmg;
+      affixOnReachCastle(e);
       if (e.boss) {
         game.activeBoss = null;
         showBannerText(e.boss.name + ' BREACHES THE GATE', `-${dmg} HEARTS`, 2400);
@@ -572,7 +574,7 @@ function update(dt) {
           game.projectiles.push({
             x: cx, y: cy,
             vx: (pdx / pd) * def.projSpeed * TILE, vy: (pdy / pd) * def.projSpeed * TILE,
-            dmg: def.dmg, color: def.projColor, life: 2
+            dmg: def.dmg, color: def.projColor, life: 2, towerId: base.id
           });
         }
         continue;
@@ -585,7 +587,7 @@ function update(dt) {
           x: cx, y: cy,
           vx: (pdx / pd) * def.projSpeed * TILE, vy: (pdy / pd) * def.projSpeed * TILE,
           dmg: def.dmg, color: def.projColor, life: 2,
-          pierceLeft: lvl, hitList: []
+          pierceLeft: lvl, hitList: [], towerId: base.id
         });
         continue;
       }
@@ -611,7 +613,7 @@ function update(dt) {
         splash: def.splash || 0, slow: def.slow || 0, slowDur: def.slowDur || 0,
         cluster: def.cluster || 0, infect: def.infect || 0,
         dot: def.dot || 0, dotDur: def.dotDur || 0,
-        life: 2
+        life: 2, towerId: base.id
       });
     }
   }
@@ -679,7 +681,7 @@ function update(dt) {
             }
           }
         } else {
-          damageEnemy(e, p.dmg);
+          damageEnemy(e, p.dmg, p.towerId);
           if (p.slow) e.slowed = p.slowDur;
           // Poison DoT
           if (p.dot) {
@@ -917,9 +919,10 @@ function fireBossAbility(b, a) {
 
 // Shockwave rings from boss slams
 
-function damageEnemy(e, dmg) {
+function damageEnemy(e, dmg, source) {
   // Burrowed / phased out: immune on every path (direct, splash, chain, cone, ZAP)
   if (e.untargetable > 0) return;
+  dmg = affixModifyDamage(e, dmg, source);
   // Shield absorbs damage first
   if (e.shieldHp > 0) {
     const absorbed = Math.min(dmg, e.shieldHp);
@@ -957,6 +960,7 @@ function damageEnemy(e, dmg) {
     }
     game.gold += def.reward;
     game.kills++;
+    affixOnDeath(e);
     profile.stats.totalKills = (profile.stats.totalKills || 0) + 1;
     gainXP(def.xp || 1);
     SFX.play('death');
