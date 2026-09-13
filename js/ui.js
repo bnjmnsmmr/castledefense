@@ -193,6 +193,7 @@ function buildTowerBar() {
       <div class="tb-tooltip"><div class="tt-name">${t.name}</div>
         ${tooltipRows}
         ${info.spec ? `<div class="tt-special">★ ${info.spec}</div>` : ''}
+        ${info.combo ? `<div class="tt-special combo-hint">⚡ ${info.combo}</div>` : ''}
       </div>`;
     btn.dataset.idx = i;
     const mc = btn.querySelector('canvas').getContext('2d');
