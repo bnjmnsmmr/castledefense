@@ -79,6 +79,19 @@
 <button id="speed-btn" onclick="cycleGameSpeed()">SPEED 1&times;</button>
 <div class="hint-banner" id="hint">Click any green tile to place a tower — then press SEND WAVE (or Space)</div>
 
+<div id="wave-intel">
+  <div id="wi-header" onclick="toggleWaveIntelCollapsed()">
+    <span id="wi-wave-label">NEXT WAVE</span>
+    <button id="wi-toggle" type="button" tabindex="-1" aria-label="Toggle wave intel">▾</button>
+  </div>
+  <div id="wi-body">
+    <div id="wi-icons" class="wi-icons"></div>
+    <div id="wi-lanes" class="wi-lanes"></div>
+    <div id="wi-boss" class="wi-boss" style="display:none"></div>
+    <div id="wi-hp" class="wi-hp-bar"></div>
+  </div>
+</div>
+
 <div id="coach">
   <div id="coach-spot"></div>
   <div id="coach-box">
@@ -253,6 +266,7 @@
 <script src="js/render-fx.js"></script>
 <script src="js/waves.js"></script>
 <script src="js/game.js"></script>
+<script src="js/feat-intel.js"></script>
 <script src="js/screens.js"></script>
 <script src="js/admin.js"></script>
 <script src="js/ui.js"></script>

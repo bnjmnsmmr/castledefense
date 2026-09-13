@@ -305,6 +305,7 @@ function setGameChromeVisible(show) {
   document.getElementById('ui').style.display = show ? 'flex' : 'none';
   document.getElementById('tower-bar').style.display = show ? 'flex' : 'none';
   document.getElementById('build-tabs').classList.toggle('show', show);
+  if (!show) hideWaveIntel();
 }
 
 function renderHomeScreen() {
@@ -516,6 +517,7 @@ function startDailyChallenge() {
   game.gold = 100;
   game.forcedThemeIdx = seed % WORLD_THEMES.length;
   game.prepPhase = true;
+  updateWaveIntel();
   game.betweenWaves = false;
   game.waveActive = false;
   document.getElementById('overlay').style.display = 'none';
