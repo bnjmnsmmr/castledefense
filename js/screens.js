@@ -28,7 +28,7 @@ function buildLevelPayload(name) {
   return {
     v: LEVEL_CODE_VERSION,
     name: String(name || 'My Defense').slice(0, 40),
-    towers: game.towers.map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, targetMode: t.targetMode || null })),
+    towers: game.towers.map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, targetMode: t.targetMode || null, branch: t.branch || null })),
     walls: (game.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type })),
     world: game.world,
   };
@@ -162,7 +162,9 @@ function startLevelFromPayload(payload) {
     seen.add(key);
     const level = Math.max(0, Math.min(5, Math.floor(Number(t.level)) || 0));
     const targetMode = TARGET_MODES.includes(t.targetMode) ? t.targetMode : null;
-    placedTowers.push({ tx, ty, type, level, cooldown: 0, angle: 0, targetMode });
+    const branchPair = TOWER_BRANCHES[TOWER_TYPES[type].id];
+    const branch = (level >= 3 && branchPair && branchPair.some(b => b.id === t.branch)) ? t.branch : null;
+    placedTowers.push({ tx, ty, type, level, branch, cooldown: 0, angle: 0, targetMode });
     spent += TOWER_TYPES[type].cost;
   }
   const placedWalls = [];

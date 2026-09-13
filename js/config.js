@@ -182,6 +182,7 @@ const ACHIEVEMENT_DEFS = [
   { name: 'Alchemist', desc: 'Trigger 50 elemental combos in a single run' },
   { name: 'Chain Reaction', desc: 'Land an IGNITE that hits 5 or more enemies' },
   { name: 'Collector', desc: 'Hold 5 relics at once in a single run' },
+  { name: 'Specialist', desc: 'Choose a specialization for 5 towers in a single run' },
 ];
 
 // Skin colors are trophies: each palette color has a lifetime unlock condition.

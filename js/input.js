@@ -90,6 +90,11 @@ C.addEventListener('click', e => {
       guardianPester();
       return;
     }
+    // Level 3 offers a specialization choice instead of applying immediately
+    if ((existing.level || 0) + 1 === 3 && !existing.branch && TOWER_BRANCHES[TOWER_TYPES[existing.type].id]) {
+      openBranchChooser(existing);
+      return;
+    }
     existing.level = (existing.level || 0) + 1;
     game.upgradesSpent++;
     SFX.play('upgrade');
