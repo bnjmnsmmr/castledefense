@@ -28,7 +28,7 @@ function buildLevelPayload(name) {
   return {
     v: LEVEL_CODE_VERSION,
     name: String(name || 'My Defense').slice(0, 40),
-    towers: game.towers.map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0 })),
+    towers: game.towers.map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0, targetMode: t.targetMode || null })),
     walls: (game.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type })),
     world: game.world,
   };
@@ -158,7 +158,8 @@ function startLevelFromPayload(payload) {
     if (TOWER_TYPES[type].secret) continue; // no smuggling the Annihilator in via a level code
     seen.add(key);
     const level = Math.max(0, Math.min(5, Math.floor(Number(t.level)) || 0));
-    placedTowers.push({ tx, ty, type, level, cooldown: 0, angle: 0 });
+    const targetMode = TARGET_MODES.includes(t.targetMode) ? t.targetMode : null;
+    placedTowers.push({ tx, ty, type, level, cooldown: 0, angle: 0, targetMode });
     spent += TOWER_TYPES[type].cost;
   }
   const placedWalls = [];
@@ -306,6 +307,7 @@ function setGameChromeVisible(show) {
   document.getElementById('tower-bar').style.display = show ? 'flex' : 'none';
   document.getElementById('build-tabs').classList.toggle('show', show);
   document.getElementById('powers-bar').classList.toggle('show', show);
+  if (!show) hideTowerCard(); // js/feat-targeting.js
 }
 
 function renderHomeScreen() {

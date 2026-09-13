@@ -118,6 +118,11 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - Achievements: "Gold Rush" (place 3 Gold Mines), "Crate Hoarder" (collect 20 crates in a run). Tracked via `game.goldMinesPlaced` / `game.cratesCollected`.
 - All new economy values are tunable in the admin panel under "Upgrades & economy".
 
+## Tower targeting & inspect card
+- `js/feat-targeting.js` owns per-tower targeting priority and the tower inspect card. `t.targetMode` is one of `'first'/'last'/'strong'/'weak'/'near'` (path progress furthest/least, HP highest/lowest, or nearest-in-range — the old default). `pickTarget(t, def, cx, cy)` replaces the inline nearest-enemy scan in `update()` (js/game.js); `getTargetMode(t)` lazily assigns a per-tower default the first time it's read (`DEFAULT_TARGET_MODE_BY_ID`: Sniper → `strong`, Ice → `first`, everything else → `near`) so old saves and community-level codes without the field still work. Persisted as one field in `saveGameState`/`startGame(resume)` (js/core.js, js/game.js) and in community level codes (`buildLevelPayload`/`startLevelFromPayload`, js/screens.js), validated against `TARGET_MODES` on load.
+- Clicking an existing tower (desktop click or the second touch tap) shows `#tower-card` — name/level, kills, damage dealt, a cycling TARGET MODE button, and a Sell button — without changing the existing upgrade-on-click behavior; the card is purely informational. Desktop also shows it on hover (`handleTowerHoverUpdate()`, gated on the hovered tower actually changing). Hotkey **T** cycles the target mode of `game.selectedTowerRef` (the last tower the card was shown for). `setGameChromeVisible(false)` hides the card (covers game-over and return-to-menu).
+- `t.kills` / `t.dmgDealt` are tracked by an optional `source` param on `damageEnemy(e, dmg, source)`, threaded through every tower attack path (tesla chain/arc, flame cone, arrow/sniper/standard projectiles via `projectile.source`, poison DoT ticks via `enemy.dotSource`). The results screen adds a "MVP TOWER" stat card via `renderMvpCard()` (one hook in `endGame`, js/game.js) when any tower dealt damage.
+
 ## Features
 - 9 towers (+1 secret Annihilator via B→N key combo) with level-2 upgrades, including the Gold Mine (income tower)
 - 4 wall types built on the path — enemies stop and smash through them, flyers pass over
