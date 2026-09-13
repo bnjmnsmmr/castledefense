@@ -111,7 +111,7 @@ function toggleAutoWave() {
 }
 
 function sendWave() {
-  if (!game || !game.prepPhase || game.gameOver) return;
+  if (!game || !game.prepPhase || game.gameOver || game.relicDraftActive) return;
   game.prepPhase = false;
   game.newPathUnlocked = null;
   game.supplyCrates = [];
