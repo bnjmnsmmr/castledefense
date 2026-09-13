@@ -104,6 +104,12 @@ HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bund
 - Achievements: "Gold Rush" (place 3 Gold Mines), "Crate Hoarder" (collect 20 crates in a run). Tracked via `game.goldMinesPlaced` / `game.cratesCollected`.
 - All new economy values are tunable in the admin panel under "Upgrades & economy".
 
+## Run modifiers
+- `js/feat-modifiers.js` — home-screen challenge toggles (No Walls, Half Gold, Iron Castle, Double Time, Glass Towers, Fog of War), each with a score multiplier (`MODIFIER_DEFS`), stacked multiplicatively and capped at ×3 (`modifiersMultiplier`). Selection persists in `castleDefenseModifiers` (localStorage) and is only read into effect for a genuine new run.
+- `ACTIVE_RUN_MODIFIERS` is the live, run-scoped flag `modActive(id)` checks; it's set by `beginRunModifiers(resume)` (called from `startGame`, `null` on resume) and explicitly cleared by `startDailyChallenge`/`startLevelFromPayload` so Daily Challenge and Community Levels never inherit it. `initGame()` reads it once to seed `game.hp`/`game.gold`/`game.modifiers`/`game.scoreMult`; a resumed run instead calls `restoreRunModifiers(saved)` to keep the modifiers it was saved with.
+- Effect hooks: `canPlaceWall`/`updateBuildTabs`/`buildTowerBar` (no_walls), `modGoldMult()` multiplied at every gold-add site (half_gold), `spdMult` in `getWave()` (double_time), `modTowerCost()` at the tower cost reads in `js/ui.js`/`js/input.js` plus a zeroed sell refund (glass_towers), `drawWaveNotice()`/`showWaveBanner()` early-outs (fog_of_war).
+- Persisted on the run (`game.modifiers`, `game.scoreMult`) and in the save (`saveGameState`); carried into the Hall of Fame entry and rendered as chips (`renderModifierChips`, reusing `.hof-tag`) and a results-screen stat card (`renderModifierResult`). Included in the payload to `submitScoreToLeaderboard` for a future server to read — the validated `score` field itself is untouched. "Handicapped Hero" achievement: clear World 1 with 3+ modifiers active.
+
 ## Features
 - 9 towers (+1 secret Annihilator via B→N key combo) with level-2 upgrades, including the Gold Mine (income tower)
 - 4 wall types built on the path — enemies stop and smash through them, flyers pass over

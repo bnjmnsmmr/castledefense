@@ -172,6 +172,7 @@ const ACHIEVEMENT_DEFS = [
   { name: 'GG Easy Money', secret: true },
   { name: 'Gold Rush', desc: 'Place 3 Gold Mines in a single run' },
   { name: 'Crate Hoarder', desc: 'Collect 20 supply crates in a single run' },
+  { name: 'Handicapped Hero', desc: 'Clear World 1 with 3 or more run modifiers active' },
 ];
 
 // Skin colors are trophies: each palette color has a lifetime unlock condition.

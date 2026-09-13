@@ -62,7 +62,7 @@ C.addEventListener('click', e => {
     const idx = game.towers.findIndex(t => t.tx === tx && t.ty === ty);
     if (idx === -1) { showFlash('Nothing there to sell'); return; }
     const sold = game.towers[idx];
-    const refund = Math.floor(TOWER_TYPES[sold.type].cost * DIFFICULTY.sellRefundRate);
+    const refund = modActive('glass_towers') ? 0 : Math.floor(TOWER_TYPES[sold.type].cost * DIFFICULTY.sellRefundRate);
     game.towers.splice(idx, 1);
     game.gold += refund;
     SFX.play('sell');
@@ -104,13 +104,14 @@ C.addEventListener('click', e => {
   }
 
   const def = TOWER_TYPES[game.selectedTower];
-  if (game.gold < def.cost) {
+  const cost = modTowerCost(def.cost);
+  if (game.gold < cost) {
     SFX.play('error');
-    showFlash(`Not enough gold! Need ${def.cost} (have ${game.gold})`);
+    showFlash(`Not enough gold! Need ${cost} (have ${game.gold})`);
     return;
   }
 
-  game.gold -= def.cost;
+  game.gold -= cost;
   game.towers.push({ tx, ty, type: game.selectedTower, cooldown: 0, angle: 0 });
   if (def.income) {
     game.goldMinesPlaced = (game.goldMinesPlaced || 0) + 1;

@@ -85,6 +85,7 @@ function saveGameState() {
       annihilatorUnlocked: !!game.annihilatorUnlocked, triBeamEquipped: !!game.triBeamEquipped,
       triBeamGranted: !!game.triBeamGranted, merchantGone: !!game.merchantGone,
       achievements: game.achievements || {}, autoWave: !!game.autoWave, speed: game.speed || 1,
+      modifiers: game.modifiers || [], scoreMult: game.scoreMult || 1,
       towers: game.towers.map(t => ({ tx: t.tx, ty: t.ty, type: t.type, level: t.level || 0 })),
       walls: (game.walls || []).map(w => ({ tx: w.tx, ty: w.ty, type: w.type, hp: w.hp, maxHp: w.maxHp })),
     };
@@ -281,6 +282,7 @@ async function submitScoreToLeaderboard(entry) {
         score: entry.score, world: entry.world, wave: entry.wave,
         kills: entry.kills, bosses: entry.bosses || 0,
         durationMs: entry.durationMs || 0, mode: entry.mode === 'daily' ? 'daily' : 'run',
+        modifiers: entry.modifiers || [], // not yet validated server-side — see CLAUDE.md
       }),
     });
     if (!res.ok) return null;
