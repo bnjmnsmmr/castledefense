@@ -1,9 +1,36 @@
 // Castle Defense service worker — offline-first shell cache.
-// Bump the version string whenever index.html ships meaningful changes.
-const CACHE = 'castle-defense-v2';
+// Bump the version string whenever the shell (index.html, css/, js/) ships meaningful changes.
+// Every file listed in ASSETS is precached; add new js/css files here when you create them.
+const CACHE = 'castle-defense-v5';
 const ASSETS = [
   '.',
   'index.html',
+  'css/base.css',
+  'css/screens.css',
+  'css/responsive.css',
+  'js/config.js',
+  'js/core.js',
+  'js/feat-maps.js',
+  'js/audio.js',
+  'js/render-world.js',
+  'js/render-enemies.js',
+  'js/render-fx.js',
+  'js/waves.js',
+  'js/feat-storms.js',
+  'js/game.js',
+  'js/feat-powers.js',
+  'js/feat-affixes.js',
+  'js/feat-combos.js',
+  'js/feat-relics.js',
+  'js/feat-targeting.js',
+  'js/feat-branches.js',
+  'js/feat-intel.js',
+  'js/feat-modifiers.js',
+  'js/screens.js',
+  'js/admin.js',
+  'js/ui.js',
+  'js/input.js',
+  'js/main.js',
   'manifest.webmanifest',
   'icon-192.png',
   'icon-512.png',

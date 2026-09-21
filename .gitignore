@@ -1,2 +1,5 @@
 .DS_Store
 node_modules/
+
+# Agent worktrees / local Claude state
+.claude/
