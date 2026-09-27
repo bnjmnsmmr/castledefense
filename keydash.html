@@ -12,31 +12,32 @@ canvas { display: block; }
 /* ===== MENUS ===== */
 .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; transition: opacity 0.3s; }
 .screen.hidden { opacity: 0; pointer-events: none; }
-.title { font-size: 52px; font-weight: 900; letter-spacing: -2px; margin-bottom: 4px;
+.title { font-size: 64px; font-weight: 900; letter-spacing: -2px; margin-bottom: 4px;
   background: linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #9b59b6);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.subtitle { color: #888; font-size: 15px; margin-bottom: 30px; }
-.menu-btn { background: #1a1a2e; border: 2px solid #333; color: #fff; padding: 14px 36px;
-  font-size: 16px; font-weight: 700; border-radius: 10px; cursor: pointer; margin: 5px;
-  transition: all 0.15s; min-width: 200px; }
-.menu-btn:hover { border-color: #ffd93d; background: #1f1f3a; transform: scale(1.03); }
-.menu-btn.primary { border-color: #ffd93d; background: #2a2a10; }
+.subtitle { color: #888; font-size: 18px; margin-bottom: 30px; }
+.menu-btn { background: #1a1a2e; border: 3px solid #333; color: #fff; padding: 22px 48px;
+  font-size: 22px; font-weight: 700; border-radius: 14px; cursor: pointer; margin: 8px;
+  transition: all 0.15s; min-width: 260px; }
+.menu-btn:hover { border-color: #ffd93d; background: #1f1f3a; transform: scale(1.05); }
+.menu-btn.primary { border-color: #ffd93d; background: #2a2a10; font-size: 32px; padding: 28px 60px; min-width: 320px; }
+.menu-btn.small { padding: 14px 24px; font-size: 17px; min-width: auto; }
 .menu-btn.small { padding: 8px 18px; font-size: 13px; min-width: auto; }
 
 /* ===== LEVEL SELECT ===== */
 #level-select { background: #0a0a1a; overflow-y: auto; }
-.level-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px;
-  max-width: 700px; width: 90%; padding: 10px; }
-.level-cell { aspect-ratio: 1; border-radius: 10px; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; cursor: pointer; border: 2px solid #222;
-  background: #111; transition: all 0.15s; font-size: 11px; gap: 2px; position: relative; }
+.level-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px;
+  max-width: 800px; width: 92%; padding: 12px; }
+.level-cell { aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; cursor: pointer; border: 3px solid #222;
+  background: #111; transition: all 0.15s; font-size: 14px; gap: 3px; position: relative; }
 .level-cell:hover { border-color: #ffd93d; transform: scale(1.08); }
 .level-cell.locked { opacity: 0.35; cursor: default; }
 .level-cell.locked:hover { border-color: #222; transform: none; }
 .level-cell.cleared { border-color: #6bcb77; }
-.level-cell .face { font-size: 22px; }
-.level-cell .num { font-weight: 700; color: #aaa; }
-.level-cell .kb-icon { position: absolute; top: 3px; right: 4px; font-size: 10px; }
+.level-cell .face { font-size: 30px; }
+.level-cell .num { font-weight: 700; color: #aaa; font-size: 15px; }
+.level-cell .kb-icon { position: absolute; top: 4px; right: 5px; font-size: 13px; }
 
 /* ===== HUD ===== */
 #hud { position: fixed; top: 0; left: 0; right: 0; height: 40px; display: flex; align-items: center;
@@ -105,7 +106,8 @@ canvas { display: block; }
 <div class="screen" id="main-menu">
   <div class="title">KEY DASH</div>
   <div class="subtitle">100 levels. 100 keyboards. Infinite rage.</div>
-  <button class="menu-btn primary" onclick="showLevelSelect()">PLAY</button>
+  <button class="menu-btn primary" onclick="playNow()">▶ PLAY</button>
+  <button class="menu-btn" onclick="showLevelSelect()">LEVELS</button>
   <button class="menu-btn" onclick="showCollection()">KEYBOARDS</button>
   <button class="menu-btn" onclick="showCommunity()">COMMUNITY</button>
   <button class="menu-btn" onclick="showLeaderboard()">LEADERBOARD</button>
@@ -823,13 +825,17 @@ function showLevelSelect() {
   }
 }
 
-function showLevelOptions(lvl) {
-  const diff = getDifficulty(lvl);
-  if (confirm(`Level ${lvl + 1} — ${DIFF_NAMES[diff]} ${DIFF_FACES[diff]}\n\nStart normally or practice mode?\n\nOK = Normal play\nCancel = Practice mode (with checkpoints)`)) {
-    startLevel(lvl, false);
-  } else {
-    startLevel(lvl, true);
+function playNow() {
+  // Find the next uncleared level, or level 0
+  let lvl = 0;
+  for (let i = 0; i < 100; i++) {
+    if (!save.cleared.includes(i)) { lvl = i; break; }
   }
+  startLevel(lvl, false);
+}
+
+function showLevelOptions(lvl) {
+  startLevel(lvl, false);
 }
 
 function showCollection() {
