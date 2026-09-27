@@ -167,6 +167,7 @@ function activateGoldSecret() {
 }
 
 document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('admin-login').style.display === 'flex') return;
   if (e.key === 'Escape' && document.getElementById('admin-panel').classList.contains('show')) {
     toggleAdminPanel();
     return;

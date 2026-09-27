@@ -84,6 +84,24 @@
 .tut-text strong { color: var(--gold); }
 .tut-text .dim { color: var(--parchment-dim); font-size: 13px; display: block; margin-top: 2px; }
 
+/* ===== Admin login ===== */
+#admin-login {
+  position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+}
+.admin-login-card {
+  background: var(--bg-panel); border: 1px solid var(--border-brass); border-radius: 12px;
+  padding: 28px 32px; max-width: 340px; width: 90%; text-align: center;
+}
+.admin-login-card h2 { font-family: 'Cinzel', serif; color: var(--gold); margin: 0 0 6px; font-size: 18px; }
+.admin-login-card p { color: var(--parchment-dim); font-size: 13px; margin: 0 0 14px; }
+.admin-login-card input[type="password"] {
+  width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: 6px;
+  border: 1px solid var(--border-brass); background: var(--bg-panel-raised);
+  color: var(--parchment); font-size: 14px; margin-top: 6px;
+}
+.admin-login-card input[type="password"]:focus { outline: none; border-color: var(--gold); }
+
 /* ===== Admin panel ===== */
 #admin-toggle-btn {
   position: absolute; top: 10px; right: 10px; z-index: 60;
