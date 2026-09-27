@@ -147,6 +147,20 @@
 
 <canvas id="c"></canvas>
 
+<div id="admin-login" style="display:none">
+  <div class="admin-login-card">
+    <h2 id="admin-login-title">Admin Login</h2>
+    <p id="admin-login-desc">Enter your admin password to access the tuning panel.</p>
+    <input type="password" id="admin-pw" placeholder="Password" autocomplete="off">
+    <input type="password" id="admin-pw-confirm" placeholder="Confirm password" autocomplete="off" style="display:none">
+    <div id="admin-login-error" style="color:#e0766f;margin-top:6px;font-size:13px"></div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="primary" id="admin-login-btn" onclick="adminLoginSubmit()">Log In</button>
+      <button class="secondary-btn" onclick="adminLoginCancel()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="admin-panel">
   <button id="admin-close-btn" onclick="toggleAdminPanel()" title="Close and return to game">✕</button>
   <div class="admin-wrap">
@@ -159,6 +173,7 @@
       <button onclick="document.getElementById('adminImportFile').click()">⬆ Import JSON</button>
       <input type="file" id="adminImportFile" style="display:none" accept="application/json" onchange="importAdminConfig(event)">
       <button class="danger" onclick="resetAdminDefaults()">↺ Reset to Defaults</button>
+      <button onclick="adminLogout()" title="Log out of admin" style="margin-left:auto">🔒 Log Out</button>
       <span id="admin-status"></span>
     </div>
 

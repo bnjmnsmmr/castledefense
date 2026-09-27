@@ -1,7 +1,80 @@
 // ===== ADMIN PANEL =====
 // In-game tuning panel: reads/writes castleDefenseConfig overrides for DIFFICULTY, towers, walls, enemies.
+// Gated behind a simple password stored as a SHA-256 hash in localStorage.
+
+const ADMIN_AUTH_KEY = 'castleDefenseAdminAuth';
+let adminAuthed = false;
+
+async function adminHash(pw) {
+  const data = new TextEncoder().encode(pw);
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function adminHasAccount() {
+  try { return !!localStorage.getItem(ADMIN_AUTH_KEY); } catch (e) { return false; }
+}
+
+function adminShowLogin() {
+  const dialog = document.getElementById('admin-login');
+  const isSetup = !adminHasAccount();
+  document.getElementById('admin-login-title').textContent = isSetup ? 'Create Admin Password' : 'Admin Login';
+  document.getElementById('admin-login-desc').textContent = isSetup
+    ? 'Set a password to protect the admin tuning panel.'
+    : 'Enter your admin password to access the tuning panel.';
+  document.getElementById('admin-pw').value = '';
+  document.getElementById('admin-pw-confirm').value = '';
+  document.getElementById('admin-pw-confirm').style.display = isSetup ? '' : 'none';
+  document.getElementById('admin-login-btn').textContent = isSetup ? 'Create Account' : 'Log In';
+  document.getElementById('admin-login-error').textContent = '';
+  dialog.style.display = 'flex';
+  document.getElementById('admin-pw').focus();
+}
+
+function adminLoginCancel() {
+  document.getElementById('admin-login').style.display = 'none';
+}
+
+async function adminLoginSubmit() {
+  const pw = document.getElementById('admin-pw').value;
+  const errEl = document.getElementById('admin-login-error');
+  if (!pw) { errEl.textContent = 'Please enter a password.'; return; }
+
+  if (!adminHasAccount()) {
+    const confirm = document.getElementById('admin-pw-confirm').value;
+    if (pw !== confirm) { errEl.textContent = 'Passwords do not match.'; return; }
+    if (pw.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; return; }
+    const hash = await adminHash(pw);
+    localStorage.setItem(ADMIN_AUTH_KEY, hash);
+    adminAuthed = true;
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-toggle-btn').style.display = 'flex';
+    showFlash('Admin account created — you are now logged in');
+    toggleAdminPanel();
+  } else {
+    const hash = await adminHash(pw);
+    const stored = localStorage.getItem(ADMIN_AUTH_KEY);
+    if (hash !== stored) { errEl.textContent = 'Wrong password.'; return; }
+    adminAuthed = true;
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-toggle-btn').style.display = 'flex';
+    toggleAdminPanel();
+  }
+}
+
+function adminLogout() {
+  adminAuthed = false;
+  document.getElementById('admin-toggle-btn').style.display = 'none';
+  const panel = document.getElementById('admin-panel');
+  if (panel.classList.contains('show')) {
+    panel.classList.remove('show');
+    if (game) { game.paused = false; saveGameState(); }
+  }
+  showFlash('Logged out of admin');
+}
 
 function toggleAdminPanel() {
+  if (!adminAuthed) { adminShowLogin(); return; }
   const panel = document.getElementById('admin-panel');
   const opening = !panel.classList.contains('show');
   if (opening) {
@@ -157,5 +230,14 @@ function resetAdminDefaults() {
   buildAdminForm();
   setAdminStatus('✓ Reset to defaults and applied');
 }
+
+// Enter key submits the login dialog; Escape closes it
+document.addEventListener('keydown', e => {
+  const dialog = document.getElementById('admin-login');
+  if (dialog && dialog.style.display === 'flex') {
+    if (e.key === 'Enter') { e.preventDefault(); adminLoginSubmit(); }
+    if (e.key === 'Escape') { e.preventDefault(); adminLoginCancel(); }
+  }
+});
 
 // Wave definitions
