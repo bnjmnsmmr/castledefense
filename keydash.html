@@ -294,16 +294,16 @@ function generateLevel(lvlNum) {
   const levelCheckpoints = [];
 
   // Safe start zone
-  const safeZone = 6;
+  const safeZone = 10;
 
   // Pattern generators based on difficulty
   let x = safeZone;
-  const spikeChance = 0.08 + diff * 0.04;
-  const gapChance = 0.03 + diff * 0.02;
-  const platformChance = 0.06 + diff * 0.02;
+  const spikeChance = 0.04 + diff * 0.025;
+  const gapChance = 0.015 + diff * 0.012;
+  const platformChance = 0.04 + diff * 0.015;
   const portalChance = 0.015 + diff * 0.005;
-  const ceilSpikeChance = diff >= 3 ? 0.02 + diff * 0.01 : 0;
-  const wallSpikeChance = diff >= 5 ? 0.01 + (diff - 5) * 0.008 : 0;
+  const ceilSpikeChance = diff >= 5 ? 0.01 + diff * 0.005 : 0;
+  const wallSpikeChance = diff >= 7 ? 0.005 + (diff - 7) * 0.004 : 0;
 
   // Auto-checkpoints every ~20% of the level
   const cpInterval = Math.floor(cols / 6);
@@ -327,11 +327,11 @@ function generateLevel(lvlNum) {
       x += gapW + 1;
     } else if (r < gapChance + spikeChance && x > safeZone) {
       // Ground spikes
-      const count = 1 + Math.floor(rng() * (1 + diff * 0.3));
+      const count = 1 + Math.floor(rng() * Math.max(1, diff * 0.2));
       for (let s = 0; s < count && x + s < cols - 3; s++) {
         blocks[groundY - 1][x + s] = BLOCK.SPIKE;
       }
-      x += count + 1;
+      x += count + 3;
     } else if (r < gapChance + spikeChance + platformChance) {
       // Elevated platform
       const platY = groundY - 3 - Math.floor(rng() * 2);
@@ -912,11 +912,11 @@ function showCommunity() {
   const wrap = document.getElementById('editor-btn-wrap');
   const lock = document.getElementById('community-lock');
 
-  if (save.cleared.length >= 100) {
-    lock.textContent = 'You\'ve mastered all 100 levels! Create and share your own.';
+  if (save.cleared.length >= 1) {
+    lock.textContent = 'Create and share your own levels!';
     wrap.innerHTML = '<button class="menu-btn primary" onclick="openEditor()">CREATE LEVEL</button>';
   } else {
-    lock.textContent = `Complete all 100 levels to create your own! (${save.cleared.length}/100)`;
+    lock.textContent = 'Beat Level 1 to unlock the level editor!';
     wrap.innerHTML = '';
   }
 
