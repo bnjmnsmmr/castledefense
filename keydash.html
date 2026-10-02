@@ -343,7 +343,7 @@ function generateLevel(lvlNum) {
       x += platW + 1;
     } else if (r < gapChance + spikeChance + platformChance + portalChance && x > 15) {
       // Portal
-      const portalTypes = [PORTAL.GRAVITY_FLIP, PORTAL.SPEED_FAST, PORTAL.SIZE_MINI];
+      const portalTypes = [PORTAL.SPEED_FAST, PORTAL.SIZE_MINI];
       const pType = portalTypes[Math.floor(rng() * portalTypes.length)];
       portals.push({ x, y: groundY - 2, type: pType });
       // Add the reversal portal a bit later
