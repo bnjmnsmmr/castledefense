@@ -820,7 +820,7 @@ function showLevelSelect() {
     cell.className = 'level-cell';
     const diff = getDifficulty(i);
     const cleared = save.cleared.includes(i);
-    const unlocked = i === 0 || save.cleared.includes(i - 1) || save.cleared.includes(i);
+    const unlocked = true; // all 100 levels are open from the start — nothing left to gate
 
     if (cleared) cell.classList.add('cleared');
     if (!unlocked) cell.classList.add('locked');
