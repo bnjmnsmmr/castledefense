@@ -299,7 +299,7 @@ function generateLevel(lvlNum) {
   // Pattern generators based on difficulty
   let x = safeZone;
   const spikeChance = 0.04 + diff * 0.025;
-  const gapChance = 0.015 + diff * 0.012;
+  const gapChance = 0; // ground holes disabled — the floor is solid everywhere, nothing to fall into
   const platformChance = 0.04 + diff * 0.015;
   const portalChance = 0.015 + diff * 0.005;
   const ceilSpikeChance = diff >= 5 ? 0.01 + diff * 0.005 : 0;
