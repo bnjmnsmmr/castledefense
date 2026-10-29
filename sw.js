@@ -1,7 +1,13 @@
 // Castle Defense service worker — offline-first shell cache.
 // Bump the version string whenever the shell (index.html, css/, js/) ships meaningful changes.
 // Every file listed in ASSETS is precached; add new js/css files here when you create them.
-const CACHE = 'castle-defense-v5';
+//
+// Scope: this worker registers at the site root (see js/main.js), so by default it would
+// intercept EVERY same-origin request — including unrelated pages like keydash.html that
+// were never meant to be part of this app's offline shell. The fetch handler below only
+// takes over requests whose URL matches an entry in ASSETS; everything else (keydash.html,
+// future standalone pages, etc.) falls through to the network/browser cache untouched.
+const CACHE = 'castle-defense-v6';
 const ASSETS = [
   '.',
   'index.html',
@@ -50,11 +56,16 @@ self.addEventListener('activate', event => {
   );
 });
 
+// Absolute URLs for every precached asset, resolved against this worker's own scope —
+// the only requests this worker is allowed to intercept. Built once at worker startup.
+const ASSET_URLS = new Set(ASSETS.map(a => new URL(a, self.registration.scope).href));
+
 // Stale-while-revalidate: serve from cache instantly (offline play), refresh the
 // cache from the network in the background so the next launch gets updates.
 self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  if (!ASSET_URLS.has(req.url)) return; // not part of this app's shell — let it pass through
   event.respondWith(
     caches.match(req).then(cached => {
       const refresh = fetch(req)

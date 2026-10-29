@@ -4,8 +4,9 @@
 HTML5 canvas tower defense game ("Ben's Castle Defense"). No build step, no bundler, no server — `index.html` (markup only) loads plain CSS from `css/` and classic `<script>` files from `js/` in a fixed order. PWA sidecar files: `manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`. Deployed to GitHub Pages at https://bnjmnsmmr.github.io/castledefense/
 
 ## PWA
-- Installable: manifest (fullscreen, landscape) + `sw.js` (stale-while-revalidate shell cache, cache name — currently `castle-defense-v5`; bump it on meaningful releases). Registered from `js/main.js`, skipped on `file:`.
+- Installable: manifest (fullscreen, landscape) + `sw.js` (stale-while-revalidate shell cache, cache name — currently `castle-defense-v6`; bump it on meaningful releases). Registered from `js/main.js`, skipped on `file:`.
 - **`sw.js` ASSETS lists every css/js file.** If you add a new module, add it there too or installed players never receive it.
+- **Registration is root-scoped**, so without a guard the worker would intercept every same-origin request — including unrelated pages like `keydash.html`. The fetch handler only takes over requests matching an `ASSETS` entry (resolved to absolute URLs in `ASSET_URLS`); anything else passes through untouched. A page outside this app's shell should stay off `ASSETS`, not get added to make it "work offline" — that would pull it back under this cache.
 - Icons drawn programmatically (canvas → PNG); regenerate by re-rendering if the brand changes.
 
 ## Architecture
