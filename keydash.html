@@ -105,7 +105,7 @@ canvas { display: block; }
 <!-- ===== MAIN MENU ===== -->
 <div class="screen" id="main-menu">
   <div class="title">KEY DASH</div>
-  <div class="subtitle">100 levels. 100 keyboards. Infinite rage.</div>
+  <div class="subtitle">50 levels. 50 keys. Infinite rage.</div>
   <button class="menu-btn primary" onclick="playNow()">▶ PLAY</button>
   <button class="menu-btn" onclick="showLevelSelect()">LEVELS</button>
   <button class="menu-btn" onclick="showCollection()">KEYBOARDS</button>
@@ -117,7 +117,7 @@ canvas { display: block; }
 <!-- ===== LEVEL SELECT ===== -->
 <div class="screen hidden" id="level-select">
   <div style="font-size:22px;font-weight:800;margin:16px 0 4px">SELECT LEVEL</div>
-  <div style="color:#888;font-size:13px;margin-bottom:10px" id="ls-progress">0 / 100 cleared</div>
+  <div style="color:#888;font-size:13px;margin-bottom:10px" id="ls-progress">0 / 50 cleared</div>
   <div class="level-grid" id="level-grid"></div>
   <div style="margin:12px 0;display:flex;gap:8px">
     <button class="menu-btn small" onclick="showScreen('main-menu')">BACK</button>
@@ -153,7 +153,7 @@ canvas { display: block; }
 <!-- ===== COLLECTION ===== -->
 <div class="screen hidden" id="collection-screen">
   <div style="font-size:22px;font-weight:800;margin:16px 0 2px">KEYBOARD COLLECTION</div>
-  <div class="kb-count" id="kb-count">0 / 100</div>
+  <div class="kb-count" id="kb-count">0 / 50</div>
   <div class="kb-grid" id="kb-grid"></div>
   <button class="menu-btn small" style="margin:14px" onclick="showScreen('main-menu')">BACK</button>
 </div>
@@ -161,7 +161,7 @@ canvas { display: block; }
 <!-- ===== LEADERBOARD ===== -->
 <div class="screen hidden" id="leaderboard-screen">
   <div style="font-size:22px;font-weight:800;margin:16px 0 10px">LEADERBOARD</div>
-  <div id="lb-info" style="color:#888;font-size:13px;margin-bottom:10px">Collect all 100 keyboards to join!</div>
+  <div id="lb-info" style="color:#888;font-size:13px;margin-bottom:10px">Collect all 50 keys to join!</div>
   <div class="lb-list" id="lb-list"></div>
   <button class="menu-btn small" style="margin:14px" onclick="showScreen('main-menu')">BACK</button>
 </div>
@@ -169,7 +169,7 @@ canvas { display: block; }
 <!-- ===== COMMUNITY ===== -->
 <div class="screen hidden" id="community-screen">
   <div style="font-size:22px;font-weight:800;margin:16px 0 4px">COMMUNITY LEVELS</div>
-  <div style="color:#888;font-size:13px;margin-bottom:6px" id="community-lock">Complete all 100 levels to create your own!</div>
+  <div style="color:#888;font-size:13px;margin-bottom:6px" id="community-lock">Complete all 50 levels to create your own!</div>
   <div id="editor-btn-wrap" style="margin-bottom:10px"></div>
   <div class="community-list" id="community-list"></div>
   <button class="menu-btn small" style="margin:14px" onclick="showScreen('main-menu')">BACK</button>
@@ -185,7 +185,7 @@ canvas { display: block; }
 
 <script>
 // ===== KEY DASH =====
-// A Geometry Dash-inspired platformer with 100 levels, portals, practice mode,
+// A Geometry Dash-inspired platformer with 50 levels, portals, practice mode,
 // keyboard collectibles, a level editor, and community levels.
 
 const GC = document.getElementById('game-canvas');
@@ -203,19 +203,15 @@ const DIFF_FACES = ['😊','😐','😬','😰','🤯','💀','👹','☠️','�
 const DIFF_NAMES = ['Easy','Normal','Hard','Harder','Insane','Demon','Extreme','Ultra','Nightmare','Impossible'];
 const DIFF_COLORS = ['#6bcb77','#a8d86b','#ffd93d','#ffa94d','#ff6b6b','#e04040','#9b59b6','#6c3483','#2c3e50','#1a1a1a'];
 
-// Keyboard keys to unlock (100 total)
+// Keyboard keys to unlock (50 total — one per level)
 const KB_KEYS = [
   'Q','W','E','R','T','Y','U','I','O','P',
   'A','S','D','F','G','H','J','K','L',';',
   'Z','X','C','V','B','N','M',',','.','/',
   '1','2','3','4','5','6','7','8','9','0',
-  '!','@','#','$','%','^','&','*','(',')',
-  'F1','F2','F3','F4','F5','F6','F7','F8','F9','F10',
-  'TAB','CAP','SHF','CTL','ALT','SPC','ENT','BSP','DEL','ESC',
-  '←','→','↑','↓','INS','HOM','END','PUP','PDN','PRT',
-  'NL','N0','N1','N2','N3','N4','N5','N6','N7','N8',
-  'N9','N+','N-','N*','N/','N.','NE','FN','WIN','MNU'
+  'TAB','CAP','SHF','CTL','ALT','SPC','ENT','BSP','DEL','ESC'
 ];
+const TOTAL_LEVELS = KB_KEYS.length;
 
 // Game modes
 const MODE = { CUBE: 'cube', SHIP: 'ship', BALL: 'ball', UFO: 'ufo', SPIDER: 'spider' };
@@ -276,7 +272,7 @@ function mulberry32(a) {
 }
 
 // ===== LEVEL GENERATION =====
-function getDifficulty(lvl) { return Math.min(9, Math.floor(lvl / 10)); }
+function getDifficulty(lvl) { return Math.min(7, Math.floor(lvl / 12)); }
 
 function generateLevel(lvlNum) {
   const seed = lvlNum * 7919 + 31337;
@@ -306,12 +302,12 @@ function generateLevel(lvlNum) {
 
   // Pattern generators based on difficulty
   let x = safeZone;
-  const spikeChance = 0.04 + diff * 0.025;
-  const gapChance = 0.015 + diff * 0.012;
-  const platformChance = 0.04 + diff * 0.015;
+  const spikeChance = 0.025 + diff * 0.015;
+  const gapChance = 0.01 + diff * 0.008;
+  const platformChance = 0.03 + diff * 0.01;
   const portalChance = 0.015 + diff * 0.005;
-  const ceilSpikeChance = diff >= 5 ? 0.01 + diff * 0.005 : 0;
-  const wallSpikeChance = diff >= 7 ? 0.005 + (diff - 7) * 0.004 : 0;
+  const ceilSpikeChance = diff >= 5 ? 0.005 + diff * 0.003 : 0;
+  const wallSpikeChance = diff >= 7 ? 0.003 + (diff - 7) * 0.002 : 0;
 
   // Auto-checkpoints every ~20% of the level
   const cpInterval = Math.floor(cols / 6);
@@ -331,14 +327,14 @@ function generateLevel(lvlNum) {
         blocks[groundY][x + gx] = BLOCK.EMPTY;
         blocks[groundY + 1][x + gx] = BLOCK.SPIKE;
       }
-      x += gapW + 1;
+      x += gapW + 3;
     } else if (r < gapChance + spikeChance && x > safeZone) {
       // Ground spikes
-      const count = 1 + Math.floor(rng() * Math.max(1, diff * 0.2));
+      const count = 1 + Math.floor(rng() * Math.max(1, diff * 0.15));
       for (let s = 0; s < count && x + s < cols - 3; s++) {
         blocks[groundY - 1][x + s] = BLOCK.SPIKE;
       }
-      x += count + 3;
+      x += count + 4;
     } else if (r < gapChance + spikeChance + platformChance) {
       // Elevated platform
       const platY = groundY - 3 - Math.floor(rng() * 2);
@@ -723,7 +719,7 @@ function update(dt) {
   // Ceiling bounce for non-flipped modes (can't walk on ceiling)
   if (!player.gravityFlipped && player.y < PLAYER_SIZE * player.sizeMult * 0.5) {
     player.y = PLAYER_SIZE * player.sizeMult * 0.5;
-    player.vy = Math.abs(player.vy) * 0.2;
+    player.vy = 0;
   }
 
   // Ground check
@@ -878,7 +874,7 @@ function applyPortal(type) {
     case PORTAL.SIZE_MINI: player.sizeMult = 0.55; break;
     case PORTAL.SIZE_NORMAL: player.sizeMult = 1; break;
     case PORTAL.MODE_SHIP: player.mode = MODE.SHIP; player.gravityFlipped = false; break;
-    case PORTAL.MODE_BALL: player.mode = MODE.BALL; break;
+    case PORTAL.MODE_BALL: player.mode = MODE.BALL; player.gravityFlipped = false; break;
     case PORTAL.MODE_UFO: player.mode = MODE.UFO; player.gravityFlipped = false; break;
     case PORTAL.MODE_SPIDER: player.mode = MODE.SPIDER; break;
     case PORTAL.MODE_CUBE: player.mode = MODE.CUBE; player.gravityFlipped = false; break;
@@ -929,7 +925,7 @@ function winLevel() {
   const key = KB_KEYS[currentLevel] || '?';
   document.getElementById('win-kb').textContent = '⌨️';
   document.getElementById('win-sub').textContent = isNew
-    ? `You unlocked the ${key} key! (${save.keyboards.length}/100)`
+    ? `You unlocked the ${key} key! (${save.keyboards.length}/${TOTAL_LEVELS})`
     : `Level cleared in ${attempts} attempt${attempts > 1 ? 's' : ''}`;
   document.getElementById('win-screen').classList.remove('hidden');
   document.getElementById('hud').classList.add('hidden');
@@ -989,9 +985,9 @@ function showLevelSelect() {
   showScreen('level-select');
   const grid = document.getElementById('level-grid');
   grid.innerHTML = '';
-  document.getElementById('ls-progress').textContent = `${save.cleared.length} / 100 cleared`;
+  document.getElementById('ls-progress').textContent = `${save.cleared.length} / ${TOTAL_LEVELS} cleared`;
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < TOTAL_LEVELS; i++) {
     const cell = document.createElement('div');
     cell.className = 'level-cell';
     const diff = getDifficulty(i);
@@ -1016,7 +1012,7 @@ function showLevelSelect() {
 function playNow() {
   // Find the next uncleared level, or level 0
   let lvl = 0;
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < TOTAL_LEVELS; i++) {
     if (!save.cleared.includes(i)) { lvl = i; break; }
   }
   startLevel(lvl, false);
@@ -1030,9 +1026,9 @@ function showCollection() {
   showScreen('collection-screen');
   const grid = document.getElementById('kb-grid');
   grid.innerHTML = '';
-  document.getElementById('kb-count').textContent = `${save.keyboards.length} / 100`;
+  document.getElementById('kb-count').textContent = `${save.keyboards.length} / ${TOTAL_LEVELS}`;
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < TOTAL_LEVELS; i++) {
     const cell = document.createElement('div');
     cell.className = 'kb-cell';
     const unlocked = save.keyboards.includes(i);
@@ -1048,18 +1044,18 @@ function showLeaderboard() {
   const list = document.getElementById('lb-list');
   const info = document.getElementById('lb-info');
 
-  if (save.keyboards.length < 100) {
-    info.textContent = `Collect all 100 keyboards to join! (${save.keyboards.length}/100)`;
-    list.innerHTML = '<div style="color:#555;text-align:center;padding:20px">Complete all 100 levels to appear here.</div>';
+  if (save.keyboards.length < TOTAL_LEVELS) {
+    info.textContent = `Collect all ${TOTAL_LEVELS} keys to join! (${save.keyboards.length}/${TOTAL_LEVELS})`;
+    list.innerHTML = `<div style="color:#555;text-align:center;padding:20px">Complete all ${TOTAL_LEVELS} levels to appear here.</div>`;
     return;
   }
 
-  info.textContent = 'You made it! All 100 keyboards collected.';
+  info.textContent = `You made it! All ${TOTAL_LEVELS} keys collected.`;
   // Local leaderboard from save
   const entries = loadLeaderboard();
   if (!entries.find(e => e.name === (save.name || 'Player'))) {
     const totalAttempts = Object.values(save.attempts).reduce((s, a) => s + a, 0);
-    const entry = { name: save.name || 'Player', keyboards: 100, attempts: totalAttempts, date: new Date().toISOString().slice(0, 10) };
+    const entry = { name: save.name || 'Player', keyboards: TOTAL_LEVELS, attempts: totalAttempts, date: new Date().toISOString().slice(0, 10) };
     entries.push(entry);
     entries.sort((a, b) => a.attempts - b.attempts);
     saveLeaderboard(entries);
