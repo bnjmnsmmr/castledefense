@@ -8,19 +8,20 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #1a1a2e; overflow: hidden; touch-action: none; font-family: 'Segoe UI', Arial, sans-serif; }
 canvas { display: block; }
-#ui { position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; }
-#timer { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); color: #fff; font-size: 28px; font-weight: 900; text-shadow: 0 2px 8px rgba(0,0,0,0.6); letter-spacing: 2px; }
+#ui { position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; z-index: 2; }
+#timer { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); color: #fff; font-size: 28px; font-weight: 900; text-shadow: 0 2px 8px rgba(0,0,0,0.6); letter-spacing: 2px; display: none; }
 #section-info { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); color: #ffd93d; font-size: 15px; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+#checkpoint-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #6bcb77; font-size: 32px; font-weight: 900; text-shadow: 0 0 20px rgba(107,203,119,0.6); display: none; pointer-events: none; z-index: 3; }
 #title-screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); z-index: 10; pointer-events: auto; }
 #title-screen h1 { font-size: clamp(36px, 8vw, 72px); color: #e94560; text-shadow: 0 0 30px rgba(233,69,96,0.5), 0 4px 12px rgba(0,0,0,0.5); letter-spacing: 4px; margin-bottom: 8px; }
 #title-screen .sub { color: #aaa; font-size: clamp(14px, 3vw, 20px); margin-bottom: 40px; }
-#play-btn { pointer-events: auto; background: #e94560; color: #fff; border: none; padding: 16px 48px; font-size: 24px; font-weight: 900; border-radius: 12px; cursor: pointer; letter-spacing: 2px; box-shadow: 0 4px 20px rgba(233,69,96,0.4); transition: transform 0.1s, box-shadow 0.1s; }
-#play-btn:hover { transform: scale(1.05); box-shadow: 0 6px 30px rgba(233,69,96,0.6); }
-#play-btn:active { transform: scale(0.97); }
+.menu-btn { pointer-events: auto; background: #e94560; color: #fff; border: none; padding: 16px 48px; font-size: 24px; font-weight: 900; border-radius: 12px; cursor: pointer; letter-spacing: 2px; box-shadow: 0 4px 20px rgba(233,69,96,0.4); transition: transform 0.1s; margin: 6px; }
+.menu-btn:hover { transform: scale(1.05); }
+.menu-btn:active { transform: scale(0.97); }
+.menu-btn.green { background: #6bcb77; box-shadow: 0 4px 20px rgba(107,203,119,0.4); }
 #win-screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.75); z-index: 10; pointer-events: auto; }
 #win-screen h1 { font-size: clamp(32px, 7vw, 60px); color: #ffd93d; text-shadow: 0 0 30px rgba(255,217,61,0.5); margin-bottom: 8px; }
 #win-time { color: #fff; font-size: clamp(20px, 4vw, 36px); margin-bottom: 30px; }
-#win-screen button { background: #6bcb77; color: #fff; border: none; padding: 14px 40px; font-size: 22px; font-weight: 900; border-radius: 12px; cursor: pointer; letter-spacing: 2px; }
 #touch-controls { position: absolute; bottom: 20px; left: 0; width: 100%; display: none; justify-content: space-between; padding: 0 20px; pointer-events: none; z-index: 5; }
 .touch-btn { pointer-events: auto; width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 28px; color: rgba(255,255,255,0.7); user-select: none; -webkit-user-select: none; }
 .touch-btn:active { background: rgba(255,255,255,0.3); }
@@ -34,15 +35,16 @@ canvas { display: block; }
   <div id="timer">0.00</div>
   <div id="section-info"></div>
 </div>
+<div id="checkpoint-msg">✅ CHECKPOINT!</div>
 <div id="title-screen">
   <h1>TOWER OF HELL</h1>
-  <div class="sub">No checkpoints. No mercy.</div>
-  <button id="play-btn" onclick="startGame()">PLAY</button>
+  <div class="sub">Climb the tower. Don't fall.</div>
+  <button class="menu-btn" onclick="startGame()">PLAY</button>
 </div>
 <div id="win-screen">
   <h1>🏆 YOU MADE IT!</h1>
   <div id="win-time"></div>
-  <button onclick="startGame()">PLAY AGAIN</button>
+  <button class="menu-btn green" onclick="startGame()">PLAY AGAIN</button>
 </div>
 <div id="touch-controls">
   <div id="touch-left-group">
@@ -70,39 +72,36 @@ function playTone(freq, dur, type, vol) {
   o.connect(g); g.connect(audioCtx.destination);
   o.start(); o.stop(audioCtx.currentTime + dur);
 }
-function sfxJump() { playTone(440, 0.12, 'square', 0.06); playTone(580, 0.1, 'square', 0.04); }
+function sfxJump() { playTone(440, 0.12, 'square', 0.06); }
 function sfxLand() { playTone(120, 0.08, 'triangle', 0.05); }
-function sfxFall() { playTone(200, 0.4, 'sawtooth', 0.06); setTimeout(() => playTone(100, 0.3, 'sawtooth', 0.04), 150); }
+function sfxFall() { playTone(200, 0.4, 'sawtooth', 0.06); }
+function sfxCheckpoint() { playTone(523, 0.15, 'square', 0.06); playTone(659, 0.15, 'square', 0.06); }
 function sfxWin() { [523,659,784,1047].forEach((f,i) => setTimeout(() => playTone(f, 0.3, 'square', 0.07), i*120)); }
-function sfxDisappear() { playTone(300, 0.15, 'triangle', 0.04); }
 
 // --- Constants ---
-const GRAVITY = 1800;
-const JUMP_VEL = -620;
-const MOVE_SPEED = 280;
-const PLAYER_W = 24;
-const PLAYER_H = 30;
-const TOWER_W = 400;
-const SECTION_H = 180;
-const WALL_THICKNESS = 16;
+const GRAVITY = 1600;
+const JUMP_VEL = -580;
+const MOVE_SPEED = 260;
+const PW = 22, PH = 28; // player size
+const TOWER_W = 360;
+const SECTION_H = 200;
+const WALL_T = 14;
+const PLAT_H = 12;
 
-// --- Colors ---
-const SECTION_COLORS = [
-  '#e94560', '#0f3460', '#6bcb77', '#ffd93d',
-  '#9b59b6', '#e67e22', '#1abc9c', '#3498db',
-  '#e74c3c', '#2ecc71', '#f39c12', '#8e44ad'
-];
+const COLORS = ['#e94560','#0f3460','#6bcb77','#ffd93d','#9b59b6','#e67e22','#1abc9c','#3498db','#e74c3c','#2ecc71'];
 
 // --- State ---
-let state = 'title'; // title, playing, win
+let state = 'title';
 let tower = null;
 let player = null;
-let camera = { y: 0 };
+let cam = { y: 0 };
 let timer = 0;
-let keys = {};
-let touchLeft = false, touchRight = false, touchJump = false;
-let lastTime = 0;
 let bestTime = null;
+let keys = {};
+let touchL = false, touchR = false, touchJ = false;
+let lastTime = 0;
+let checkpoint = null; // {x, y, section}
+let checkpointMsg = 0; // display timer
 
 // --- Resize ---
 function resize() {
@@ -112,121 +111,130 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// --- Tower Generation ---
-function generateTower() {
-  const numSections = 8 + Math.floor(Math.random() * 5); // 8-12
-  const sections = [];
-  const towerLeft = (canvas.width - TOWER_W) / 2;
-
-  for (let i = 0; i < numSections; i++) {
-    const color = SECTION_COLORS[i % SECTION_COLORS.length];
-    const baseY = -(i + 1) * SECTION_H;
-    const platforms = [];
-    const difficulty = Math.min(1, i / (numSections - 1));
-
-    // Each section gets 3-5 platforms
-    const numPlats = 3 + Math.floor(Math.random() * 3);
-
-    // Ensure reachability: alternate sides with increasing height
-    for (let p = 0; p < numPlats; p++) {
-      const frac = (p + 0.5) / numPlats;
-      const py = baseY + SECTION_H * (1 - frac);
-      const side = (p + i) % 2 === 0 ? 'left' : 'right';
-      const pw = 60 + Math.random() * 80;
-      let px;
-      if (side === 'left') {
-        px = towerLeft + WALL_THICKNESS + Math.random() * (TOWER_W * 0.3);
-      } else {
-        px = towerLeft + TOWER_W - WALL_THICKNESS - pw - Math.random() * (TOWER_W * 0.3);
-      }
-
-      // Pick platform type based on difficulty
-      let type = 'static';
-      const roll = Math.random();
-      if (difficulty > 0.2 && roll < 0.25 * difficulty) {
-        type = 'moving';
-      } else if (difficulty > 0.4 && roll < 0.4 * difficulty) {
-        type = 'disappearing';
-      } else if (difficulty > 0.3 && roll < 0.3) {
-        type = 'thin';
-      }
-
-      platforms.push({
-        x: px, y: py, w: pw, h: type === 'thin' ? 6 : 14,
-        type, color,
-        // Moving platform state
-        moveDir: Math.random() < 0.5 ? 1 : -1,
-        moveRange: 60 + Math.random() * 40,
-        moveSpeed: 60 + Math.random() * 80,
-        baseX: px,
-        // Disappearing platform state
-        visible: true,
-        disappearTimer: 0,
-        disappearDelay: 0.8 + Math.random() * 0.6,
-        reappearDelay: 1.5 + Math.random() * 1.0,
-        touched: false,
-        // Spinner obstacle (rare)
-        hasSpinner: difficulty > 0.5 && Math.random() < 0.2 * difficulty,
-        spinnerAngle: Math.random() * Math.PI * 2,
-        spinnerSpeed: 2 + Math.random() * 3,
-        spinnerLen: 35 + Math.random() * 20
-      });
-    }
-
-    sections.push({ baseY, color, platforms, index: i });
-  }
-
-  // The finish platform at the very top
-  const topY = -(numSections + 1) * SECTION_H + 40;
-
-  return {
-    sections,
-    towerLeft,
-    numSections,
-    floorY: 40,
-    topY,
-    totalHeight: (numSections + 1) * SECTION_H
+// --- Seeded RNG ---
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 }
 
-// --- Player ---
-function resetPlayer() {
-  const cx = tower.towerLeft + TOWER_W / 2;
-  player = {
-    x: cx - PLAYER_W / 2,
-    y: tower.floorY - PLAYER_H,
-    vx: 0, vy: 0,
-    grounded: false,
-    wasGrounded: false,
-    jumpBuffer: 0,
-    coyoteTime: 0,
-    facingRight: true,
-    color: '#' + ['ff6b6b','6bcb77','4d96ff','ffd93d','cc66ff','ff9f43'][Math.floor(Math.random()*6)]
-  };
+// --- Tower Generation ---
+function generateTower() {
+  const seed = Date.now();
+  const rng = mulberry32(seed);
+  const numSections = 8;
+  const sections = [];
+  const towerLeft = Math.floor((canvas.width - TOWER_W) / 2);
+  const innerW = TOWER_W - WALL_T * 2;
+
+  for (let i = 0; i < numSections; i++) {
+    const color = COLORS[i % COLORS.length];
+    // Section bottom Y: section 0 starts at y=0, going upward (negative Y)
+    // Ground floor is at floorY. Section i spans from floorY - (i+1)*SECTION_H to floorY - i*SECTION_H
+    const topY = -(i + 1) * SECTION_H;
+    const botY = -i * SECTION_H;
+    const platforms = [];
+    const diff = i / numSections; // 0..1
+
+    // 4-6 platforms per section, zigzagging left/right for reachability
+    const numPlats = 4 + Math.floor(rng() * 3);
+    for (let p = 0; p < numPlats; p++) {
+      const frac = (p + 0.5) / numPlats;
+      const py = botY - frac * SECTION_H;
+      // Alternate sides
+      const leftSide = (p + i) % 2 === 0;
+      const pw = 70 + rng() * 60;
+      let px;
+      if (leftSide) {
+        px = towerLeft + WALL_T + rng() * (innerW * 0.35);
+      } else {
+        px = towerLeft + WALL_T + innerW - pw - rng() * (innerW * 0.35);
+      }
+
+      let type = 'static';
+      const roll = rng();
+      if (diff > 0.3 && roll < 0.2) type = 'moving';
+      else if (diff > 0.5 && roll < 0.35) type = 'disappearing';
+
+      platforms.push({
+        x: px, y: py, w: pw, h: PLAT_H,
+        type, color,
+        baseX: px,
+        movePhase: rng() * Math.PI * 2,
+        moveRange: 40 + rng() * 40,
+        moveSpeed: 1.5 + rng() * 1.5,
+        visible: true,
+        touched: false,
+        disappearTimer: 0,
+        disappearDelay: 1.2,
+        reappearDelay: 2.0
+      });
+    }
+
+    // Checkpoint flag at bottom of each section (every 2 sections)
+    const hasCheckpoint = i > 0 && i % 2 === 0;
+
+    sections.push({ topY, botY, color, platforms, index: i, hasCheckpoint });
+  }
+
+  const floorY = 60; // ground Y
+  const topY = -(numSections) * SECTION_H - 60;
+
+  return { sections, towerLeft, numSections, floorY, topY, innerW, seed };
+}
+
+function resetPlayer(useCheckpoint) {
+  const tl = tower.towerLeft;
+  if (useCheckpoint && checkpoint) {
+    player = {
+      x: checkpoint.x, y: checkpoint.y,
+      vx: 0, vy: 0, grounded: false,
+      coyote: 0, jumpBuf: 0,
+      facingRight: true,
+      color: player ? player.color : randomColor()
+    };
+  } else {
+    checkpoint = null;
+    player = {
+      x: tl + TOWER_W / 2 - PW / 2, y: tower.floorY - PH,
+      vx: 0, vy: 0, grounded: false,
+      coyote: 0, jumpBuf: 0,
+      facingRight: true,
+      color: randomColor()
+    };
+  }
+}
+
+function randomColor() {
+  return ['#ff6b6b','#6bcb77','#4d96ff','#ffd93d','#cc66ff','#ff9f43'][Math.floor(Math.random()*6)];
 }
 
 function startGame() {
   ensureAudio();
   document.getElementById('title-screen').style.display = 'none';
   document.getElementById('win-screen').style.display = 'none';
+  document.getElementById('timer').style.display = 'block';
   tower = generateTower();
-  resetPlayer();
+  checkpoint = null;
+  resetPlayer(false);
   timer = 0;
-  camera.y = 0;
+  cam.y = 0;
   state = 'playing';
-  // Reset disappearing platforms
-  tower.sections.forEach(s => s.platforms.forEach(p => {
-    p.visible = true; p.touched = false; p.disappearTimer = 0;
-  }));
 }
 
 function winGame() {
   state = 'win';
   sfxWin();
   const t = timer.toFixed(2);
-  document.getElementById('win-time').textContent = `Time: ${t}s` + (bestTime !== null ? ` | Best: ${Math.min(bestTime, timer).toFixed(2)}s` : '');
+  let msg = `Time: ${t}s`;
+  if (bestTime !== null) msg += ` | Best: ${Math.min(bestTime, timer).toFixed(2)}s`;
+  document.getElementById('win-time').textContent = msg;
   if (bestTime === null || timer < bestTime) bestTime = timer;
   document.getElementById('win-screen').style.display = 'flex';
+  document.getElementById('timer').style.display = 'none';
 }
 
 // --- Update ---
@@ -235,98 +243,95 @@ function update(dt) {
   timer += dt;
   document.getElementById('timer').textContent = timer.toFixed(2);
 
+  if (checkpointMsg > 0) {
+    checkpointMsg -= dt;
+    document.getElementById('checkpoint-msg').style.display = checkpointMsg > 0 ? 'block' : 'none';
+  }
+
   const p = player;
   const tl = tower.towerLeft;
-  const tr = tl + TOWER_W;
 
   // Input
-  const moveLeft = keys['ArrowLeft'] || keys['KeyA'] || touchLeft;
-  const moveRight = keys['ArrowRight'] || keys['KeyD'] || touchRight;
-  const jumpPressed = keys['Space'] || keys['ArrowUp'] || keys['KeyW'] || touchJump;
+  const left = keys['ArrowLeft'] || keys['KeyA'] || touchL;
+  const right = keys['ArrowRight'] || keys['KeyD'] || touchR;
+  const jump = keys['Space'] || keys['ArrowUp'] || keys['KeyW'] || touchJ;
 
-  // Horizontal movement
+  // Horizontal
   p.vx = 0;
-  if (moveLeft) { p.vx = -MOVE_SPEED; p.facingRight = false; }
-  if (moveRight) { p.vx = MOVE_SPEED; p.facingRight = true; }
+  if (left) { p.vx = -MOVE_SPEED; p.facingRight = false; }
+  if (right) { p.vx = MOVE_SPEED; p.facingRight = true; }
 
   // Gravity
   p.vy += GRAVITY * dt;
-  if (p.vy > 900) p.vy = 900;
+  if (p.vy > 800) p.vy = 800;
 
-  // Jump (with coyote time + jump buffer)
-  if (jumpPressed) p.jumpBuffer = 0.1;
-  else p.jumpBuffer -= dt;
+  // Jump buffer + coyote time
+  if (jump) p.jumpBuf = 0.12;
+  else p.jumpBuf = Math.max(0, p.jumpBuf - dt);
+  if (!p.grounded) p.coyote = Math.max(0, p.coyote - dt);
 
-  if (!p.grounded) p.coyoteTime -= dt;
-
-  if (p.jumpBuffer > 0 && (p.grounded || p.coyoteTime > 0)) {
+  if (p.jumpBuf > 0 && (p.grounded || p.coyote > 0)) {
     p.vy = JUMP_VEL;
     p.grounded = false;
-    p.coyoteTime = 0;
-    p.jumpBuffer = 0;
+    p.coyote = 0;
+    p.jumpBuf = 0;
     sfxJump();
   }
 
   // Move X
   p.x += p.vx * dt;
-  // Wall collision
-  if (p.x < tl + WALL_THICKNESS) p.x = tl + WALL_THICKNESS;
-  if (p.x + PLAYER_W > tr - WALL_THICKNESS) p.x = tr - WALL_THICKNESS - PLAYER_W;
+  if (p.x < tl + WALL_T) p.x = tl + WALL_T;
+  if (p.x + PW > tl + TOWER_W - WALL_T) p.x = tl + TOWER_W - WALL_T - PW;
 
   // Move Y
-  p.wasGrounded = p.grounded;
+  const wasGrounded = p.grounded;
   p.y += p.vy * dt;
   p.grounded = false;
 
-  // Floor collision
-  if (p.y + PLAYER_H > tower.floorY) {
-    p.y = tower.floorY - PLAYER_H;
-    if (p.vy > 0) { p.vy = 0; p.grounded = true; p.coyoteTime = 0.08; }
+  // Floor
+  if (p.y + PH > tower.floorY) {
+    p.y = tower.floorY - PH;
+    if (p.vy > 0) { p.vy = 0; p.grounded = true; p.coyote = 0.1; }
   }
 
   // Platform collisions
   for (const sec of tower.sections) {
     for (const plat of sec.platforms) {
-      // Update moving platforms
+      // Update moving
       if (plat.type === 'moving') {
-        plat.x = plat.baseX + Math.sin(timer * plat.moveSpeed / 60) * plat.moveRange;
+        plat.x = plat.baseX + Math.sin(timer * plat.moveSpeed + plat.movePhase) * plat.moveRange;
       }
-      // Update disappearing platforms
+      // Update disappearing
       if (plat.type === 'disappearing' && plat.touched) {
         plat.disappearTimer += dt;
         if (plat.visible && plat.disappearTimer > plat.disappearDelay) {
           plat.visible = false;
           plat.disappearTimer = 0;
-          sfxDisappear();
         } else if (!plat.visible && plat.disappearTimer > plat.reappearDelay) {
           plat.visible = true;
           plat.touched = false;
           plat.disappearTimer = 0;
         }
       }
-      // Update spinners
-      if (plat.hasSpinner) {
-        plat.spinnerAngle += plat.spinnerSpeed * dt;
-      }
 
       if (!plat.visible) continue;
 
-      // Collision: only land on top
-      const onX = p.x + PLAYER_W > plat.x && p.x < plat.x + plat.w;
-      const feetY = p.y + PLAYER_H;
+      // Only land on top (one-way platform)
+      const onX = p.x + PW > plat.x && p.x < plat.x + plat.w;
+      const feetY = p.y + PH;
       const prevFeetY = feetY - p.vy * dt;
 
-      if (onX && p.vy >= 0 && feetY >= plat.y && prevFeetY <= plat.y + plat.h + 4) {
-        p.y = plat.y - PLAYER_H;
+      if (onX && p.vy >= 0 && feetY >= plat.y && prevFeetY <= plat.y + 6) {
+        p.y = plat.y - PH;
         p.vy = 0;
         p.grounded = true;
-        p.coyoteTime = 0.08;
-        if (!p.wasGrounded) sfxLand();
+        p.coyote = 0.1;
+        if (!wasGrounded) sfxLand();
 
         // Ride moving platform
         if (plat.type === 'moving') {
-          const newX = plat.baseX + Math.sin((timer + dt) * plat.moveSpeed / 60) * plat.moveRange;
-          p.x += (newX - plat.x) * 0.8;
+          const nextX = plat.baseX + Math.sin((timer + dt) * plat.moveSpeed + plat.movePhase) * plat.moveRange;
+          p.x += nextX - plat.x;
         }
 
         // Trigger disappearing
@@ -335,54 +340,43 @@ function update(dt) {
           plat.disappearTimer = 0;
         }
       }
+    }
 
-      // Spinner collision
-      if (plat.hasSpinner) {
-        const cx = plat.x + plat.w / 2;
-        const cy = plat.y - 20;
-        const ex = cx + Math.cos(plat.spinnerAngle) * plat.spinnerLen;
-        const ey = cy + Math.sin(plat.spinnerAngle) * plat.spinnerLen;
-        const pcx = p.x + PLAYER_W / 2;
-        const pcy = p.y + PLAYER_H / 2;
-        // Distance from player center to spinner tip
-        const dist = Math.hypot(pcx - ex, pcy - ey);
-        if (dist < 18) {
-          // Knockback
-          p.vy = -300;
-          p.vx = (pcx > ex ? 200 : -200);
-          p.grounded = false;
-        }
-      }
+    // Checkpoint detection
+    if (sec.hasCheckpoint && p.y < sec.botY && (!checkpoint || checkpoint.section < sec.index)) {
+      checkpoint = { x: p.x, y: p.y, section: sec.index };
+      checkpointMsg = 1.5;
+      document.getElementById('checkpoint-msg').style.display = 'block';
+      sfxCheckpoint();
     }
   }
 
-  // Check if fell too far below (restart)
-  if (p.y > tower.floorY + 100) {
+  // Fall below floor — respawn at checkpoint or bottom
+  if (p.y > tower.floorY + 200) {
     sfxFall();
-    resetPlayer();
-    camera.y = 0;
     // Reset disappearing platforms
     tower.sections.forEach(s => s.platforms.forEach(pl => {
       pl.visible = true; pl.touched = false; pl.disappearTimer = 0;
     }));
+    resetPlayer(true);
     return;
   }
 
-  // Win check — reached top
-  if (p.y < tower.topY) {
+  // Win — reached top
+  if (p.y + PH < tower.topY + 40) {
     winGame();
     return;
   }
 
-  // Camera follows player upward (smooth)
+  // Camera
   const targetCam = Math.min(0, -(p.y - canvas.height * 0.55));
-  camera.y += (targetCam - camera.y) * 5 * dt;
+  cam.y += (targetCam - cam.y) * 5 * dt;
 
   // Section info
-  const sectionIdx = Math.max(0, Math.floor(-p.y / SECTION_H));
+  const secIdx = Math.max(0, Math.floor((-p.y) / SECTION_H));
   const info = document.getElementById('section-info');
-  if (sectionIdx > 0 && sectionIdx <= tower.numSections) {
-    info.textContent = `Section ${sectionIdx} / ${tower.numSections}`;
+  if (secIdx >= 0 && secIdx < tower.numSections) {
+    info.textContent = `Section ${secIdx + 1} / ${tower.numSections}`;
   } else {
     info.textContent = '';
   }
@@ -391,9 +385,8 @@ function update(dt) {
 // --- Render ---
 function render() {
   const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
 
-  // Sky gradient background
+  // Background gradient
   const grad = ctx.createLinearGradient(0, 0, 0, H);
   grad.addColorStop(0, '#0f0c29');
   grad.addColorStop(0.5, '#302b63');
@@ -401,64 +394,81 @@ function render() {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
+  if (!tower || state === 'title') return;
+
   ctx.save();
-  ctx.translate(0, camera.y);
+  ctx.translate(0, cam.y);
 
   const tl = tower.towerLeft;
 
-  // Draw stars (parallax)
+  // Stars (parallax)
   ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  for (let i = 0; i < 60; i++) {
-    const sx = ((i * 137.5) % W);
-    const sy = ((i * 211.3) % (tower.totalHeight + H)) - tower.totalHeight;
-    const ss = 1 + (i % 3);
-    ctx.fillRect(sx, sy - camera.y * 0.3, ss, ss);
+  for (let i = 0; i < 50; i++) {
+    const sx = (i * 137.5) % W;
+    const sy = ((i * 211.3) % (tower.numSections * SECTION_H + H)) - tower.numSections * SECTION_H;
+    ctx.fillRect(sx, sy - cam.y * 0.3, 1 + i % 3, 1 + i % 3);
   }
 
   // Tower walls
-  const wallTop = tower.topY - 60;
-  const wallBot = tower.floorY + 20;
-  const wallH = wallBot - wallTop;
-
-  // Left wall
+  const wallTop = tower.topY - 40;
+  const wallBot = tower.floorY + 30;
   ctx.fillStyle = '#2a2a4a';
-  ctx.fillRect(tl, wallTop, WALL_THICKNESS, wallH);
-  // Right wall
-  ctx.fillRect(tl + TOWER_W - WALL_THICKNESS, wallTop, WALL_THICKNESS, wallH);
-
+  ctx.fillRect(tl, wallTop, WALL_T, wallBot - wallTop);
+  ctx.fillRect(tl + TOWER_W - WALL_T, wallTop, WALL_T, wallBot - wallTop);
   // Wall stripes
   ctx.fillStyle = '#3a3a5a';
-  for (let wy = wallTop; wy < wallBot; wy += 36) {
-    ctx.fillRect(tl, wy, WALL_THICKNESS, 2);
-    ctx.fillRect(tl + TOWER_W - WALL_THICKNESS, wy, WALL_THICKNESS, 2);
+  for (let wy = wallTop; wy < wallBot; wy += 30) {
+    ctx.fillRect(tl, wy, WALL_T, 2);
+    ctx.fillRect(tl + TOWER_W - WALL_T, wy, WALL_T, 2);
   }
 
   // Floor
   ctx.fillStyle = '#4a4a6a';
   ctx.fillRect(tl, tower.floorY, TOWER_W, 20);
-  ctx.fillStyle = '#5a5a7a';
+  ctx.fillStyle = '#6a6a8a';
   ctx.fillRect(tl, tower.floorY, TOWER_W, 3);
 
   // Section backgrounds + platforms
   for (const sec of tower.sections) {
-    // Section divider line
+    // Section divider
     ctx.strokeStyle = 'rgba(255,255,255,0.06)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(tl + WALL_THICKNESS, sec.baseY + SECTION_H);
-    ctx.lineTo(tl + TOWER_W - WALL_THICKNESS, sec.baseY + SECTION_H);
+    ctx.moveTo(tl + WALL_T, sec.botY);
+    ctx.lineTo(tl + TOWER_W - WALL_T, sec.botY);
     ctx.stroke();
 
-    // Section number
-    ctx.fillStyle = 'rgba(255,255,255,0.04)';
-    ctx.font = 'bold 60px sans-serif';
+    // Big section number watermark
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    ctx.font = 'bold 80px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(sec.index + 1, tl + TOWER_W / 2, sec.baseY + SECTION_H - 50);
+    ctx.fillText(sec.index + 1, tl + TOWER_W / 2, sec.topY + SECTION_H * 0.65);
+
+    // Checkpoint flag
+    if (sec.hasCheckpoint) {
+      const flagX = tl + TOWER_W / 2;
+      const flagY = sec.botY - 10;
+      const reached = checkpoint && checkpoint.section >= sec.index;
+      // Pole
+      ctx.strokeStyle = '#888';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(flagX, flagY);
+      ctx.lineTo(flagX, flagY - 35);
+      ctx.stroke();
+      // Flag
+      ctx.fillStyle = reached ? '#6bcb77' : '#555';
+      ctx.beginPath();
+      ctx.moveTo(flagX, flagY - 35);
+      ctx.lineTo(flagX + 20, flagY - 28);
+      ctx.lineTo(flagX, flagY - 21);
+      ctx.fill();
+    }
 
     // Platforms
     for (const plat of sec.platforms) {
       if (!plat.visible) {
-        // Ghost outline for disappearing
+        // Ghost outline for disappearing platforms
         if (plat.type === 'disappearing') {
           ctx.strokeStyle = 'rgba(255,255,255,0.1)';
           ctx.lineWidth = 1;
@@ -469,101 +479,81 @@ function render() {
         continue;
       }
 
-      // Platform body
-      const c = plat.color;
+      // Flash if about to disappear
       if (plat.type === 'disappearing' && plat.touched) {
-        const flash = Math.sin(timer * 12) > 0 ? 0.6 : 1;
-        ctx.globalAlpha = flash;
+        ctx.globalAlpha = Math.sin(timer * 12) > 0 ? 0.5 : 1;
       }
 
-      ctx.fillStyle = c;
+      // Platform body
+      ctx.fillStyle = plat.color;
       ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
-      // Highlight
-      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      // Top highlight
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
       ctx.fillRect(plat.x, plat.y, plat.w, 3);
-      // Shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      // Bottom shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
       ctx.fillRect(plat.x, plat.y + plat.h - 2, plat.w, 2);
 
       ctx.globalAlpha = 1;
 
-      // Type indicator icon
+      // Moving indicator
       if (plat.type === 'moving') {
-        ctx.fillStyle = 'rgba(255,255,255,0.5)';
-        ctx.font = '10px sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.font = '11px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('↔', plat.x + plat.w / 2, plat.y - 3);
+        ctx.fillText('↔', plat.x + plat.w / 2, plat.y - 4);
       }
-
-      // Spinner
-      if (plat.hasSpinner) {
-        const cx = plat.x + plat.w / 2;
-        const cy = plat.y - 20;
-        const ex = cx + Math.cos(plat.spinnerAngle) * plat.spinnerLen;
-        const ey = cy + Math.sin(plat.spinnerAngle) * plat.spinnerLen;
-        ctx.strokeStyle = '#ff4444';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(ex, ey);
-        ctx.stroke();
-        // Tip
-        ctx.fillStyle = '#ff6666';
-        ctx.beginPath();
-        ctx.arc(ex, ey, 8, 0, Math.PI * 2);
-        ctx.fill();
-        // Center
-        ctx.fillStyle = '#cc2222';
-        ctx.beginPath();
-        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-        ctx.fill();
+      // Disappearing indicator
+      if (plat.type === 'disappearing' && !plat.touched) {
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚠', plat.x + plat.w / 2, plat.y - 4);
       }
     }
   }
 
-  // Finish zone
+  // Finish zone at top
   const finY = tower.topY;
   ctx.fillStyle = '#ffd93d';
-  ctx.fillRect(tl + WALL_THICKNESS, finY - 10, TOWER_W - WALL_THICKNESS * 2, 14);
-  ctx.fillStyle = 'rgba(255,217,61,0.15)';
-  ctx.fillRect(tl + WALL_THICKNESS, finY - 60, TOWER_W - WALL_THICKNESS * 2, 60);
-  // Checkered finish pattern
-  const stripeW = 20;
-  for (let sx = tl + WALL_THICKNESS; sx < tl + TOWER_W - WALL_THICKNESS; sx += stripeW * 2) {
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.fillRect(sx, finY - 10, stripeW, 7);
-    ctx.fillRect(sx + stripeW, finY - 3, stripeW, 7);
+  ctx.fillRect(tl + WALL_T, finY, TOWER_W - WALL_T * 2, 14);
+  ctx.fillStyle = 'rgba(255,217,61,0.12)';
+  ctx.fillRect(tl + WALL_T, finY - 50, TOWER_W - WALL_T * 2, 50);
+  // Checkered pattern
+  for (let sx = tl + WALL_T; sx < tl + TOWER_W - WALL_T; sx += 28) {
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(sx, finY, 14, 7);
+    ctx.fillRect(sx + 14, finY + 7, 14, 7);
   }
   ctx.fillStyle = '#ffd93d';
-  ctx.font = 'bold 18px sans-serif';
+  ctx.font = 'bold 16px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('🏆 FINISH', tl + TOWER_W / 2, finY - 20);
+  ctx.fillText('🏆 FINISH', tl + TOWER_W / 2, finY - 14);
 
   // Player
-  if (player && state === 'playing') {
+  if (player) {
     const p = player;
-    ctx.fillStyle = p.color;
-    // Body
-    const radius = 5;
-    ctx.beginPath();
-    ctx.roundRect(p.x, p.y, PLAYER_W, PLAYER_H, radius);
-    ctx.fill();
-    // Highlight
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.fillRect(p.x + 3, p.y + 3, PLAYER_W - 6, 6);
-    // Eyes
-    const eyeX = p.facingRight ? p.x + PLAYER_W - 9 : p.x + 4;
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(eyeX, p.y + 8, 5, 6);
-    ctx.fillStyle = '#111';
-    ctx.fillRect(p.facingRight ? eyeX + 2 : eyeX, p.y + 10, 3, 3);
-    // Shadow on ground if grounded
+    // Shadow
     if (p.grounded) {
       ctx.fillStyle = 'rgba(0,0,0,0.15)';
       ctx.beginPath();
-      ctx.ellipse(p.x + PLAYER_W / 2, p.y + PLAYER_H + 2, PLAYER_W * 0.4, 3, 0, 0, Math.PI * 2);
+      ctx.ellipse(p.x + PW / 2, p.y + PH + 2, PW * 0.4, 3, 0, 0, Math.PI * 2);
       ctx.fill();
     }
+    // Body
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.roundRect(p.x, p.y, PW, PH, 4);
+    ctx.fill();
+    // Highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillRect(p.x + 3, p.y + 3, PW - 6, 5);
+    // Eyes
+    const eyeX = p.facingRight ? p.x + PW - 8 : p.x + 3;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(eyeX, p.y + 7, 5, 5);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(p.facingRight ? eyeX + 2 : eyeX, p.y + 9, 3, 3);
   }
 
   ctx.restore();
@@ -572,29 +562,25 @@ function render() {
 // --- Input ---
 document.addEventListener('keydown', e => {
   keys[e.code] = true;
-  if (e.code === 'Space') e.preventDefault();
+  if (e.code === 'Space' || e.code === 'ArrowUp') e.preventDefault();
 });
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
-// Touch controls
 function setupTouch(id, onDown, onUp) {
   const el = document.getElementById(id);
   el.addEventListener('touchstart', e => { e.preventDefault(); onDown(); });
   el.addEventListener('touchend', e => { e.preventDefault(); onUp(); });
-  el.addEventListener('touchcancel', e => { onUp(); });
+  el.addEventListener('touchcancel', () => onUp());
 }
-setupTouch('tb-left', () => touchLeft = true, () => touchLeft = false);
-setupTouch('tb-right', () => touchRight = true, () => touchRight = false);
-setupTouch('tb-jump', () => touchJump = true, () => touchJump = false);
+setupTouch('tb-left', () => touchL = true, () => touchL = false);
+setupTouch('tb-right', () => touchR = true, () => touchR = false);
+setupTouch('tb-jump', () => touchJ = true, () => touchJ = false);
 
 // --- Game Loop ---
 function loop(ts) {
   const dt = Math.min(0.05, (ts - lastTime) / 1000);
   lastTime = ts;
-
-  if (state === 'playing') {
-    update(dt);
-  }
+  if (state === 'playing') update(dt);
   render();
   requestAnimationFrame(loop);
 }
